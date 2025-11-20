@@ -10,13 +10,11 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             update = json.loads(post_data)
             
-            # Обрабатываем сообщения от Telegram
             if 'message' in update:
                 chat_id = update['message']['chat']['id']
                 text = update['message'].get('text', '')
                 
                 if text.startswith('/start'):
-                    # Отправляем сообщение с кнопкой, открывающей Mini App
                     bot_token = os.environ.get('BOT_TOKEN')
                     vercel_url = os.environ.get('VERCEL_URL')
                     
@@ -42,7 +40,6 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write('OK'.encode('utf-8'))
             
         except Exception as e:
-            print(f"Error: {e}")
             self.send_response(200)
             self.end_headers()
 
