@@ -649,7 +649,7 @@
                 id: 1, 
                 name: "Букет из 25 красных роз", 
                 price: 3500, 
-                image: "https://t.me/flowerShop_my/2",
+                image: "",
                 category: "roses",
                 description: "Роскошные красные розы в элегантной упаковке",
                 fact: "Красные розы символизируют глубокую любовь и страсть. В Древнем Риме они были символом Венеры - богини любви."
@@ -658,7 +658,7 @@
                 id: 2, 
                 name: "Весенний микс тюльпанов", 
                 price: 2200, 
-                image: "https://t.me/flowerShop_my/3",
+                image: "",
                 category: "tulips", 
                 description: "Разноцветные тюльпаны в плетеной корзине",
                 fact: "Тюльпаны продолжают расти после срезки и могут вырасти на 2-3 см в вазе. В Голландии в 17 веке одна луковица тюльпана могла стоить как целый дом!"
@@ -667,7 +667,7 @@
                 id: 3, 
                 name: "Свадебный букет невесты", 
                 price: 5200, 
-                image: "https://t.me/flowerShop_my/4",
+                image: "",
                 category: "premium",
                 description: "Белые розы, лилии и орхидеи для особого дня",
                 fact: "Традиция свадебного букета зародилась в Древней Греции, где невесты носили гирлянды из цветов, символизирующие новую жизнь."
@@ -676,7 +676,7 @@
                 id: 4, 
                 name: "Орхидея фаленопсис", 
                 price: 2900, 
-                image: "https://t.me/flowerShop_my/5",
+                image: "",
                 category: "orchids",
                 description: "Элегантная белая орхидея в керамическом горшке",
                 fact: "Орхидеи - одно из самых многочисленных семейств растений, насчитывающее около 25,000 видов. Некоторые виды могут жить до 100 лет!"
@@ -685,7 +685,7 @@
                 id: 5, 
                 name: "Романтический сюрприз", 
                 price: 4200, 
-                image: "https://t.me/flowerShop_my/6",
+                image: "",
                 category: "roses",
                 description: "Красные розы с шоколадом и открыткой",
                 fact: "Аромат роз может поднимать настроение и снижать стресс. В древности лепестки роз использовали для украшения банкетных залов и постелей новобрачных."
@@ -694,12 +694,34 @@
                 id: 6, 
                 name: "Тюльпаны радуга", 
                 price: 1800, 
-                image: "https://t.me/flowerShop_my/7",
+                image: "",
                 category: "tulips",
                 description: "Пять цветов тюльпанов в одной композиции",
                 fact: "Тюльпаны бывают практически всех цветов радуги, кроме синего. Существует около 3,000 сортов тюльпанов, официально зарегистрированных по всему миру."
             }
         ];
+
+        async function loadProductImages() {
+            try {
+                const response = await fetch('/api/bot');
+                const data = await response.json();
+                
+                if (data.photos) {
+                    products[0].image = data.photos.roses;
+                    products[1].image = data.photos.tulips;
+                    products[2].image = data.photos.wedding;
+                    products[3].image = data.photos.orchid;
+                    products[4].image = data.photos.romantic;
+                    products[5].image = data.photos.rainbow;
+                    
+                    if (document.getElementById('productsGrid')) {
+                        renderProducts(currentCategory);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading product images:', error);
+            }
+        }
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -724,7 +746,7 @@
         }
 
         function initApp() {
-            renderProducts();
+            loadProductImages();
             setupEventListeners();
         }
 
