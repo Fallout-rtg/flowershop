@@ -14,23 +14,63 @@ class Handler(BaseHTTPRequestHandler):
                 chat_id = update['message']['chat']['id']
                 text = update['message'].get('text', '')
                 
+                bot_token = os.environ.get('BOT_TOKEN')
+                vercel_url = os.environ.get('VERCEL_URL')
+                
                 if text.startswith('/start'):
-                    bot_token = os.environ.get('BOT_TOKEN')
-                    vercel_url = os.environ.get('VERCEL_URL')
+                    markup = {
+                        "inline_keyboard": [
+                            [{
+                                "text": "🌸 Открыть магазин цветов", 
+                                "web_app": {"url": f"https://{vercel_url}/"}
+                            }],
+                            [
+                                {"text": "📞 Поддержка", "url": "https://t.me/flower_support"},
+                                {"text": "ℹ️ О магазине", "callback_data": "about"}
+                            ]
+                        ]
+                    }
+                    
+                    message = """🌸 *Добро пожаловать в магазин элитных цветов!*
+
+✨ У нас вы найдете:
+• Свежие цветы от проверенных поставщиков
+• Быструю доставку по Ярославлю
+• Индивидуальный подход к каждому заказу
+
+Нажмите на кнопку ниже, чтобы открыть каталог и сделать заказ!"""
                     
                     response_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    markup = {
-                        "inline_keyboard": [[
-                            {
-                                "text": "🌸 Открыть магазин цветов",
-                                "web_app": {"url": f"https://{vercel_url}/"}
-                            }
-                        ]]
-                    }
                     payload = {
                         'chat_id': chat_id,
-                        'text': '🌸 Добро пожаловать в магазин элитных цветов!\n\nНажмите на кнопку ниже, чтобы открыть каталог и сделать заказ.',
+                        'text': message,
+                        'parse_mode': 'Markdown',
                         'reply_markup': json.dumps(markup)
+                    }
+                    requests.post(response_url, json=payload)
+                
+                elif text.startswith('/help'):
+                    message = """🛠 *Помощь по боту*
+
+*Основные команды:*
+/start - начать работу с ботом
+/help - получить помощь
+
+*Как сделать заказ:*
+1. Нажмите кнопку «Открыть магазин цветов»
+2. Выберите понравившиеся букеты
+3. Оформите заказ в корзине
+4. Укажите ваш телефон для связи
+
+*Доставка:* 
+🏙️ По Ярославлю - бесплатно
+⏱ В течение 2-х часов"""
+                    
+                    response_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                    payload = {
+                        'chat_id': chat_id,
+                        'text': message,
+                        'parse_mode': 'Markdown'
                     }
                     requests.post(response_url, json=payload)
             
@@ -45,18 +85,6 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Content-type', 'text/plain')
         self.end_headers()
-        
-        photos = {
-            'roses': 'https://t.me/flowerShop_my/2',
-            'tulips': 'https://t.me/flowerShop_my/3',
-            'wedding': 'https://t.me/flowerShop_my/4',
-            'orchid': 'https://t.me/flowerShop_my/5',
-            'romantic': 'https://t.me/flowerShop_my/6',
-            'rainbow': 'https://t.me/flowerShop_my/7'
-        }
-        
-        response = {'photos': photos}
-        self.wfile.write(json.dumps(response).encode('utf-8'))
+        self.wfile.write('Bot is running'.encode('utf-8'))
