@@ -15,13 +15,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             print("Fetching products from Supabase...")
             
-            response = supabase.table("products")\
-                .select("*")\
-                .eq("is_available", True)\
-                .execute()
+            # Для supabase 1.0.3 используем такой синтаксис
+            response = supabase.table("products").select("*").eq("is_available", True).execute()
             
             print(f"Supabase response: {response}")
             
+            # В версии 1.0.3 данные в response.data
             products = response.data
             
             self.send_response(200)
@@ -38,6 +37,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
+            # Fallback данные
             fallback_products = [
                 {
                     "id": 1,
@@ -47,6 +47,16 @@ class Handler(BaseHTTPRequestHandler):
                     "category": "roses",
                     "description": "Роскошные красные розы в элегантной упаковке",
                     "fact": "Красные розы символизируют глубокую любовь и страсть",
+                    "is_available": True
+                },
+                {
+                    "id": 2,
+                    "name": "Весенний микс тюльпанов",
+                    "price": 2200,
+                    "image_url": "https://avatars.mds.yandex.net/i?id=a6a74bd671cd7b4288738a981e5ddeec_sr-5435996-images-thumbs&n=13",
+                    "category": "tulips",
+                    "description": "Разноцветные тюльпаны в плетеной корзине",
+                    "fact": "Тюльпаны продолжают расти после срезки",
                     "is_available": True
                 }
             ]
