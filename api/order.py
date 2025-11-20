@@ -15,9 +15,75 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET, PUT')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
+    
+    def do_GET(self):
+        try:
+            user_id = self.headers.get('User-Id', '')
+            is_admin = self.headers.get('Is-Admin', 'false') == 'true'
+            
+            if is_admin:
+                response = supabase.table("orders").select("*, order_statuses(name)").execute()
+                orders = response.data
+            else:
+                response = supabase.table("orders").select("*").eq("user_id", user_id).execute()
+                orders = response.data
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            self.wfile.write(json.dumps(orders).encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Error in order GET handler: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'success': False, 'error': str(e)}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+    
+    def do_PUT(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            order_data = json.loads(post_data)
+            
+            order_id = order_data.get('order_id')
+            status_id = order_data.get('status_id')
+            admin_notes = order_data.get('admin_notes', '')
+            
+            update_data = {}
+            if status_id:
+                update_data['status_id'] = status_id
+            if admin_notes is not None:
+                update_data['admin_notes'] = admin_notes
+            
+            response = supabase.table("orders").update(update_data).eq("id", order_id).execute()
+            
+            if status_id:
+                self.send_order_notification(order_id, status_id)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            response_data = {'success': True, 'message': 'Order updated successfully'}
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Error in order PUT handler: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'success': False, 'error': str(e)}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
     
     def do_POST(self):
         try:
@@ -40,7 +106,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in order handler: {e}")
+            print(f"Error in order POST handler: {e}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -107,10 +173,10 @@ class Handler(BaseHTTPRequestHandler):
                 "phone": clean_phone,
                 "comment": order_data.get('comment', ''),
                 "items": order_data['items'],
-                "total_amount": order_data['total']
+                "total_amount": order_data['total'],
+                "status_id": 1
             }
             
-            # Для supabase 1.0.3
             result = supabase.table("orders").insert(order_record).execute()
             print(f"Order saved to DB: {result}")
             return True
@@ -156,4 +222,40 @@ class Handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             print(f"Error sending user confirmation: {e}")
+            return False
+
+    def send_order_notification(self, order_id, status_id):
+        try:
+            bot_token = os.environ.get('BOT_TOKEN')
+            
+            order_response = supabase.table("orders").select("*, order_statuses(name)").eq("id", order_id).execute()
+            if not order_response.data:
+                return False
+            
+            order = order_response.data[0]
+            status_name = order['order_statuses']['name']
+            
+            status_messages = {
+                1: "✅ Ваш заказ принят! Мы начинаем его обработку.",
+                2: "🔄 Заказ подтвержден! Мы готовим его к отправке.",
+                3: "📦 Ваш заказ собирается! Скоро он будет у вас.",
+                4: "🚗 Заказ в пути! Курьер уже везет его к вам.",
+                5: "🎉 Заказ доставлен! Спасибо за покупку!",
+                6: "❌ Заказ отменен."
+            }
+            
+            message = status_messages.get(status_id, f"Статус заказа изменен: {status_name}")
+            
+            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            payload = {
+                'chat_id': order['user_id'],
+                'text': message,
+                'parse_mode': 'Markdown'
+            }
+            
+            response = requests.post(url, json=payload, timeout=10)
+            return response.status_code == 200
+            
+        except Exception as e:
+            print(f"Error sending order notification: {e}")
             return False
