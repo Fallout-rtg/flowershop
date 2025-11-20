@@ -546,6 +546,27 @@
             color: var(--text-light);
             margin-bottom: 25px;
         }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -570,7 +591,12 @@
             <button class="category-btn" data-category="premium">Премиум</button>
         </div>
 
-        <div class="products-grid" id="productsGrid"></div>
+        <div class="products-grid" id="productsGrid">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <div>Загружаем каталог...</div>
+            </div>
+        </div>
 
         <button class="cart-button" id="cartButton">
             <i class="fas fa-shopping-bag"></i>
@@ -645,63 +671,7 @@
 
         let cart = [];
         let currentCategory = 'all';
-
-        const products = [
-            { 
-                id: 1, 
-                name: "Букет из 25 красных роз", 
-                price: 3500, 
-                image: "https://s.widget-club.com/images/YyiR86zpwIMIfrCZoSs4ulVD9RF3/1a4e33422efdd0fbf0c2af3394a67b13/ab18ec0a91069208210a71ac46ce9176.jpg",
-                category: "roses",
-                description: "Роскошные красные розы в элегантной упаковке",
-                fact: "Красные розы символизируют глубокую любовь и страсть. В Древнем Риме они были символом Венеры - богини любви."
-            },
-            { 
-                id: 2, 
-                name: "Весенний микс тюльпанов", 
-                price: 2200, 
-                image: "https://avatars.mds.yandex.net/i?id=a6a74bd671cd7b4288738a981e5ddeec_sr-5435996-images-thumbs&n=13",
-                category: "tulips", 
-                description: "Разноцветные тюльпаны в плетеной корзине",
-                fact: "Тюльпаны продолжают расти после срезки и могут вырасти на 2-3 см в вазе. В Голландии в 17 веке одна луковица тюльпана могла стоить как целый дом!"
-            },
-            { 
-                id: 3, 
-                name: "Свадебный букет невесты", 
-                price: 5200, 
-                image: "https://img0.liveinternet.ru/images/attach/c/2/71/783/71783188_1299657661_lily_and_roses.jpg",
-                category: "premium",
-                description: "Белые розы, лилии и орхидеи для особого дня",
-                fact: "Традиция свадебного букета зародилась в Древней Греции, где невесты носили гирлянды из цветов, символизирующие новую жизнь."
-            },
-            { 
-                id: 4, 
-                name: "Орхидея фаленопсис", 
-                price: 2900, 
-                image: "https://avatars.mds.yandex.net/i?id=67103fa9353694d0cde953b11caf366ad4270819-5290060-images-thumbs&n=13",
-                category: "orchids",
-                description: "Элегантная белая орхидея в керамическом горшке",
-                fact: "Орхидеи - одно из самых многочисленных семейств растений, насчитывающее около 25,000 видов. Некоторые виды могут жить до 100 лет!"
-            },
-            { 
-                id: 5, 
-                name: "Романтический сюрприз", 
-                price: 4200, 
-                image: "https://avatars.mds.yandex.net/i?id=7ef2fb3eaae443b8b1e5ba1e49125931_l-4988204-images-thumbs&n=13",
-                category: "roses",
-                description: "Красные розы с шоколадом и открыткой",
-                fact: "Аромат роз может поднимать настроение и снижать стресс. В древности лепестки роз использовали для украшения банкетных залов и постелей новобрачных."
-            },
-            { 
-                id: 6, 
-                name: "Тюльпаны радуга", 
-                price: 1800, 
-                image: "https://img.freepik.com/premium-photo/rainbow-tulips-white-foyer-colorful-flower-theme-spring-generative-ai_132375-18140.jpg",
-                category: "tulips",
-                description: "Пять цветов тюльпанов в одной композиции",
-                fact: "Тюльпаны бывают практически всех цветов радуги, кроме синего. Существует около 3,000 сортов тюльпанов, официально зарегистрированных по всему миру."
-            }
-        ];
+        let products = [];
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -725,34 +695,55 @@
             }, 2000);
         }
 
-        function initApp() {
-            renderProducts();
-            setupEventListeners();
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) throw new Error('Network error');
+                products = await response.json();
+                renderProducts();
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showToast('Ошибка загрузки каталога', 'error');
+                renderProducts([]);
+            }
         }
 
         function renderProducts(category = 'all') {
             const grid = document.getElementById('productsGrid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="loading"><div>Товары временно недоступны</div></div>';
+                return;
+            }
+            
             grid.innerHTML = '';
             
             const filteredProducts = category === 'all' 
                 ? products 
                 : products.filter(product => product.category === category);
             
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = '<div class="loading"><div>В этой категории пока нет товаров</div></div>';
+                return;
+            }
+            
             filteredProducts.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
                     <div class="product-image">
-                        <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">
+                        <img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">
                         <div class="product-badge">Хит</div>
                     </div>
                     <div class="product-content">
                         <div class="product-title">${product.name}</div>
                         <div class="product-description">${product.description}</div>
+                        ${product.fact ? `
                         <div class="product-fact">
                             <i class="fas fa-lightbulb"></i>
                             <span class="product-fact-text">${product.fact}</span>
                         </div>
+                        ` : ''}
                         <div class="product-footer">
                             <div class="product-price">${product.price.toLocaleString()} ₽</div>
                             <button class="add-to-cart" data-id="${product.id}">
@@ -896,7 +887,7 @@
         }
 
         function sendOrderToAdmin(orderData) {
-            fetch('/api/order', {
+            return fetch('/api/order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -907,13 +898,16 @@
             .then(data => {
                 if (data.success) {
                     showOrderSuccess();
+                    return true;
                 } else {
                     tg.showAlert('Ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
+                    return false;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 tg.showAlert('Ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
+                return false;
             });
         }
 
@@ -979,6 +973,7 @@
                     phone: phone,
                     comment: comment,
                     items: cart.map(item => ({
+                        id: item.id,
                         name: item.name,
                         price: item.price,
                         quantity: item.quantity,
@@ -988,7 +983,15 @@
                     time: new Date().toLocaleString('ru-RU')
                 };
                 
-                sendOrderToAdmin(orderData);
+                document.getElementById('confirmOrderBtn').disabled = true;
+                document.getElementById('confirmOrderBtn').textContent = 'Отправляем...';
+                
+                sendOrderToAdmin(orderData).then(success => {
+                    if (!success) {
+                        document.getElementById('confirmOrderBtn').disabled = false;
+                        document.getElementById('confirmOrderBtn').textContent = 'Подтвердить заказ';
+                    }
+                });
             });
 
             document.getElementById('closeSuccess').addEventListener('click', () => {
@@ -999,6 +1002,8 @@
                 document.getElementById('orderSuccess').style.display = 'none';
                 document.getElementById('phoneInput').value = '+7';
                 document.getElementById('orderComment').value = '';
+                document.getElementById('confirmOrderBtn').disabled = true;
+                document.getElementById('confirmOrderBtn').textContent = 'Подтвердить заказ';
             });
 
             document.querySelectorAll('.modal').forEach(modal => {
@@ -1033,6 +1038,11 @@
                 e.target.value = value;
             });
         });
+
+        function initApp() {
+            loadProducts();
+            setupEventListeners();
+        }
 
         initApp();
     </script>
