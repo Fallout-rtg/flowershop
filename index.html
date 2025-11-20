@@ -274,7 +274,7 @@
         }
 
         .cart-button:hover {
-            background: var(--primary-dark;
+            background: var(--primary-dark);
             transform: scale(1.05);
         }
 
@@ -312,7 +312,7 @@
             padding: 25px;
             max-width: 400px;
             width: 100%;
-            max-height: 85vh;
+            max-height: 80vh;
             overflow-y: auto;
             animation: modalSlideIn 0.3s ease;
         }
@@ -365,6 +365,8 @@
 
         .cart-items {
             margin-bottom: 25px;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .cart-item {
@@ -575,62 +577,62 @@
             <span id="cartTotalAmount">0 ₽</span>
             <span class="cart-count" id="cartCount">0</span>
         </button>
+    </div>
 
-        <div class="modal" id="cartModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-title">🛒 Ваша корзина</div>
-                    <button class="close-modal" id="closeCart">×</button>
-                </div>
-                <div class="cart-items" id="cartItems"></div>
-                <div class="cart-total">
-                    <span>Итого:</span>
-                    <span id="modalTotal">0 ₽</span>
-                </div>
-                <button class="checkout-btn" id="checkoutBtn">Оформить заказ</button>
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🛒 Ваша корзина</div>
+                <button class="close-modal" id="closeCart">×</button>
             </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-total">
+                <span>Итого:</span>
+                <span id="modalTotal">0 ₽</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn">Оформить заказ</button>
         </div>
+    </div>
 
-        <div class="modal" id="orderModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-title">📦 Оформление заказа</div>
-                    <button class="close-modal" id="closeOrder">×</button>
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📦 Оформление заказа</div>
+                <button class="close-modal" id="closeOrder">×</button>
+            </div>
+            
+            <div id="orderForm">
+                <div class="form-group">
+                    <label class="form-label">Ваш номер телефона *</label>
+                    <input type="tel" class="form-input phone-input" id="phoneInput" 
+                           placeholder="+7 (XXX) XXX-XX-XX" required value="+7">
+                    <small style="color: var(--text-light); margin-top: 5px; display: block;">
+                        Только российские номера. Мы свяжемся для подтверждения заказа.
+                    </small>
                 </div>
                 
-                <div id="orderForm">
-                    <div class="form-group">
-                        <label class="form-label">Ваш номер телефона *</label>
-                        <input type="tel" class="form-input phone-input" id="phoneInput" 
-                               placeholder="+7 (XXX) XXX-XX-XX" required value="+7">
-                        <small style="color: var(--text-light); margin-top: 5px; display: block;">
-                            Только российские номера. Мы свяжемся для подтверждения заказа.
-                        </small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Комментарий к заказу</label>
-                        <textarea class="form-input" id="orderComment" 
-                                 placeholder="Пожелания по доставке или особые указания..." 
-                                 rows="3"></textarea>
-                    </div>
-                    
-                    <button class="checkout-btn" id="confirmOrderBtn" disabled>
-                        Подтвердить заказ
-                    </button>
+                <div class="form-group">
+                    <label class="form-label">Комментарий к заказу</label>
+                    <textarea class="form-input" id="orderComment" 
+                             placeholder="Пожелания по доставке или особые указания..." 
+                             rows="3"></textarea>
                 </div>
+                
+                <button class="checkout-btn" id="confirmOrderBtn" disabled>
+                    Подтвердить заказ
+                </button>
+            </div>
 
-                <div id="orderSuccess" style="display: none;">
-                    <div class="success-state">
-                        <div class="success-icon">🎉</div>
-                        <div class="success-title">Заказ принят!</div>
-                        <div class="success-message">
-                            Мы свяжемся с вами в ближайшее время для уточнения деталей доставки.
-                        </div>
-                        <button class="checkout-btn" id="closeSuccess">
-                            Продолжить покупки
-                        </button>
+            <div id="orderSuccess" style="display: none;">
+                <div class="success-state">
+                    <div class="success-icon">🎉</div>
+                    <div class="success-title">Заказ принят!</div>
+                    <div class="success-message">
+                        Мы свяжемся с вами в ближайшее время для уточнения деталей доставки.
                     </div>
+                    <button class="checkout-btn" id="closeSuccess">
+                        Продолжить покупки
+                    </button>
                 </div>
             </div>
         </div>
@@ -649,7 +651,7 @@
                 id: 1, 
                 name: "Букет из 25 красных роз", 
                 price: 3500, 
-                image: "",
+                image: "https://s.widget-club.com/images/YyiR86zpwIMIfrCZoSs4ulVD9RF3/1a4e33422efdd0fbf0c2af3394a67b13/ab18ec0a91069208210a71ac46ce9176.jpg",
                 category: "roses",
                 description: "Роскошные красные розы в элегантной упаковке",
                 fact: "Красные розы символизируют глубокую любовь и страсть. В Древнем Риме они были символом Венеры - богини любви."
@@ -658,7 +660,7 @@
                 id: 2, 
                 name: "Весенний микс тюльпанов", 
                 price: 2200, 
-                image: "",
+                image: "https://avatars.mds.yandex.net/i?id=a6a74bd671cd7b4288738a981e5ddeec_sr-5435996-images-thumbs&n=13",
                 category: "tulips", 
                 description: "Разноцветные тюльпаны в плетеной корзине",
                 fact: "Тюльпаны продолжают расти после срезки и могут вырасти на 2-3 см в вазе. В Голландии в 17 веке одна луковица тюльпана могла стоить как целый дом!"
@@ -667,7 +669,7 @@
                 id: 3, 
                 name: "Свадебный букет невесты", 
                 price: 5200, 
-                image: "",
+                image: "https://img0.liveinternet.ru/images/attach/c/2/71/783/71783188_1299657661_lily_and_roses.jpg",
                 category: "premium",
                 description: "Белые розы, лилии и орхидеи для особого дня",
                 fact: "Традиция свадебного букета зародилась в Древней Греции, где невесты носили гирлянды из цветов, символизирующие новую жизнь."
@@ -676,7 +678,7 @@
                 id: 4, 
                 name: "Орхидея фаленопсис", 
                 price: 2900, 
-                image: "",
+                image: "https://avatars.mds.yandex.net/i?id=67103fa9353694d0cde953b11caf366ad4270819-5290060-images-thumbs&n=13",
                 category: "orchids",
                 description: "Элегантная белая орхидея в керамическом горшке",
                 fact: "Орхидеи - одно из самых многочисленных семейств растений, насчитывающее около 25,000 видов. Некоторые виды могут жить до 100 лет!"
@@ -685,7 +687,7 @@
                 id: 5, 
                 name: "Романтический сюрприз", 
                 price: 4200, 
-                image: "",
+                image: "https://avatars.mds.yandex.net/i?id=7ef2fb3eaae443b8b1e5ba1e49125931_l-4988204-images-thumbs&n=13",
                 category: "roses",
                 description: "Красные розы с шоколадом и открыткой",
                 fact: "Аромат роз может поднимать настроение и снижать стресс. В древности лепестки роз использовали для украшения банкетных залов и постелей новобрачных."
@@ -694,32 +696,12 @@
                 id: 6, 
                 name: "Тюльпаны радуга", 
                 price: 1800, 
-                image: "",
+                image: "https://img.freepik.com/premium-photo/rainbow-tulips-white-foyer-colorful-flower-theme-spring-generative-ai_132375-18140.jpg",
                 category: "tulips",
                 description: "Пять цветов тюльпанов в одной композиции",
                 fact: "Тюльпаны бывают практически всех цветов радуги, кроме синего. Существует около 3,000 сортов тюльпанов, официально зарегистрированных по всему миру."
             }
         ];
-
-        async function loadProductImages() {
-            try {
-                const response = await fetch('/api/bot');
-                const data = await response.json();
-                
-                if (data.photos) {
-                    products[0].image = data.photos.roses;
-                    products[1].image = data.photos.tulips;
-                    products[2].image = data.photos.wedding;
-                    products[3].image = data.photos.orchid;
-                    products[4].image = data.photos.romantic;
-                    products[5].image = data.photos.rainbow;
-                    
-                    renderProducts(currentCategory);
-                }
-            } catch (error) {
-                console.error('Error loading product images:', error);
-            }
-        }
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -744,7 +726,7 @@
         }
 
         function initApp() {
-            loadProductImages();
+            renderProducts();
             setupEventListeners();
         }
 
