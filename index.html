@@ -274,7 +274,7 @@
         }
 
         .cart-button:hover {
-            background: var(--primary-dark);
+            background: var(--primary-dark;
             transform: scale(1.05);
         }
 
@@ -714,9 +714,7 @@
                     products[4].image = data.photos.romantic;
                     products[5].image = data.photos.rainbow;
                     
-                    if (document.getElementById('productsGrid')) {
-                        renderProducts(currentCategory);
-                    }
+                    renderProducts(currentCategory);
                 }
             } catch (error) {
                 console.error('Error loading product images:', error);
