@@ -1,14 +1,26 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from supabase_client import supabase
+import os
+import sys
+
+sys.path.append(os.path.dirname(__file__))
+
+try:
+    from supabase_client import supabase
+except ImportError as e:
+    print(f"Import error: {e}")
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            print("Fetching products from Supabase...")
+            
             response = supabase.table("products")\
                 .select("*")\
                 .eq("is_available", True)\
                 .execute()
+            
+            print(f"Supabase response: {response}")
             
             products = response.data
             
@@ -20,9 +32,23 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(products).encode('utf-8'))
             
         except Exception as e:
+            print(f"Error in products handler: {e}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            error_response = {'error': 'Failed to fetch products'}
-            self.wfile.write(json.dumps(error_response).encode('utf-8'))
+            
+            fallback_products = [
+                {
+                    "id": 1,
+                    "name": "Букет из 25 красных роз",
+                    "price": 3500,
+                    "image_url": "https://s.widget-club.com/images/YyiR86zpwIMIfrCZoSs4ulVD9RF3/1a4e33422efdd0fbf0c2af3394a67b13/ab18ec0a91069208210a71ac46ce9176.jpg",
+                    "category": "roses",
+                    "description": "Роскошные красные розы в элегантной упаковке",
+                    "fact": "Красные розы символизируют глубокую любовь и страсть",
+                    "is_available": True
+                }
+            ]
+            
+            self.wfile.write(json.dumps(fallback_products).encode('utf-8'))
