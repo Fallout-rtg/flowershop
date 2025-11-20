@@ -10,6 +10,10 @@
       "use": "@vercel/python"
     },
     {
+      "src": "api/products.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     }
@@ -23,7 +27,12 @@
     {
       "src": "/api/order",
       "dest": "/api/order.py",
-      "methods": ["POST"]
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/products",
+      "dest": "/api/products.py",
+      "methods": ["GET"]
     },
     {
       "src": "/",
