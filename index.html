@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин цветов</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?2"></script>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .product {
+            border: 1px solid var(--tg-theme-hint-color, #999999);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px auto;
+            max-width: 300px;
+        }
+        button {
+            background-color: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌸 Наш каталог цветов</h1>
+    <div id="products">
+        <!-- Товары будут добавляться здесь JavaScript -->
+        <div class="product">
+            <h3>Роза красная</h3>
+            <p>Свежая и ароматная</p>
+            <p><strong>350 руб.</strong></p>
+            <button onclick="addToCart('Роза красная', 350)">В корзину</button>
+        </div>
+    </div>
+    <hr>
+    <button onclick="showCart()" style="margin-top: 20px;">🛒 Перейти к корзине</button>
+
+    <script>
+        // Инициализация Telegram Mini Apps
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрыть приложение на весь экран
+        tg.ready(); // Сообщить Telegram, что приложение готово
+
+        let cart = [];
+
+        function addToCart(name, price) {
+            cart.push({name, price});
+            tg.showPopup({title: 'Успешно!', message: `"${name}" добавлен в корзину.`});
+        }
+
+        function showCart() {
+            if (cart.length === 0) {
+                tg.showAlert('Ваша корзина пуста.');
+                return;
+            }
+            let total = cart.reduce((sum, item) => sum + item.price, 0);
+            let message = `Ваш заказ:\n` + cart.map(item => `• ${item.name} - ${item.price} руб.`).join('\n') + `\n\n🧾 Итого: ${total} руб.`;
+            tg.showConfirm(message, function(ok) {
+                if (ok) {
+                    // Здесь будет логика оформления заказа
+                    tg.showAlert("Спасибо за заказ! Мы с вами свяжемся.");
+                    cart = [];
+                }
+            });
+        }
+    </script>
+</body>
+</html>
