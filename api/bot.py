@@ -56,7 +56,7 @@ class Handler(BaseHTTPRequestHandler):
             "inline_keyboard": [
                 [{
                     "text": "🌸 Открыть магазин цветов", 
-                    "web_app": {"url": f"https://{vercel_url}/"}
+                    "web_app": {"url": f"https://{vercel_url}"}
                 }],
                 [
                     {"text": "📞 Поддержка", "url": "https://t.me/Fallout_RTG"},
