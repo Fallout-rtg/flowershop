@@ -62,6 +62,7 @@ class Handler(BaseHTTPRequestHandler):
 📛 Имя: {order_data['user']['first_name']}
 👤 Юзернейм: @{order_data['user']['username']}
 📞 Телефон: <code>{clean_phone}</code>
+🏙️ Город: Ярославль
 
 🛍️ <b>Состав заказа:</b>
 {items_text}
