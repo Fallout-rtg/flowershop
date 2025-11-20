@@ -10,47 +10,87 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             update = json.loads(post_data)
             
+            bot_token = os.environ.get('BOT_TOKEN')
+            vercel_url = os.environ.get('VERCEL_URL')
+            
+            # Обработка сообщений
             if 'message' in update:
                 chat_id = update['message']['chat']['id']
-                text = update['message'].get('text', '')
-                
-                bot_token = os.environ.get('BOT_TOKEN')
-                vercel_url = os.environ.get('VERCEL_URL')
+                text = update['message'].get('text', '').strip()
                 
                 if text.startswith('/start'):
-                    markup = {
-                        "inline_keyboard": [
-                            [{
-                                "text": "🌸 Открыть магазин цветов", 
-                                "web_app": {"url": f"https://{vercel_url}/"}
-                            }],
-                            [
-                                {"text": "📞 Поддержка", "url": "https://t.me/flower_support"},
-                                {"text": "ℹ️ О магазине", "callback_data": "about"}
-                            ]
-                        ]
-                    }
-                    
-                    message = """🌸 *Добро пожаловать в магазин элитных цветов!*
+                    await self.send_welcome_message(chat_id, bot_token, vercel_url)
+                elif text.startswith('/help'):
+                    await self.send_help_message(chat_id, bot_token)
+                elif text.startswith('/catalog'):
+                    await self.send_catalog_message(chat_id, bot_token, vercel_url)
+                else:
+                    await self.send_unknown_command(chat_id, bot_token)
+            
+            # Обработка callback от inline кнопок
+            elif 'callback_query' in update:
+                callback = update['callback_query']
+                chat_id = callback['message']['chat']['id']
+                data = callback['data']
+                
+                if data == 'about':
+                    await self.send_about_message(chat_id, bot_token)
+                
+                # Ответим на callback чтобы убрать "часики"
+                requests.post(f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery", 
+                            json={'callback_query_id': callback['id']})
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK')
+            
+        except Exception as e:
+            print(f"Error in bot handler: {e}")
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'OK')
+
+    async def send_welcome_message(self, chat_id, bot_token, vercel_url):
+        markup = {
+            "inline_keyboard": [
+                [{
+                    "text": "🌸 Открыть магазин цветов", 
+                    "web_app": {"url": f"https://{vercel_url}/"}
+                }],
+                [
+                    {"text": "📞 Поддержка", "url": "https://t.me/Fallout_RTG"},
+                    {"text": "ℹ️ О магазине", "callback_data": "about"}
+                ]
+            ]
+        }
+        
+        message = """🌸 *Добро пожаловать в магазин элитных цветов!*
 
 ✨ У нас вы найдете:
 • Свежие цветы от проверенных поставщиков
-• Быструю доставку по Ярославлю
+• Быструю доставку по Ярославлю  
 • Индивидуальный подход к каждому заказу
 
 Нажмите на кнопку ниже, чтобы открыть каталог и сделать заказ!"""
-                    
-                    response_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    payload = {
-                        'chat_id': chat_id,
-                        'text': message,
-                        'parse_mode': 'Markdown',
-                        'reply_markup': json.dumps(markup)
-                    }
-                    requests.post(response_url, json=payload)
-                
-                elif text.startswith('/help'):
-                    message = """🛠 *Помощь по боту*
+        
+        await self.send_telegram_message(chat_id, bot_token, message, markup)
+
+    async def send_about_message(self, chat_id, bot_token):
+        message = """🏪 *О нашем магазине*
+
+Мы - цветочный магазин с многолетним опытом работы. 
+Наши преимущества:
+• Свежие цветы от проверенных поставщиков
+• Быстрая доставка по Ярославлю
+• Индивидуальный подход к каждому клиенту
+
+Работаем для вас с 2010 года!"""
+        
+        await self.send_telegram_message(chat_id, bot_token, message)
+
+    async def send_help_message(self, chat_id, bot_token):
+        message = """🛠 *Помощь по боту*
 
 *Основные команды:*
 /start - начать работу с ботом
@@ -65,25 +105,38 @@ class Handler(BaseHTTPRequestHandler):
 *Доставка:* 
 🏙️ По Ярославлю - бесплатно
 ⏱ В течение 2-х часов"""
-                    
-                    response_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    payload = {
-                        'chat_id': chat_id,
-                        'text': message,
-                        'parse_mode': 'Markdown'
-                    }
-                    requests.post(response_url, json=payload)
+        
+        await self.send_telegram_message(chat_id, bot_token, message)
+
+    async def send_catalog_message(self, chat_id, bot_token, vercel_url):
+        markup = {
+            "inline_keyboard": [[
+                {
+                    "text": "🌸 Открыть каталог цветов",
+                    "web_app": {"url": f"https://{vercel_url}/"}
+                }
+            ]]
+        }
+        
+        message = "Нажмите на кнопку ниже, чтобы открыть наш каталог цветов:"
+        await self.send_telegram_message(chat_id, bot_token, message, markup)
+
+    async def send_unknown_command(self, chat_id, bot_token):
+        message = "Извините, я не понимаю эту команду. Используйте /help для списка доступных команд."
+        await self.send_telegram_message(chat_id, bot_token, message)
+
+    async def send_telegram_message(self, chat_id, bot_token, text, reply_markup=None):
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            'chat_id': chat_id,
+            'text': text,
+            'parse_mode': 'Markdown'
+        }
+        
+        if reply_markup:
+            payload['reply_markup'] = json.dumps(reply_markup)
             
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'OK')
-            
-        except Exception as e:
-            print(f"Error in bot handler: {e}")
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b'OK')
+        requests.post(url, json=payload)
 
     def do_GET(self):
         self.send_response(200)
