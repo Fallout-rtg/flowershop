@@ -33,14 +33,6 @@ class Handler(BaseHTTPRequestHandler):
                         'reply_markup': json.dumps(markup)
                     }
                     requests.post(response_url, json=payload)
-                    
-                    # Уведомление админу о новом пользователе
-                    admin_chat_id = os.environ.get('ADMIN_CHAT_ID')
-                    if admin_chat_id:
-                        user = update['message']['from']
-                        admin_message = f"👤 Новый пользователь запустил бота!\nID: {user['id']}\nИмя: {user.get('first_name', 'Неизвестно')}\nЮзернейм: @{user.get('username', 'Неизвестно')}"
-                        requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage", 
-                                    json={'chat_id': admin_chat_id, 'text': admin_message})
             
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
