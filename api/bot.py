@@ -29,14 +29,16 @@ class Handler(BaseHTTPRequestHandler):
                     }
                     payload = {
                         'chat_id': chat_id,
-                        'text': '🌸 Добро пожаловать в магазин цветов!\n\nНажмите на кнопку ниже, чтобы открыть каталог и сделать заказ.',
+                        'text': '🌸 Добро пожаловать в магазин элитных цветов!\n\nНажмите на кнопку ниже, чтобы открыть каталог и сделать заказ.',
                         'reply_markup': json.dumps(markup)
                     }
                     requests.post(response_url, json=payload)
                     
+                    # Уведомление админу о новом пользователе
                     admin_chat_id = os.environ.get('ADMIN_CHAT_ID')
                     if admin_chat_id:
-                        admin_message = f"👤 Новый пользователь запустил бота!\nID: {chat_id}"
+                        user = update['message']['from']
+                        admin_message = f"👤 Новый пользователь запустил бота!\nID: {user['id']}\nИмя: {user.get('first_name', 'Неизвестно')}\nЮзернейм: @{user.get('username', 'Неизвестно')}"
                         requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage", 
                                     json={'chat_id': admin_chat_id, 'text': admin_message})
             
@@ -46,6 +48,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write('OK'.encode('utf-8'))
             
         except Exception as e:
+            print(f"Error: {e}")
             self.send_response(200)
             self.end_headers()
 
