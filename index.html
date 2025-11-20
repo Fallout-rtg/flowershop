@@ -3,76 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин цветов</title>
+    <title>Flower Shop - Магазин цветов</title>
     <script src="https://telegram.org/js/telegram-web-app.js?2"></script>
     <style>
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: var(--tg-theme-bg-color, #ffffff);
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: 30px 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .product {
-            border: 1px solid var(--tg-theme-hint-color, #999999);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px auto;
-            max-width: 300px;
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="8" fill="white" opacity="0.2"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>');
         }
-        button {
-            background-color: var(--tg-theme-button-color, #40a7e3);
-            color: var(--tg-theme-button-text-color, #ffffff);
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .categories {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+        }
+
+        .category-btn {
+            padding: 12px 20px;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            border-radius: 25px;
+            background: white;
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            white-space: nowrap;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn.active {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .products-grid {
+            padding: 20px;
+            display: grid;
+            gap: 15px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #ffe8e8 0%, #ffd6d6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .product-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--tg-theme-text-color, #333);
+        }
+
+        .product-description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff6b6b;
+        }
+
+        .add-to-cart {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-cart:hover {
+            background: #ee5a52;
+            transform: scale(1.05);
+        }
+
+        .cart-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkout-btn:hover {
+            background: #45b7af;
+            transform: scale(1.02);
+        }
+
+        .cart-count {
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: -5px;
+            right: -5px;
         }
     </style>
 </head>
 <body>
-    <h1>🌸 Наш каталог цветов</h1>
-    <div id="products">
-        <!-- Товары будут добавляться здесь JavaScript -->
-        <div class="product">
-            <h3>Роза красная</h3>
-            <p>Свежая и ароматная</p>
-            <p><strong>350 руб.</strong></p>
-            <button onclick="addToCart('Роза красная', 350)">В корзину</button>
+    <div class="app-container">
+        <div class="header">
+            <h1>🌸 Flower Shop</h1>
+            <p>Самые свежие цветы с доставкой</p>
+        </div>
+
+        <div class="categories">
+            <button class="category-btn active">Все букеты</button>
+            <button class="category-btn">Розы</button>
+            <button class="category-btn">Тюльпаны</button>
+            <button class="category-btn">Орхидеи</button>
+            <button class="category-btn">Свадебные</button>
+        </div>
+
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-image">🌹</div>
+                <div class="product-title">Букет из 25 роз</div>
+                <div class="product-description">Свежие красные розы в изысканной упаковке</div>
+                <div class="product-footer">
+                    <div class="product-price">2 500 ₽</div>
+                    <button class="add-to-cart">Добавить</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">🌷</div>
+                <div class="product-title">Весенний микс</div>
+                <div class="product-description">Тюльпаны и нарциссы в подарочной корзине</div>
+                <div class="product-footer">
+                    <div class="product-price">1 800 ₽</div>
+                    <button class="add-to-cart">Добавить</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">💐</div>
+                <div class="product-title">Свадебный букет</div>
+                <div class="product-description">Белые розы и лилии для особого дня</div>
+                <div class="product-footer">
+                    <div class="product-price">3 200 ₽</div>
+                    <button class="add-to-cart">Добавить</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">🏵️</div>
+                <div class="product-title">Романтический набор</div>
+                <div class="product-description">Красные розы и шоколад в комплекте</div>
+                <div class="product-footer">
+                    <div class="product-price">2 900 ₽</div>
+                    <button class="add-to-cart">Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Корзина</span>
+                <span>0 ₽</span>
+            </div>
+            <button class="checkout-btn">Оформить заказ</button>
         </div>
     </div>
-    <hr>
-    <button onclick="showCart()" style="margin-top: 20px;">🛒 Перейти к корзине</button>
 
     <script>
-        // Инициализация Telegram Mini Apps
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Раскрыть приложение на весь экран
-        tg.ready(); // Сообщить Telegram, что приложение готово
+        tg.expand();
+        tg.ready();
 
         let cart = [];
+        let total = 0;
 
-        function addToCart(name, price) {
-            cart.push({name, price});
-            tg.showPopup({title: 'Успешно!', message: `"${name}" добавлен в корзину.`});
-        }
+        const products = [
+            { id: 1, name: "Букет из 25 роз", price: 2500, emoji: "🌹" },
+            { id: 2, name: "Весенний микс", price: 1800, emoji: "🌷" },
+            { id: 3, name: "Свадебный букет", price: 3200, emoji: "💐" },
+            { id: 4, name: "Романтический набор", price: 2900, emoji: "🏵️" }
+        ];
 
-        function showCart() {
+        document.querySelectorAll('.add-to-cart').forEach((button, index) => {
+            button.addEventListener('click', () => {
+                const product = products[index];
+                cart.push(product);
+                total += product.price;
+                
+                updateCartDisplay();
+                
+                tg.HapticFeedback.impactOccurred('soft');
+                tg.showPopup({
+                    title: 'Добавлено в корзину!',
+                    message: `${product.name} за ${product.price} ₽`
+                });
+            });
+        });
+
+        document.querySelector('.checkout-btn').addEventListener('click', () => {
             if (cart.length === 0) {
-                tg.showAlert('Ваша корзина пуста.');
+                tg.showAlert('Корзина пуста. Добавьте товары перед оформлением заказа.');
                 return;
             }
-            let total = cart.reduce((sum, item) => sum + item.price, 0);
-            let message = `Ваш заказ:\n` + cart.map(item => `• ${item.name} - ${item.price} руб.`).join('\n') + `\n\n🧾 Итого: ${total} руб.`;
-            tg.showConfirm(message, function(ok) {
-                if (ok) {
-                    // Здесь будет логика оформления заказа
-                    tg.showAlert("Спасибо за заказ! Мы с вами свяжемся.");
+
+            const orderDetails = cart.map(item => `• ${item.name} - ${item.price} ₽`).join('\n');
+            const message = `🛍️ Ваш заказ:\n\n${orderDetails}\n\n💰 Итого: ${total} ₽\n\nПодтвердите оформление заказа:`;
+
+            tg.showConfirm(message, (confirmed) => {
+                if (confirmed) {
+                    tg.showAlert("🎉 Заказ оформлен! Мы свяжемся с вами в течение 15 минут для уточнения деталей доставки.");
                     cart = [];
+                    total = 0;
+                    updateCartDisplay();
+                    tg.HapticFeedback.notificationOccurred('success');
                 }
             });
+        });
+
+        function updateCartDisplay() {
+            document.querySelector('.cart-total span:last-child').textContent = total + ' ₽';
         }
+
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                tg.HapticFeedback.selectionChanged();
+            });
+        });
     </script>
 </body>
 </html>
