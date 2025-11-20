@@ -19,13 +19,13 @@ class Handler(BaseHTTPRequestHandler):
                 text = update['message'].get('text', '').strip()
                 
                 if text.startswith('/start'):
-                    await self.send_welcome_message(chat_id, bot_token, vercel_url)
+                    self.send_welcome_message(chat_id, bot_token, vercel_url)
                 elif text.startswith('/help'):
-                    await self.send_help_message(chat_id, bot_token)
+                    self.send_help_message(chat_id, bot_token)
                 elif text.startswith('/catalog'):
-                    await self.send_catalog_message(chat_id, bot_token, vercel_url)
+                    self.send_catalog_message(chat_id, bot_token, vercel_url)
                 else:
-                    await self.send_unknown_command(chat_id, bot_token)
+                    self.send_unknown_command(chat_id, bot_token)
             
             # Обработка callback от inline кнопок
             elif 'callback_query' in update:
@@ -34,7 +34,7 @@ class Handler(BaseHTTPRequestHandler):
                 data = callback['data']
                 
                 if data == 'about':
-                    await self.send_about_message(chat_id, bot_token)
+                    self.send_about_message(chat_id, bot_token)
                 
                 # Ответим на callback чтобы убрать "часики"
                 requests.post(f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery", 
@@ -51,7 +51,7 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'OK')
 
-    async def send_welcome_message(self, chat_id, bot_token, vercel_url):
+    def send_welcome_message(self, chat_id, bot_token, vercel_url):
         markup = {
             "inline_keyboard": [
                 [{
@@ -74,9 +74,9 @@ class Handler(BaseHTTPRequestHandler):
 
 Нажмите на кнопку ниже, чтобы открыть каталог и сделать заказ!"""
         
-        await self.send_telegram_message(chat_id, bot_token, message, markup)
+        self.send_telegram_message(chat_id, bot_token, message, markup)
 
-    async def send_about_message(self, chat_id, bot_token):
+    def send_about_message(self, chat_id, bot_token):
         message = """🏪 *О нашем магазине*
 
 Мы - цветочный магазин с многолетним опытом работы. 
@@ -87,9 +87,9 @@ class Handler(BaseHTTPRequestHandler):
 
 Работаем для вас с 2010 года!"""
         
-        await self.send_telegram_message(chat_id, bot_token, message)
+        self.send_telegram_message(chat_id, bot_token, message)
 
-    async def send_help_message(self, chat_id, bot_token):
+    def send_help_message(self, chat_id, bot_token):
         message = """🛠 *Помощь по боту*
 
 *Основные команды:*
@@ -106,9 +106,9 @@ class Handler(BaseHTTPRequestHandler):
 🏙️ По Ярославлю - бесплатно
 ⏱ В течение 2-х часов"""
         
-        await self.send_telegram_message(chat_id, bot_token, message)
+        self.send_telegram_message(chat_id, bot_token, message)
 
-    async def send_catalog_message(self, chat_id, bot_token, vercel_url):
+    def send_catalog_message(self, chat_id, bot_token, vercel_url):
         markup = {
             "inline_keyboard": [[
                 {
@@ -119,13 +119,13 @@ class Handler(BaseHTTPRequestHandler):
         }
         
         message = "Нажмите на кнопку ниже, чтобы открыть наш каталог цветов:"
-        await self.send_telegram_message(chat_id, bot_token, message, markup)
+        self.send_telegram_message(chat_id, bot_token, message, markup)
 
-    async def send_unknown_command(self, chat_id, bot_token):
+    def send_unknown_command(self, chat_id, bot_token):
         message = "Извините, я не понимаю эту команду. Используйте /help для списка доступных команд."
-        await self.send_telegram_message(chat_id, bot_token, message)
+        self.send_telegram_message(chat_id, bot_token, message)
 
-    async def send_telegram_message(self, chat_id, bot_token, text, reply_markup=None):
+    def send_telegram_message(self, chat_id, bot_token, text, reply_markup=None):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
             'chat_id': chat_id,
@@ -136,7 +136,10 @@ class Handler(BaseHTTPRequestHandler):
         if reply_markup:
             payload['reply_markup'] = json.dumps(reply_markup)
             
-        requests.post(url, json=payload)
+        try:
+            requests.post(url, json=payload)
+        except Exception as e:
+            print(f"Error sending Telegram message: {e}")
 
     def do_GET(self):
         self.send_response(200)
