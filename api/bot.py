@@ -11,7 +11,6 @@ class Handler(BaseHTTPRequestHandler):
             update = json.loads(post_data)
             
             bot_token = os.environ.get('BOT_TOKEN')
-            vercel_url = os.environ.get('VERCEL_URL')
             
             # Обработка сообщений
             if 'message' in update:
@@ -19,11 +18,11 @@ class Handler(BaseHTTPRequestHandler):
                 text = update['message'].get('text', '').strip()
                 
                 if text.startswith('/start'):
-                    self.send_welcome_message(chat_id, bot_token, vercel_url)
+                    self.send_welcome_message(chat_id, bot_token)
                 elif text.startswith('/help'):
                     self.send_help_message(chat_id, bot_token)
                 elif text.startswith('/catalog'):
-                    self.send_catalog_message(chat_id, bot_token, vercel_url)
+                    self.send_catalog_message(chat_id, bot_token)
                 else:
                     self.send_unknown_command(chat_id, bot_token)
             
@@ -51,12 +50,15 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'OK')
 
-    def send_welcome_message(self, chat_id, bot_token, vercel_url):
+    def send_welcome_message(self, chat_id, bot_token):
+        # Используем прямой URL вашего приложения
+        web_app_url = "https://flowershop-nine-ashy.vercel.app/"
+        
         markup = {
             "inline_keyboard": [
                 [{
                     "text": "🌸 Открыть магазин цветов", 
-                    "web_app": {"url": f"https://{vercel_url}"}
+                    "web_app": {"url": web_app_url}
                 }],
                 [
                     {"text": "📞 Поддержка", "url": "https://t.me/Fallout_RTG"},
@@ -108,12 +110,15 @@ class Handler(BaseHTTPRequestHandler):
         
         self.send_telegram_message(chat_id, bot_token, message)
 
-    def send_catalog_message(self, chat_id, bot_token, vercel_url):
+    def send_catalog_message(self, chat_id, bot_token):
+        # Используем прямой URL вашего приложения
+        web_app_url = "https://flowershop-nine-ashy.vercel.app/"
+        
         markup = {
             "inline_keyboard": [[
                 {
                     "text": "🌸 Открыть каталог цветов",
-                    "web_app": {"url": f"https://{vercel_url}/"}
+                    "web_app": {"url": web_app_url}
                 }
             ]]
         }
