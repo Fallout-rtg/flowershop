@@ -40,7 +40,6 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write('OK'.encode('utf-8'))
             
         except Exception as e:
-            print(f"Error: {e}")
             self.send_response(200)
             self.end_headers()
 
