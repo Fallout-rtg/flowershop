@@ -3,7 +3,6 @@ import json
 import os
 import requests
 import sys
-from datetime import datetime
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -26,7 +25,7 @@ class Handler(BaseHTTPRequestHandler):
             is_admin = self.headers.get('Is-Admin', 'false') == 'true'
             
             if is_admin:
-                orders_response = supabase.table("orders").select("*, promocodes(code)").execute()
+                orders_response = supabase.table("orders").select("*").execute()
                 statuses_response = supabase.table("order_statuses").select("*").execute()
                 
                 orders = orders_response.data
@@ -67,22 +66,18 @@ class Handler(BaseHTTPRequestHandler):
             
             order_id = order_data.get('order_id')
             status_id = order_data.get('status_id')
-            admin_notes = order_data.get('admin_notes', '')
             
             if not order_id:
                 raise ValueError("Order ID is required")
             
-            update_data = {}
-            if status_id is not None:
-                update_data['status_id'] = status_id
-                if status_id == 5:
-                    order_response = supabase.table("orders").select("total_amount, discount_amount").eq("id", order_id).execute()
-                    if order_response.data:
-                        order = order_response.data[0]
-                        profit = order['total_amount'] - (order['discount_amount'] or 0)
-                        update_data['profit'] = profit
-            if admin_notes is not None:
-                update_data['admin_notes'] = admin_notes
+            update_data = {'status_id': status_id}
+            
+            if status_id == 5:
+                order_response = supabase.table("orders").select("total_amount, discount_amount").eq("id", order_id).execute()
+                if order_response.data:
+                    order = order_response.data[0]
+                    profit = order['total_amount'] - (order['discount_amount'] or 0)
+                    update_data['profit'] = profit
             
             response = supabase.table("orders").update(update_data).eq("id", order_id).execute()
             
@@ -112,16 +107,18 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             order_data = json.loads(post_data)
             
-            delivery_option = order_data.get('delivery_option', 'pickup')
-            delivery_address = order_data.get('delivery_address', '')
-            promocode_id = order_data.get('promocode_id')
-            discount_amount = order_data.get('discount_amount', 0)
+            db_success = self.save_order_to_db(order_data)
             
-            admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address, discount_amount)
-            db_success = self.save_order_to_db(order_data, delivery_option, delivery_address, promocode_id, discount_amount)
-            
-            if db_success and promocode_id:
-                self.update_promocode_usage(promocode_id)
+            if db_success:
+                delivery_option = order_data.get('delivery_option', 'pickup')
+                delivery_address = order_data.get('delivery_address', '')
+                discount_amount = order_data.get('discount_amount', 0)
+                promocode_id = order_data.get('promocode_id')
+                
+                admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address, discount_amount)
+                
+                if promocode_id:
+                    self.update_promocode_usage(promocode_id)
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -271,11 +268,16 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Error sending admin notification: {e}")
             return False
 
-    def save_order_to_db(self, order_data, delivery_option, delivery_address, promocode_id, discount_amount):
+    def save_order_to_db(self, order_data):
         try:
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             
             cart_total = order_data['total']
+            delivery_option = order_data.get('delivery_option', 'pickup')
+            delivery_address = order_data.get('delivery_address', '')
+            promocode_id = order_data.get('promocode_id')
+            discount_amount = order_data.get('discount_amount', 0)
+            
             delivery_cost = 0
             free_delivery_min = 3000
             
