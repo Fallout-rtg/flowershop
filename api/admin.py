@@ -29,22 +29,42 @@ class Handler(BaseHTTPRequestHandler):
             elif '/stats' in path:
                 orders_response = supabase.table("orders").select("*").execute()
                 products_response = supabase.table("products").select("*").execute()
+                admins_response = supabase.table("admins").select("*").eq("is_active", True).execute()
                 
                 total_orders = len(orders_response.data)
                 total_revenue = sum(order['total_amount'] for order in orders_response.data)
                 total_products = len(products_response.data)
+                active_admins = len(admins_response.data)
                 
                 data = {
                     'total_orders': total_orders,
                     'total_revenue': total_revenue,
-                    'total_products': total_products
+                    'total_products': total_products,
+                    'active_admins': active_admins
                 }
             elif '/statuses' in path:
                 response = supabase.table("order_statuses").select("*").execute()
                 data = response.data
             else:
-                response = supabase.table("admins").select("*").eq("telegram_id", telegram_id).execute()
-                data = {'is_admin': len(response.data) > 0}
+                # Проверяем активных администраторов
+                response = supabase.table("admins").select("*").eq("telegram_id", telegram_id).eq("is_active", True).execute()
+                is_admin = len(response.data) > 0
+                
+                # Если нашли активного админа, возвращаем его данные
+                if is_admin:
+                    admin_data = response.data[0]
+                    data = {
+                        'is_admin': True,
+                        'is_active': admin_data.get('is_active', True),
+                        'role': admin_data.get('role', 'manager'),
+                        'first_name': admin_data.get('first_name', ''),
+                        'username': admin_data.get('username', '')
+                    }
+                else:
+                    data = {
+                        'is_admin': False,
+                        'is_active': False
+                    }
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -68,6 +88,10 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             admin_data = json.loads(post_data)
             
+            # Убедимся, что новый админ активен по умолчанию
+            if 'is_active' not in admin_data:
+                admin_data['is_active'] = True
+                
             response = supabase.table("admins").insert(admin_data).execute()
             
             self.send_response(200)
