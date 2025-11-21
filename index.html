@@ -28,17 +28,13 @@
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
             --card-bg: #ffffff;
-            --shadow: 0 10px 25px rgba(0,0,0,0.1);
-            --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+            --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
             --border: 1px solid #e5e7eb;
-            --radius: 20px;
-            --radius-sm: 12px;
-            --radius-lg: 25px;
-            --admin-bg: #0f172a;
-            --admin-card: #1e293b;
-            --admin-text: #f8fafc;
-            --admin-text-light: #cbd5e1;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-lg: 20px;
         }
 
         body {
@@ -46,7 +42,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: var(--text);
             min-height: 100vh;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .app-container {
@@ -61,7 +57,7 @@
         .header {
             background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
             color: white;
-            padding: 50px 25px 35px;
+            padding: 40px 20px 30px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -83,93 +79,92 @@
         }
 
         .header h1 {
-            font-size: 36px;
+            font-size: 28px;
             font-weight: 800;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .header p {
-            font-size: 16px;
+            font-size: 14px;
             opacity: 0.95;
             font-weight: 500;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .delivery-info {
             background: rgba(255,255,255,0.2);
-            padding: 12px 16px;
-            border-radius: 15px;
-            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
             font-weight: 600;
             backdrop-filter: blur(10px);
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .admin-header {
-            background: var(--admin-bg);
-            color: var(--admin-text);
-            padding: 20px 25px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 18px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #334155;
+            border-bottom: var(--border);
         }
 
         .admin-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
         }
 
         .admin-switch {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: var(--admin-text);
-            padding: 10px 16px;
-            border-radius: 15px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            font-size: 13px;
         }
 
         .admin-switch:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
+            background: rgba(255,255,255,0.3);
         }
 
         .quick-actions {
             display: flex;
-            gap: 10px;
-            padding: 15px 20px;
+            gap: 8px;
+            padding: 12px 16px;
             background: var(--bg-secondary);
             border-bottom: var(--border);
             overflow-x: auto;
         }
 
         .quick-action-btn {
-            padding: 12px 18px;
+            padding: 10px 14px;
             background: white;
             border: var(--border);
-            border-radius: 15px;
+            border-radius: 12px;
             color: var(--text);
             font-weight: 600;
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 6px;
+            font-size: 13px;
+            flex-shrink: 0;
         }
 
         .quick-action-btn:hover {
             background: var(--primary-light);
             border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
         }
 
         .quick-action-btn.primary {
@@ -178,50 +173,44 @@
             border-color: var(--primary);
         }
 
-        .quick-action-btn.secondary {
-            background: var(--secondary);
-            color: white;
-            border-color: var(--secondary);
-        }
-
         .categories {
             display: flex;
-            gap: 8px;
-            padding: 20px;
+            gap: 6px;
+            padding: 16px;
             overflow-x: auto;
             background: var(--bg);
             border-bottom: var(--border);
         }
 
         .category-btn {
-            padding: 14px 20px;
+            padding: 10px 16px;
             border: 2px solid #e5e7eb;
-            border-radius: 20px;
+            border-radius: 16px;
             background: white;
             color: var(--text);
-            font-weight: 700;
+            font-weight: 600;
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
+            transition: all 0.2s ease;
+            font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            flex-shrink: 0;
         }
 
         .category-btn.active {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border-color: var(--primary);
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
-            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
         }
 
         .products-grid {
-            padding: 20px;
+            padding: 16px;
             display: grid;
-            gap: 20px;
-            padding-bottom: 100px;
+            gap: 16px;
+            padding-bottom: 80px;
         }
 
         .product-card {
@@ -229,19 +218,18 @@
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             border: var(--border);
-            position: relative;
         }
 
         .product-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
         }
 
         .product-image {
             width: 100%;
-            height: 220px;
+            height: 180px;
             background: linear-gradient(135deg, #ffe8e8 0%, #ffd6d6 100%);
             position: relative;
             overflow: hidden;
@@ -251,60 +239,49 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.4s ease;
-        }
-
-        .product-card:hover .product-image img {
-            transform: scale(1.05);
         }
 
         .product-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 10px;
+            right: 10px;
             background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
             color: white;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: 700;
-            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
         }
 
         .product-content {
-            padding: 20px;
+            padding: 16px;
         }
 
         .product-title {
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
             color: var(--text);
             line-height: 1.3;
         }
 
         .product-description {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-light);
-            margin-bottom: 12px;
-            line-height: 1.5;
+            margin-bottom: 10px;
+            line-height: 1.4;
         }
 
         .product-fact {
             background: var(--primary-light);
-            padding: 14px;
+            padding: 10px 12px;
             border-radius: var(--radius-sm);
-            margin-bottom: 16px;
-            border-left: 4px solid var(--primary);
-        }
-
-        .product-fact i {
-            color: var(--primary);
-            margin-right: 8px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
         }
 
         .product-fact-text {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text);
             font-style: italic;
             line-height: 1.4;
@@ -317,43 +294,37 @@
         }
 
         .product-price {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--secondary);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .add-to-cart {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 20px;
-            padding: 12px 24px;
-            font-weight: 700;
+            border-radius: 16px;
+            padding: 8px 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+            gap: 6px;
+            font-size: 13px;
         }
 
         .add-to-cart:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
-        }
-
-        .add-to-cart:active {
-            transform: scale(0.95);
         }
 
         .floating-buttons {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 16px;
+            right: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             z-index: 1000;
         }
 
@@ -361,57 +332,42 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 50px;
-            padding: 18px 24px;
-            font-size: 16px;
+            border-radius: 40px;
+            padding: 14px 20px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4);
+            box-shadow: var(--shadow-lg);
             display: none;
             align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4); }
-            50% { box-shadow: 0 8px 40px rgba(34, 197, 94, 0.6); }
-            100% { box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4); }
-        }
-
-        .cart-button:hover {
-            transform: scale(1.05);
+            gap: 8px;
+            transition: all 0.2s ease;
         }
 
         .cart-count {
             background: var(--secondary);
             color: white;
             border-radius: 50%;
-            width: 26px;
-            height: 26px;
-            font-size: 14px;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .admin-button {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: white;
             border: none;
-            border-radius: 50px;
-            padding: 16px;
-            font-size: 18px;
+            border-radius: 40px;
+            padding: 14px;
+            font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .admin-button:hover {
-            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s ease;
+            display: none;
         }
 
         .modal {
@@ -420,41 +376,35 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.7);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            padding: 16px;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
             background: white;
             border-radius: var(--radius-lg);
-            padding: 25px;
-            max-width: 400px;
+            padding: 20px;
+            max-width: 360px;
             width: 100%;
-            max-height: 85vh;
+            max-height: 80vh;
             overflow-y: auto;
-            animation: modalSlideIn 0.4s ease;
+            animation: modalSlideIn 0.3s ease;
             box-shadow: var(--shadow-lg);
         }
 
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(50px) scale(0.9);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateY(0);
             }
         }
 
@@ -462,43 +412,42 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 2px solid #f0f0f0;
         }
 
         .modal-title {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--text);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .close-modal {
             background: none;
             border: none;
-            font-size: 28px;
+            font-size: 24px;
             cursor: pointer;
             color: var(--text-light);
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .close-modal:hover {
             background: #f0f0f0;
-            color: var(--text);
         }
 
         .cart-items {
-            margin-bottom: 25px;
-            max-height: 300px;
+            margin-bottom: 20px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
@@ -506,15 +455,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #f0f0f0;
-            transition: all 0.3s ease;
-        }
-
-        .cart-item:hover {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px 10px;
         }
 
         .item-info {
@@ -523,29 +465,30 @@
 
         .item-name {
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             color: var(--text);
+            font-size: 14px;
         }
 
         .item-price {
             color: var(--secondary);
             font-weight: 700;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .item-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .quantity-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: #f8f9fa;
-            border-radius: 20px;
-            padding: 4px;
+            border-radius: 16px;
+            padding: 3px;
             border: 1px solid #e5e7eb;
         }
 
@@ -554,76 +497,77 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s ease;
+            font-size: 12px;
+            transition: all 0.2s ease;
         }
 
         .quantity-btn:hover {
             background: var(--primary-dark);
-            transform: scale(1.1);
         }
 
         .quantity {
             font-weight: 700;
-            min-width: 20px;
+            min-width: 18px;
             text-align: center;
+            font-size: 13px;
         }
 
         .remove-item {
             background: #ef4444;
             color: white;
             border: none;
-            border-radius: 15px;
-            padding: 8px 12px;
-            font-size: 12px;
+            border-radius: 12px;
+            padding: 5px 10px;
+            font-size: 11px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .remove-item:hover {
             background: #dc2626;
-            transform: scale(1.05);
         }
 
         .cart-total {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-top: 15px;
+            margin-bottom: 16px;
+            padding-top: 12px;
             border-top: 2px solid #e5e7eb;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 800;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
+            margin-bottom: 6px;
+            font-weight: 600;
             color: var(--text);
+            font-size: 14px;
         }
 
         .form-input {
             width: 100%;
-            padding: 16px;
+            padding: 12px;
             border: 2px solid #e5e7eb;
-            border-radius: 15px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            font-weight: 500;
             background: white;
         }
 
@@ -631,13 +575,11 @@
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-            transform: translateY(-2px);
         }
 
         .phone-input {
             font-family: monospace;
             letter-spacing: 1px;
-            font-weight: bold;
         }
 
         .checkout-btn {
@@ -645,23 +587,19 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 20px;
-            padding: 20px;
-            font-size: 16px;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            box-shadow: var(--shadow);
         }
 
         .checkout-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
-        }
-
-        .checkout-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .checkout-btn:disabled {
@@ -673,50 +611,44 @@
 
         .empty-cart {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 16px;
             color: var(--text-light);
         }
 
         .empty-cart i {
-            font-size: 48px;
+            font-size: 40px;
             color: #d1d5db;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .success-state {
             text-align: center;
-            padding: 30px 20px;
+            padding: 24px 16px;
         }
 
         .success-icon {
-            font-size: 64px;
+            font-size: 50px;
             color: var(--primary);
-            margin-bottom: 20px;
-            animation: bounce 1s ease;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
+            margin-bottom: 16px;
         }
 
         .success-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: var(--text);
         }
 
         .success-message {
             color: var(--text-light);
-            margin-bottom: 25px;
-            line-height: 1.5;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            font-size: 14px;
         }
 
         .loading {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 16px;
             color: var(--text-light);
         }
 
@@ -724,10 +656,10 @@
             border: 3px solid #f3f3f3;
             border-top: 3px solid var(--primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -737,45 +669,44 @@
 
         .admin-panel {
             display: none;
-            background: var(--admin-bg);
+            background: var(--bg);
             min-height: 100vh;
-            color: var(--admin-text);
         }
 
         .admin-tabs {
             display: flex;
-            gap: 8px;
-            padding: 15px;
-            background: var(--admin-card);
-            border-bottom: 1px solid #334155;
+            gap: 6px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-bottom: var(--border);
             overflow-x: auto;
         }
 
         .admin-tab {
-            padding: 14px 20px;
-            border: 2px solid #475569;
-            border-radius: 15px;
-            background: var(--admin-card);
-            color: var(--admin-text-light);
-            font-weight: 700;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            color: var(--text);
+            font-weight: 600;
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
+            transition: all 0.2s ease;
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            flex-shrink: 0;
         }
 
         .admin-tab.active {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border-color: var(--primary);
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
         }
 
         .admin-content {
-            padding: 20px;
+            padding: 16px;
         }
 
         .admin-tab-content {
@@ -784,79 +715,198 @@
 
         .admin-tab-content.active {
             display: block;
-            animation: fadeIn 0.5s ease;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
-            background: var(--admin-card);
-            padding: 20px;
-            border-radius: 15px;
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
             text-align: center;
-            border-left: 4px solid var(--primary);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
+            border-left: 3px solid var(--primary);
         }
 
         .stat-value {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 800;
             color: var(--primary);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .stat-label {
-            color: var(--admin-text-light);
-            font-size: 12px;
+            color: var(--text-light);
+            font-size: 11px;
             font-weight: 600;
         }
 
+        .product-form {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            border: var(--border);
+        }
+
+        .form-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .form-title i {
+            transition: transform 0.2s ease;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 500px;
+        }
+
+        .order-details {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-top: 8px;
+            font-size: 12px;
+            border: var(--border);
+        }
+
+        .order-items {
+            margin-top: 8px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 11px;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-box {
+            background: white;
+            padding: 12px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+            border: var(--border);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            overflow-x: auto;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 11px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
         .admin-table {
-            background: var(--admin-card);
-            border-radius: 15px;
+            background: white;
+            border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            border: 1px solid #334155;
+            margin-bottom: 16px;
+            border: var(--border);
         }
 
         .table-header {
-            padding: 15px 20px;
-            background: #1e293b;
-            border-bottom: 1px solid #334155;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
             font-weight: 700;
             display: grid;
-            grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
-            gap: 10px;
-            font-size: 14px;
-            color: var(--admin-text);
+            grid-template-columns: 0.5fr 1.5fr 0.8fr 0.8fr 0.8fr;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text);
         }
 
         .table-row {
-            padding: 15px 20px;
-            border-bottom: 1px solid #334155;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
             display: grid;
-            grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: 0.5fr 1.5fr 0.8fr 0.8fr 0.8fr;
+            gap: 8px;
             align-items: center;
-            font-size: 14px;
-            color: var(--admin-text-light);
-            transition: all 0.3s ease;
+            font-size: 12px;
+            color: var(--text-light);
+            transition: all 0.2s ease;
         }
 
         .table-row:hover {
-            background: rgba(255,255,255,0.05);
+            background: #f8f9fa;
         }
 
         .table-row:last-child {
@@ -864,28 +914,28 @@
         }
 
         .status-badge {
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 10px;
             font-weight: 600;
             text-align: center;
         }
 
         .btn {
-            padding: 10px 16px;
+            padding: 6px 10px;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 700;
-            font-size: 12px;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 11px;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .btn-primary {
@@ -904,138 +954,28 @@
         }
 
         .btn-sm {
-            padding: 8px 12px;
-            font-size: 11px;
-        }
-
-        .product-form {
-            background: var(--admin-card);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            border: 1px solid #334155;
-        }
-
-        .form-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--admin-text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .form-full {
-            grid-column: 1 / -1;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 15px;
-        }
-
-        .order-details {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 10px;
-            font-size: 13px;
-            border: 1px solid #334155;
-        }
-
-        .order-items {
-            margin-top: 10px;
-        }
-
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #334155;
-        }
-
-        .order-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-box {
-            background: var(--admin-card);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: var(--shadow);
-            margin-bottom: 15px;
-            border: 1px solid #334155;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #475569;
-            border-radius: 12px;
-            font-size: 14px;
-            background: #1e293b;
-            color: var(--admin-text);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            overflow-x: auto;
-        }
-
-        .filter-btn {
-            padding: 10px 16px;
-            border: 2px solid #475569;
-            border-radius: 12px;
-            background: var(--admin-card);
-            color: var(--admin-text-light);
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            padding: 5px 8px;
+            font-size: 10px;
         }
 
         .toast {
             position: fixed;
-            top: 20px;
+            top: 16px;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
+            transform: translateX(-50%) translateY(-80px);
             color: white;
-            padding: 14px 22px;
-            border-radius: 25px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 12px 18px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
             z-index: 3000;
-            transition: all 0.4s ease;
-            font-weight: 700;
+            transition: all 0.3s ease;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             opacity: 0;
             backdrop-filter: blur(10px);
+            font-size: 14px;
         }
 
         .toast.show {
@@ -1055,102 +995,32 @@
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         }
 
-        .notification-bell {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
-            z-index: 1000;
-            transition: all 0.3s ease;
-            animation: ring 2s infinite;
-        }
-
-        @keyframes ring {
-            0%, 100% { transform: rotate(0deg); }
-            5%, 15% { transform: rotate(15deg); }
-            10%, 20% { transform: rotate(-15deg); }
-        }
-
-        .notification-bell:hover {
-            transform: scale(1.1);
-        }
-
-        .notification-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-        }
-
         .delivery-banner {
             background: linear-gradient(135deg, var(--primary-light) 0%, #dbeafe 100%);
-            padding: 15px 20px;
-            margin: 0 20px 20px;
-            border-radius: 15px;
-            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            margin: 0 16px 16px;
+            border-radius: var(--radius);
+            border-left: 3px solid var(--primary);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             font-weight: 600;
             color: var(--text);
+            font-size: 13px;
         }
 
         .delivery-banner i {
             color: var(--primary);
-            font-size: 20px;
-        }
-
-        .floating-action-btn {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .floating-action-btn:hover {
-            transform: scale(1.1);
+            font-size: 16px;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
+            gap: 2px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
         }
@@ -1174,13 +1044,56 @@
             background: #fecaca;
             color: #991b1b;
         }
+
+        .empty-table-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .role-owner {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .role-admin {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .settings-group {
+            margin-bottom: 16px;
+        }
+
+        .settings-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .settings-hint {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="toast" id="toast">
             <i class="fas fa-check-circle" id="toastIcon"></i>
-            <span id="toastMessage">Товар добавлен в корзину</span>
+            <span id="toastMessage">Добавлено</span>
         </div>
 
         <div class="customer-view" id="customerView">
@@ -1202,7 +1115,7 @@
 
             <div class="quick-actions">
                 <button class="quick-action-btn" onclick="filterByCategory('all')">
-                    <i class="fas fa-star"></i>Все товары
+                    <i class="fas fa-star"></i>Все
                 </button>
                 <button class="quick-action-btn" onclick="filterByCategory('roses')">
                     <i class="fas fa-heart"></i>Розы
@@ -1227,13 +1140,13 @@
             <div class="admin-header">
                 <div class="admin-title">🛠️ Панель управления</div>
                 <button class="admin-switch" onclick="switchToCustomerView()">
-                    <i class="fas fa-store"></i> Вернуться в магазин
+                    <i class="fas fa-store"></i> Магазин
                 </button>
             </div>
 
             <div class="admin-tabs">
                 <div class="admin-tab active" data-tab="dashboard">
-                    <i class="fas fa-chart-bar"></i>Дашборд
+                    <i class="fas fa-chart-bar"></i>Главная
                 </div>
                 <div class="admin-tab" data-tab="products">
                     <i class="fas fa-shopping-bag"></i>Товары
@@ -1274,13 +1187,13 @@
                         <div class="form-title">📈 Быстрые действия</div>
                         <div class="form-actions">
                             <button class="btn btn-primary" onclick="loadProductsAdmin()">
-                                <i class="fas fa-sync"></i> Обновить данные
+                                <i class="fas fa-sync"></i> Обновить
                             </button>
                             <button class="btn btn-secondary" onclick="showTab('products')">
-                                <i class="fas fa-plus"></i> Добавить товар
+                                <i class="fas fa-plus"></i> Товары
                             </button>
                             <button class="btn btn-primary" onclick="showTab('orders')">
-                                <i class="fas fa-eye"></i> Просмотр заказов
+                                <i class="fas fa-eye"></i> Заказы
                             </button>
                         </div>
                     </div>
@@ -1288,33 +1201,38 @@
 
                 <div class="admin-tab-content" id="productsTab">
                     <div class="product-form">
-                        <div class="form-title">➕ Добавить новый товар</div>
-                        <div class="form-row">
-                            <input type="text" id="productName" placeholder="Название товара" class="form-input">
-                            <input type="number" id="productPrice" placeholder="Цена в рублях" class="form-input">
+                        <div class="form-title" onclick="toggleProductForm()">
+                            <i class="fas fa-chevron-down" id="productFormIcon"></i>
+                            ➕ Добавить товар
                         </div>
-                        <div class="form-row">
-                            <input type="text" id="productImage" placeholder="Ссылка на изображение" class="form-input">
-                            <select id="productCategory" class="form-input">
-                                <option value="roses">Розы</option>
-                                <option value="tulips">Тюльпаны</option>
-                                <option value="orchids">Орхидеи</option>
-                                <option value="premium">Премиум</option>
-                            </select>
-                        </div>
-                        <div class="form-row form-full">
-                            <textarea id="productDescription" placeholder="Описание товара" class="form-input" rows="2"></textarea>
-                        </div>
-                        <div class="form-row form-full">
-                            <textarea id="productFact" placeholder="Интересный факт о цветах" class="form-input" rows="2"></textarea>
-                        </div>
-                        <div class="form-actions">
-                            <button class="btn btn-primary" onclick="addProduct()">
-                                <i class="fas fa-save"></i> Сохранить товар
-                            </button>
-                            <button class="btn btn-secondary" onclick="resetProductForm()">
-                                <i class="fas fa-times"></i> Очистить
-                            </button>
+                        <div class="collapsible-content" id="productFormContent">
+                            <div class="form-row">
+                                <input type="text" id="productName" placeholder="Название" class="form-input">
+                                <input type="number" id="productPrice" placeholder="Цена" class="form-input">
+                            </div>
+                            <div class="form-row">
+                                <input type="text" id="productImage" placeholder="Ссылка на фото" class="form-input">
+                                <select id="productCategory" class="form-input">
+                                    <option value="roses">Розы</option>
+                                    <option value="tulips">Тюльпаны</option>
+                                    <option value="orchids">Орхидеи</option>
+                                    <option value="premium">Премиум</option>
+                                </select>
+                            </div>
+                            <div class="form-row form-full">
+                                <textarea id="productDescription" placeholder="Описание" class="form-input" rows="2"></textarea>
+                            </div>
+                            <div class="form-row form-full">
+                                <textarea id="productFact" placeholder="Интересный факт" class="form-input" rows="2"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" onclick="addProduct()">
+                                    <i class="fas fa-save"></i> Сохранить
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetProductForm()">
+                                    <i class="fas fa-times"></i> Очистить
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1361,16 +1279,15 @@
                 </div>
 
                 <div class="admin-tab-content" id="adminsTab">
-                    <div class="product-form">
+                    <div class="product-form" id="adminFormContainer" style="display: none;">
                         <div class="form-title">👤 Добавить администратора</div>
                         <div class="form-row">
                             <input type="text" id="adminTelegramId" placeholder="Telegram ID" class="form-input">
-                            <input type="text" id="adminUsername" placeholder="Username (@username)" class="form-input">
+                            <input type="text" id="adminUsername" placeholder="Username" class="form-input">
                         </div>
                         <div class="form-row">
                             <input type="text" id="adminFirstName" placeholder="Имя" class="form-input">
                             <select id="adminRole" class="form-input">
-                                <option value="manager">Менеджер</option>
                                 <option value="admin">Администратор</option>
                                 <option value="owner">Владелец</option>
                             </select>
@@ -1400,20 +1317,34 @@
                 <div class="admin-tab-content" id="settingsTab">
                     <div class="product-form">
                         <div class="form-title">⚙️ Настройки магазина</div>
-                        <div class="form-row">
-                            <input type="number" id="deliveryPrice" placeholder="Стоимость доставки" class="form-input" value="200">
-                            <input type="number" id="freeDeliveryMin" placeholder="Бесплатная доставка от" class="form-input" value="3000">
+                        
+                        <div class="settings-group">
+                            <div class="settings-label">Доставка</div>
+                            <div class="form-row">
+                                <input type="number" id="deliveryPrice" placeholder="Стоимость доставки" class="form-input" value="200">
+                                <input type="number" id="freeDeliveryMin" placeholder="Бесплатно от" class="form-input" value="3000">
+                            </div>
+                            <div class="settings-hint">Укажите стоимость доставки и минимальную сумму для бесплатной доставки</div>
                         </div>
-                        <div class="form-row form-full">
-                            <textarea id="workingHours" placeholder="Рабочие часы" class="form-input" rows="2">Ежедневно с 9:00 до 21:00</textarea>
+
+                        <div class="settings-group">
+                            <div class="settings-label">Рабочие часы</div>
+                            <div class="form-row form-full">
+                                <textarea id="workingHours" placeholder="Рабочие часы" class="form-input" rows="2">Ежедневно с 9:00 до 21:00</textarea>
+                            </div>
                         </div>
-                        <div class="form-row form-full">
-                            <textarea id="shopContacts" placeholder="Контакты магазина" class="form-input" rows="3">📞 +7 (999) 123-45-67
+
+                        <div class="settings-group">
+                            <div class="settings-label">Контакты</div>
+                            <div class="form-row form-full">
+                                <textarea id="shopContacts" placeholder="Контакты магазина" class="form-input" rows="3">📞 +7 (999) 123-45-67
 📍 Ярославль, ул. Цветочная, 15</textarea>
+                            </div>
                         </div>
+
                         <div class="form-actions">
                             <button class="btn btn-primary" onclick="saveShopSettings()">
-                                <i class="fas fa-save"></i> Сохранить настройки
+                                <i class="fas fa-save"></i> Сохранить
                             </button>
                         </div>
                     </div>
@@ -1428,24 +1359,15 @@
             <span id="cartTotalAmount">0 ₽</span>
             <span class="cart-count" id="cartCount">0</span>
         </button>
-        <button class="admin-button" onclick="switchToAdminView()" title="Панель управления">
+        <button class="admin-button" onclick="switchToAdminView()" title="Панель управления" id="adminButton">
             <i class="fas fa-cog"></i>
         </button>
     </div>
 
-    <button class="notification-bell" onclick="showNotifications()" id="notificationBell" style="display: none;">
-        <i class="fas fa-bell"></i>
-        <span class="notification-count" id="notificationCount">0</span>
-    </button>
-
-    <button class="floating-action-btn" onclick="scrollToTop()" title="Наверх">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-
     <div class="modal" id="cartModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title"><i class="fas fa-shopping-cart"></i> Ваша корзина</div>
+                <div class="modal-title"><i class="fas fa-shopping-cart"></i> Корзина</div>
                 <button class="close-modal" id="closeCart">×</button>
             </div>
             <div class="cart-items" id="cartItems"></div>
@@ -1466,28 +1388,26 @@
             
             <div id="orderForm">
                 <div class="form-group">
-                    <label class="form-label">Ваш номер телефона *</label>
+                    <label class="form-label">Телефон *</label>
                     <input type="tel" class="form-input phone-input" id="phoneInput" 
                            placeholder="+7 (XXX) XXX-XX-XX" required value="+7">
-                    <small style="color: var(--text-light); margin-top: 5px; display: block;">
-                        <i class="fas fa-info-circle"></i> Только российские номера. Мы свяжемся для подтверждения заказа.
-                    </small>
+                    <div class="settings-hint">Только российские номера</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Комментарий к заказу</label>
+                    <label class="form-label">Комментарий</label>
                     <textarea class="form-input" id="orderComment" 
-                             placeholder="Пожелания по доставке или особые указания..." 
-                             rows="3"></textarea>
+                             placeholder="Пожелания по доставке..." 
+                             rows="2"></textarea>
                 </div>
 
-                <div class="delivery-banner" style="margin: 0 0 20px 0;">
+                <div class="delivery-banner" style="margin: 0 0 16px 0;">
                     <i class="fas fa-shipping-fast"></i>
                     <span>Доставка: 200₽ • Бесплатно от 3000₽</span>
                 </div>
                 
                 <button class="checkout-btn" id="confirmOrderBtn" disabled>
-                    <i class="fas fa-paper-plane"></i> Подтвердить заказ
+                    <i class="fas fa-paper-plane"></i> Подтвердить
                 </button>
             </div>
 
@@ -1496,7 +1416,7 @@
                     <div class="success-icon">🎉</div>
                     <div class="success-title">Заказ принят!</div>
                     <div class="success-message">
-                        Мы свяжемся с вами в ближайшее время для уточнения деталей доставки.
+                        Свяжемся с вами для уточнения деталей доставки.
                     </div>
                     <button class="checkout-btn" id="closeSuccess">
                         Продолжить покупки
@@ -1515,7 +1435,7 @@
             <div id="editProductForm">
                 <input type="hidden" id="editProductId">
                 <div class="form-group">
-                    <label class="form-label">Название товара</label>
+                    <label class="form-label">Название</label>
                     <input type="text" class="form-input" id="editProductName">
                 </div>
                 <div class="form-group">
@@ -1523,7 +1443,7 @@
                     <input type="number" class="form-input" id="editProductPrice">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Ссылка на изображение</label>
+                    <label class="form-label">Фото</label>
                     <input type="text" class="form-input" id="editProductImage">
                 </div>
                 <div class="form-group">
@@ -1537,19 +1457,19 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Описание</label>
-                    <textarea class="form-input" id="editProductDescription" rows="3"></textarea>
+                    <textarea class="form-input" id="editProductDescription" rows="2"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Интересный факт</label>
+                    <label class="form-label">Факт</label>
                     <textarea class="form-input" id="editProductFact" rows="2"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">
-                        <input type="checkbox" id="editProductAvailable"> Доступен для покупки
+                        <input type="checkbox" id="editProductAvailable"> Доступен
                     </label>
                 </div>
                 <button class="checkout-btn" onclick="updateProduct()">
-                    <i class="fas fa-save"></i> Сохранить изменения
+                    <i class="fas fa-save"></i> Сохранить
                 </button>
             </div>
         </div>
@@ -1564,6 +1484,7 @@
         let currentCategory = 'all';
         let products = [];
         let isAdmin = false;
+        let currentUserRole = '';
         let adminData = {
             products: [],
             orders: [],
@@ -1592,7 +1513,7 @@
             
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 3000);
+            }, 2000);
         }
 
         async function loadProducts() {
@@ -1603,7 +1524,7 @@
                 renderProducts();
             } catch (error) {
                 console.error('Error loading products:', error);
-                showToast('Ошибка загрузки каталога', 'error');
+                showToast('Ошибка загрузки', 'error');
                 renderProducts([]);
             }
         }
@@ -1639,7 +1560,7 @@
                 productCard.innerHTML = `
                     <div class="product-image">
                         <img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">
-                        <div class="product-badge">Хит продаж</div>
+                        <div class="product-badge">Хит</div>
                     </div>
                     <div class="product-content">
                         <div class="product-title">${product.name}</div>
@@ -1684,7 +1605,7 @@
                 }
                 updateCartDisplay();
                 tg.HapticFeedback.impactOccurred('soft');
-                showToast(`✅ ${product.name} добавлен в корзину`, 'success');
+                showToast('Добавлено', 'success');
             }
         }
 
@@ -1719,7 +1640,7 @@
                 cartItems.innerHTML = `
                     <div class="empty-cart">
                         <i class="fas fa-shopping-bag"></i>
-                        <div>Ваша корзина пуста</div>
+                        <div>Корзина пуста</div>
                     </div>
                 `;
                 return;
@@ -1784,7 +1705,7 @@
             cart.splice(index, 1);
             updateCartDisplay();
             tg.HapticFeedback.impactOccurred('light');
-            showToast(`🗑️ ${removedItem.name} удален из корзины`, 'error');
+            showToast('Удалено', 'error');
         }
 
         function showCartModal() {
@@ -1810,13 +1731,13 @@
                     showOrderSuccess();
                     return true;
                 } else {
-                    tg.showAlert('Ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
+                    tg.showAlert('Ошибка при оформлении заказа.');
                     return false;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                tg.showAlert('Ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
+                tg.showAlert('Ошибка при оформлении заказа.');
                 return false;
             });
         }
@@ -1837,7 +1758,7 @@
 
             document.getElementById('checkoutBtn').addEventListener('click', () => {
                 if (cart.length === 0) {
-                    tg.showAlert('Корзина пуста. Добавьте товары перед оформлением заказа.');
+                    tg.showAlert('Корзина пуста.');
                     return;
                 }
                 document.getElementById('cartModal').style.display = 'none';
@@ -1889,7 +1810,7 @@
                 sendOrderToAdmin(orderData).then(success => {
                     if (!success) {
                         document.getElementById('confirmOrderBtn').disabled = false;
-                        document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Подтвердить заказ';
+                        document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Подтвердить';
                     }
                 });
             });
@@ -1903,7 +1824,7 @@
                 document.getElementById('phoneInput').value = '+7';
                 document.getElementById('orderComment').value = '';
                 document.getElementById('confirmOrderBtn').disabled = true;
-                document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Подтвердить заказ';
+                document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Подтвердить';
             });
 
             document.getElementById('closeEditProduct').addEventListener('click', () => {
@@ -1943,75 +1864,39 @@
             });
         }
 
-      async function checkAdminAccess() {
-    try {
-        const telegramId = String(tg.initDataUnsafe.user?.id || '');
-        console.log('🔍 Проверяем админ-доступ для ID:', telegramId);
-        
-        const response = await fetch('/api/admin', {
-            headers: {
-                'Telegram-Id': telegramId
+        async function checkAdminAccess() {
+            try {
+                const telegramId = String(tg.initDataUnsafe.user?.id || '');
+                
+                const response = await fetch('/api/admin', {
+                    headers: {
+                        'Telegram-Id': telegramId
+                    }
+                });
+                
+                const data = await response.json();
+                
+                isAdmin = data.is_admin === true && data.is_active !== false;
+                currentUserRole = data.role || '';
+                
+                if (isAdmin) {
+                    document.getElementById('adminButton').style.display = 'flex';
+                    showToast('Панель управления доступна', 'info');
+                }
+            } catch (error) {
+                console.error('Ошибка проверки админ-доступа:', error);
             }
-        });
-        
-        const data = await response.json();
-        console.log('📡 Полный ответ от API:', data);
-        
-        // Расширенная проверка с отладкой
-        const isAdminFromAPI = data.is_admin === true;
-        const isActiveFromAPI = data.is_active !== false;
-        
-        console.log('🔐 Результаты проверки:', {
-            isAdminFromAPI,
-            isActiveFromAPI,
-            telegramIdFromAPI: data.telegram_id,
-            foundRecords: data.found_records
-        });
-        
-        isAdmin = isAdminFromAPI && isActiveFromAPI;
-        
-        if (isAdmin) {
-            console.log('✅ Доступ к админ-панели разрешен');
-            document.getElementById('adminPanel').style.display = 'block';
-            document.getElementById('customerView').style.display = 'none';
-            loadAdminData();
-            setupAdminTabs();
-            showToast('Добро пожаловать в панель управления!', 'info');
-        } else {
-            console.log('❌ Доступ к админ-панели запрещен');
-            console.log('Детали:', {
-                isAdminFromAPI,
-                isActiveFromAPI,
-                data
-            });
-            
-            // Показываем детальную ошибку
-            let errorMsg = 'У вас нет доступа к панели управления';
-            if (data.found_records === 0) {
-                errorMsg += ' (запись не найдена в базе)';
-            } else if (!isActiveFromAPI) {
-                errorMsg += ' (аккаунт не активен)';
-            }
-            showToast(errorMsg, 'error');
         }
-    } catch (error) {
-        console.error('❌ Ошибка проверки админ-доступа:', error);
-        showToast('Ошибка подключения к серверу', 'error');
-        
-        // Временное решение для тестирования
-        forceAdminAccess();
-    }
-}
 
         function switchToCustomerView() {
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('customerView').style.display = 'block';
-            showToast('Переключено в режим покупателя', 'info');
+            showToast('Магазин', 'info');
         }
 
         function switchToAdminView() {
             if (!isAdmin) {
-                showToast('У вас нет доступа к панели управления', 'error');
+                showToast('Нет доступа', 'error');
                 return;
             }
             document.getElementById('customerView').style.display = 'none';
@@ -2125,7 +2010,7 @@
             productsList.innerHTML = '';
             
             if (products.length === 0) {
-                productsList.innerHTML = '<div class="table-row"><div colspan="5" style="text-align: center; padding: 20px; color: var(--admin-text-light);">Товары не найдены</div></div>';
+                productsList.innerHTML = '<div class="empty-table-message">Товары не найдены</div>';
                 return;
             }
             
@@ -2136,7 +2021,7 @@
                     <div>${product.id}</div>
                     <div>
                         <strong>${product.name}</strong>
-                        <div style="font-size: 12px; color: var(--admin-text-light);">${product.description}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">${product.description}</div>
                     </div>
                     <div>${product.price} ₽</div>
                     <div>${product.category}</div>
@@ -2174,7 +2059,7 @@
             ordersList.innerHTML = '';
             
             if (orders.length === 0) {
-                ordersList.innerHTML = '<div class="table-row"><div colspan="5" style="text-align: center; padding: 20px; color: var(--admin-text-light);">Заказы не найдены</div></div>';
+                ordersList.innerHTML = '<div class="empty-table-message">Заказы не найдены</div>';
                 return;
             }
             
@@ -2195,7 +2080,7 @@
                     <div>#${order.id}</div>
                     <div>
                         <strong>${order.user_name}</strong>
-                        <div style="font-size: 12px; color: var(--admin-text-light);">${order.phone}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">${order.phone}</div>
                         <div class="order-details">
                             <div class="order-items">
                                 ${order.items.map(item => `
@@ -2205,7 +2090,7 @@
                                     </div>
                                 `).join('')}
                             </div>
-                            ${order.comment ? `<div style="margin-top: 8px;"><strong>Комментарий:</strong> ${order.comment}</div>` : ''}
+                            ${order.comment ? `<div style="margin-top: 6px;"><strong>Комментарий:</strong> ${order.comment}</div>` : ''}
                         </div>
                     </div>
                     <div><strong>${order.total_amount} ₽</strong></div>
@@ -2231,6 +2116,10 @@
                 const admins = await response.json();
                 adminData.admins = admins;
                 renderAdmins(admins);
+                
+                if (currentUserRole === 'owner') {
+                    document.getElementById('adminFormContainer').style.display = 'block';
+                }
             } catch (error) {
                 console.error('Error loading admins:', error);
             }
@@ -2240,6 +2129,11 @@
             const adminsList = document.getElementById('adminsList');
             adminsList.innerHTML = '';
             
+            if (admins.length === 0) {
+                adminsList.innerHTML = '<div class="empty-table-message">Администраторы не найдены</div>';
+                return;
+            }
+            
             admins.forEach(admin => {
                 const row = document.createElement('div');
                 row.className = 'table-row';
@@ -2248,16 +2142,16 @@
                     <div>${admin.first_name}</div>
                     <div>@${admin.username}</div>
                     <div>
-                        <span class="status-badge" style="background: ${getRoleColor(admin.role)};">
-                            ${getRoleName(admin.role)}
+                        <span class="role-badge ${admin.role === 'owner' ? 'role-owner' : 'role-admin'}">
+                            ${admin.role === 'owner' ? 'Владелец' : 'Админ'}
                         </span>
                     </div>
                     <div>
-                        ${admin.role !== 'owner' ? `
+                        ${admin.role !== 'owner' && currentUserRole === 'owner' ? `
                             <button class="btn btn-danger btn-sm" onclick="deleteAdmin(${admin.id})">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        ` : '<span style="color: var(--admin-text-light); font-size: 12px;">Владелец</span>'}
+                        ` : '<span style="color: var(--text-light); font-size: 10px;">Нельзя удалить</span>'}
                     </div>
                 `;
                 adminsList.appendChild(row);
@@ -2267,22 +2161,12 @@
         function loadSettings() {
         }
 
-        function getRoleName(role) {
-            const roles = {
-                'owner': 'Владелец',
-                'admin': 'Администратор',
-                'manager': 'Менеджер'
-            };
-            return roles[role] || role;
-        }
-
-        function getRoleColor(role) {
-            const colors = {
-                'owner': '#EF4444',
-                'admin': '#8B5CF6',
-                'manager': '#3B82F6'
-            };
-            return colors[role] || '#6B7280';
+        function toggleProductForm() {
+            const content = document.getElementById('productFormContent');
+            const icon = document.getElementById('productFormIcon');
+            
+            content.classList.toggle('expanded');
+            icon.style.transform = content.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
         }
 
         async function addProduct() {
@@ -2297,7 +2181,7 @@
             };
             
             if (!product.name || !product.price) {
-                showToast('Заполните название и цену товара', 'error');
+                showToast('Заполните название и цену', 'error');
                 return;
             }
             
@@ -2312,14 +2196,14 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    showToast('Товар успешно добавлен', 'success');
+                    showToast('Товар добавлен', 'success');
                     loadProductsAdmin();
                     resetProductForm();
                     loadProducts();
                 }
             } catch (error) {
                 console.error('Error adding product:', error);
-                showToast('Ошибка при добавлении товара', 'error');
+                showToast('Ошибка добавления', 'error');
             }
         }
 
@@ -2362,19 +2246,19 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    showToast('Товар успешно обновлен', 'success');
+                    showToast('Товар обновлен', 'success');
                     document.getElementById('editProductModal').style.display = 'none';
                     loadProductsAdmin();
                     loadProducts();
                 }
             } catch (error) {
                 console.error('Error updating product:', error);
-                showToast('Ошибка при обновлении товара', 'error');
+                showToast('Ошибка обновления', 'error');
             }
         }
 
         async function deleteProduct(productId) {
-            if (!confirm('Вы уверены, что хотите удалить этот товар?')) return;
+            if (!confirm('Удалить товар?')) return;
             
             try {
                 const response = await fetch(`/api/products/${productId}`, {
@@ -2389,7 +2273,7 @@
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
-                showToast('Ошибка при удалении товара', 'error');
+                showToast('Ошибка удаления', 'error');
             }
         }
 
@@ -2415,12 +2299,12 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    showToast('Статус заказа обновлен', 'success');
+                    showToast('Статус обновлен', 'success');
                     loadOrdersAdmin();
                 }
             } catch (error) {
                 console.error('Error updating order status:', error);
-                showToast('Ошибка при обновлении статуса', 'error');
+                showToast('Ошибка обновления', 'error');
             }
         }
 
@@ -2467,12 +2351,12 @@
                 }
             } catch (error) {
                 console.error('Error adding admin:', error);
-                showToast('Ошибка при добавлении администратора', 'error');
+                showToast('Ошибка добавления', 'error');
             }
         }
 
         async function deleteAdmin(adminId) {
-            if (!confirm('Вы уверены, что хотите удалить этого администратора?')) return;
+            if (!confirm('Удалить администратора?')) return;
             
             try {
                 const response = await fetch(`/api/admin/${adminId}`, {
@@ -2486,7 +2370,7 @@
                 }
             } catch (error) {
                 console.error('Error deleting admin:', error);
-                showToast('Ошибка при удалении администратора', 'error');
+                showToast('Ошибка удаления', 'error');
             }
         }
 
@@ -2532,13 +2416,6 @@
             renderOrdersAdmin(filteredOrders);
         }
 
-        function showNotifications() {
-        }
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
         function saveShopSettings() {
             showToast('Настройки сохранены', 'success');
         }
@@ -2562,33 +2439,5 @@
 
         initApp();
     </script>
-    <!-- ВРЕМЕННАЯ КНОПКА ДЛЯ ТЕСТИРОВАНИЯ -->
-<div style="position: fixed; top: 10px; left: 10px; z-index: 10000; display: flex; flex-direction: column; gap: 5px;">
-    <button onclick="forceAdminAccess()" style="background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-        🔧 ВРЕМЕННО: Включить админку
-    </button>
-    <button onclick="checkAdminStatus()" style="background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-        🔍 Проверить статус
-    </button>
-</div>
-
-<script>
-function checkAdminStatus() {
-    const tg = window.Telegram.WebApp;
-    const status = isAdmin ? 'ДА' : 'НЕТ';
-    const userId = tg.initDataUnsafe.user?.id || 'Не определен';
-    
-    alert(`Telegram ID: ${userId}\nСтатус админа: ${status}\n\nЕсли статус "НЕТ", проверьте:\n1. Ваш ID в таблице admins\n2. Подключение к Supabase`);
-    
-    // Дополнительная проверка через API
-    fetch('/api/admin', {
-        headers: {
-            'Telegram-Id': userId
-        }
-    }).then(r => r.json()).then(data => {
-        console.log('API Response:', data);
-    });
-}
-</script>
 </body>
 </html>
