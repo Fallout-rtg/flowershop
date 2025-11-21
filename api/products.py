@@ -74,12 +74,15 @@ class Handler(BaseHTTPRequestHandler):
             
             response = supabase.table("products").insert(product_data).execute()
             
+            if not response.data:
+                raise Exception("No data returned from insert operation")
+            
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
-            response_data = {'success': True, 'product': response.data[0] if response.data else None}
+            response_data = {'success': True, 'product': response.data[0]}
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
@@ -123,7 +126,8 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_DELETE(self):
         try:
-            product_id = self.path.split('/')[-1]
+            path_parts = self.path.split('/')
+            product_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
             
             if not product_id.isdigit():
                 self.send_response(400)
