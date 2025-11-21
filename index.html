@@ -1944,29 +1944,51 @@
         }
 
         async function checkAdminAccess() {
-            try {
-                const telegramId = String(tg.initDataUnsafe.user?.id || '');
-                
-                const response = await fetch('/api/admin', {
-                    headers: {
-                        'Telegram-Id': telegramId
-                    }
-                });
-                
-                const data = await response.json();
-                isAdmin = data.is_admin === true;
-                
-                if (isAdmin) {
-                    document.getElementById('adminPanel').style.display = 'block';
-                    document.getElementById('customerView').style.display = 'none';
-                    loadAdminData();
-                    setupAdminTabs();
-                    showToast('Добро пожаловать в панель управления!', 'info');
-                }
-            } catch (error) {
-                console.error('Ошибка проверки админ-доступа:', error);
+    try {
+        const telegramId = String(tg.initDataUnsafe.user?.id || '');
+        console.log('🔍 Проверяем админ-доступ для ID:', telegramId);
+        
+        const response = await fetch('/api/admin', {
+            headers: {
+                'Telegram-Id': telegramId
             }
+        });
+        
+        const data = await response.json();
+        console.log('📡 Ответ от API:', data);
+        
+        // Проверяем оба поля - is_admin и is_active
+        isAdmin = data.is_admin === true && data.is_active !== false;
+        
+        if (isAdmin) {
+            console.log('✅ Доступ к админ-панели разрешен');
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('customerView').style.display = 'none';
+            loadAdminData();
+            setupAdminTabs();
+            showToast('Добро пожаловать в панель управления!', 'info');
+        } else {
+            console.log('❌ Доступ к админ-панели запрещен');
+            console.log('Причина:', data);
+            showToast('У вас нет доступа к панели управления', 'error');
         }
+    } catch (error) {
+        console.error('Ошибка проверки админ-доступа:', error);
+        // Временное решение для тестирования
+        forceAdminAccess();
+    }
+}
+
+// Временная функция для тестирования - добавьте её
+function forceAdminAccess() {
+    console.log('⚠️ ВРЕМЕННО: принудительно включаем админ-панель');
+    isAdmin = true;
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('customerView').style.display = 'none';
+    loadAdminData();
+    setupAdminTabs();
+    showToast('Временный доступ к админ-панели', 'info');
+}
 
         function switchToCustomerView() {
             document.getElementById('adminPanel').style.display = 'none';
@@ -2527,5 +2549,33 @@
 
         initApp();
     </script>
+    <!-- ВРЕМЕННАЯ КНОПКА ДЛЯ ТЕСТИРОВАНИЯ -->
+<div style="position: fixed; top: 10px; left: 10px; z-index: 10000; display: flex; flex-direction: column; gap: 5px;">
+    <button onclick="forceAdminAccess()" style="background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+        🔧 ВРЕМЕННО: Включить админку
+    </button>
+    <button onclick="checkAdminStatus()" style="background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+        🔍 Проверить статус
+    </button>
+</div>
+
+<script>
+function checkAdminStatus() {
+    const tg = window.Telegram.WebApp;
+    const status = isAdmin ? 'ДА' : 'НЕТ';
+    const userId = tg.initDataUnsafe.user?.id || 'Не определен';
+    
+    alert(`Telegram ID: ${userId}\nСтатус админа: ${status}\n\nЕсли статус "НЕТ", проверьте:\n1. Ваш ID в таблице admins\n2. Подключение к Supabase`);
+    
+    // Дополнительная проверка через API
+    fetch('/api/admin', {
+        headers: {
+            'Telegram-Id': userId
+        }
+    }).then(r => r.json()).then(data => {
+        console.log('API Response:', data);
+    });
+}
+</script>
 </body>
 </html>
