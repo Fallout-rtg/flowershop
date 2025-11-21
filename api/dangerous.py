@@ -28,7 +28,7 @@ class Handler(BaseHTTPRequestHandler):
             action = data.get('action')
             confirmation_code = data.get('confirmation_code')
             
-            admin_response = supabase.table("admins").select("role,id,first_name").eq("telegram_id", telegram_id).eq("is_active", True).execute()
+            admin_response = supabase.table("admins").select("role").eq("telegram_id", telegram_id).eq("is_active", True).execute()
             is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
             
             if not is_owner:
