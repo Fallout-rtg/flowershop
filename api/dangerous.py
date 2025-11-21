@@ -52,25 +52,25 @@ class Handler(BaseHTTPRequestHandler):
                 return
             
             if action == 'reset_orders':
-                supabase.table("orders").delete().neq("id", 0).execute()
-                result = {'success': True, 'message': 'All orders deleted'}
+                result = supabase.table("orders").delete().neq("id", 0).execute()
+                response_data = {'success': True, 'message': f'Все заказы удалены ({len(result.data) if result.data else 0} записей)'}
                 
             elif action == 'reset_stats':
-                supabase.table("orders").update({"profit": 0}).execute()
-                result = {'success': True, 'message': 'Statistics reset'}
+                result = supabase.table("orders").update({"profit": 0}).neq("id", 0).execute()
+                response_data = {'success': True, 'message': 'Статистика прибыли сброшена'}
                 
             elif action == 'delete_promocodes':
-                supabase.table("promocodes").delete().neq("id", 0).execute()
-                result = {'success': True, 'message': 'All promocodes deleted'}
+                result = supabase.table("promocodes").delete().neq("id", 0).execute()
+                response_data = {'success': True, 'message': f'Все промокоды удалены ({len(result.data) if result.data else 0} записей)'}
                 
             else:
-                result = {'success': False, 'error': 'Unknown action'}
+                response_data = {'success': False, 'error': 'Unknown action'}
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(json.dumps(result).encode('utf-8'))
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
             print(f"Error in dangerous operations: {e}")
