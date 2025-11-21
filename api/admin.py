@@ -31,6 +31,7 @@ class Handler(BaseHTTPRequestHandler):
                 products_response = supabase.table("products").select("*").execute()
                 admins_response = supabase.table("admins").select("*").eq("is_active", True).execute()
                 themes_response = supabase.table("shop_themes").select("*").execute()
+                promocodes_response = supabase.table("promocodes").select("*").execute()
                 
                 total_orders = len(orders_response.data)
                 completed_orders = len([o for o in orders_response.data if o.get('status_id') == 5])
@@ -39,6 +40,7 @@ class Handler(BaseHTTPRequestHandler):
                 total_products = len(products_response.data)
                 active_admins = len(admins_response.data)
                 available_themes = len(themes_response.data)
+                active_promocodes = len([p for p in promocodes_response.data if p.get('is_active')])
                 
                 data = {
                     'total_orders': total_orders,
@@ -47,7 +49,8 @@ class Handler(BaseHTTPRequestHandler):
                     'potential_revenue': potential_revenue,
                     'total_products': total_products,
                     'active_admins': active_admins,
-                    'available_themes': available_themes
+                    'available_themes': available_themes,
+                    'active_promocodes': active_promocodes
                 }
             elif '/statuses' in path:
                 response = supabase.table("order_statuses").select("*").execute()
