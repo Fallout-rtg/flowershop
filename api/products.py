@@ -20,7 +20,7 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
-            response = supabase.table("products").select("*").eq("is_available", True).execute()
+            response = supabase.table("products").select("*").eq("is_available", True).order("sort_order").execute()
             products = response.data
             
             self.send_response(200)
@@ -46,7 +46,8 @@ class Handler(BaseHTTPRequestHandler):
                     "category": "roses",
                     "description": "Роскошные красные розы в элегантной упаковке",
                     "fact": "Красные розы символизируют глубокую любовь и страсть. В Древнем Риме они были символом Венеры - богини любви.",
-                    "is_available": True
+                    "is_available": True,
+                    "sort_order": 1
                 }
             ]
             
@@ -71,6 +72,10 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'is_available' not in product_data:
                 product_data['is_available'] = True
+            
+            max_order_response = supabase.table("products").select("sort_order").order("sort_order", desc=True).limit(1).execute()
+            max_order = max_order_response.data[0]['sort_order'] if max_order_response.data else 0
+            product_data['sort_order'] = max_order + 1
             
             response = supabase.table("products").insert(product_data).execute()
             
@@ -98,22 +103,36 @@ class Handler(BaseHTTPRequestHandler):
         try:
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            product_data = json.loads(post_data)
+            data = json.loads(post_data)
             
-            product_id = product_data.get('id')
-            if not product_id:
-                raise ValueError("Product ID is required")
-            
-            update_data = {k: v for k, v in product_data.items() if k != 'id'}
-            response = supabase.table("products").update(update_data).eq("id", product_id).execute()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            response_data = {'success': True, 'product': response.data[0] if response.data else None}
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            if 'reorder' in data:
+                products_order = data['products_order']
+                for product_id, sort_order in products_order.items():
+                    supabase.table("products").update({"sort_order": sort_order}).eq("id", int(product_id)).execute()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                response_data = {'success': True}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            else:
+                product_data = data
+                product_id = product_data.get('id')
+                if not product_id:
+                    raise ValueError("Product ID is required")
+                
+                update_data = {k: v for k, v in product_data.items() if k != 'id'}
+                response = supabase.table("products").update(update_data).eq("id", product_id).execute()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                response_data = {'success': True, 'product': response.data[0] if response.data else None}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
             print(f"Error in products PUT handler: {e}")
