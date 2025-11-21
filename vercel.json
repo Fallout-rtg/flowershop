@@ -30,12 +30,12 @@
     {
       "src": "/api/admin",
       "dest": "/api/admin.py",
-      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
       "src": "/api/admin/(.*)",
       "dest": "/api/admin.py",
-      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
       "src": "/api/bot",
@@ -50,12 +50,12 @@
     {
       "src": "/api/order",
       "dest": "/api/order.py",
-      "methods": ["GET", "POST", "PUT", "OPTIONS"]
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
       "src": "/api/order/(.*)",
       "dest": "/api/order.py",
-      "methods": ["GET", "POST", "PUT", "OPTIONS"]
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
       "src": "/api/products",
