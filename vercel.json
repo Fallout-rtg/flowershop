@@ -22,6 +22,14 @@
       "use": "@vercel/python"
     },
     {
+      "src": "api/promocodes.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/dangerous.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     }
@@ -66,6 +74,21 @@
       "src": "/api/products/(.*)",
       "dest": "/api/products.py",
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    },
+    {
+      "src": "/api/promocodes",
+      "dest": "/api/promocodes.py",
+      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+    },
+    {
+      "src": "/api/promocodes/(.*)",
+      "dest": "/api/promocodes.py",
+      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+    },
+    {
+      "src": "/api/dangerous",
+      "dest": "/api/dangerous.py",
+      "methods": ["POST", "OPTIONS"]
     },
     {
       "src": "/",
