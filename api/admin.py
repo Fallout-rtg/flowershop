@@ -30,21 +30,34 @@ class Handler(BaseHTTPRequestHandler):
                 orders_response = supabase.table("orders").select("*").execute()
                 products_response = supabase.table("products").select("*").execute()
                 admins_response = supabase.table("admins").select("*").eq("is_active", True).execute()
+                themes_response = supabase.table("shop_themes").select("*").execute()
                 
                 total_orders = len(orders_response.data)
-                total_revenue = sum(order['total_amount'] for order in orders_response.data)
+                completed_orders = len([o for o in orders_response.data if o.get('status_id') == 5])
+                total_revenue = sum(order['total_amount'] for order in orders_response.data if order.get('status_id') == 5)
+                potential_revenue = sum(order['total_amount'] for order in orders_response.data if order.get('status_id') != 5)
                 total_products = len(products_response.data)
                 active_admins = len(admins_response.data)
+                available_themes = len(themes_response.data)
                 
                 data = {
                     'total_orders': total_orders,
+                    'completed_orders': completed_orders,
                     'total_revenue': total_revenue,
+                    'potential_revenue': potential_revenue,
                     'total_products': total_products,
-                    'active_admins': active_admins
+                    'active_admins': active_admins,
+                    'available_themes': available_themes
                 }
             elif '/statuses' in path:
                 response = supabase.table("order_statuses").select("*").execute()
                 data = response.data
+            elif '/themes' in path:
+                response = supabase.table("shop_themes").select("*").execute()
+                data = response.data
+            elif '/settings' in path:
+                response = supabase.table("shop_settings").select("*").execute()
+                data = {item['key']: item['value'] for item in response.data}
             else:
                 response = supabase.table("admins").select("*").eq("telegram_id", telegram_id).eq("is_active", True).execute()
                 is_admin = len(response.data) > 0
@@ -81,20 +94,48 @@ class Handler(BaseHTTPRequestHandler):
         try:
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            admin_data = json.loads(post_data)
+            data = json.loads(post_data)
             
-            if 'is_active' not in admin_data:
-                admin_data['is_active'] = True
+            if 'telegram_id' in data:
+                admin_data = data
+                if 'is_active' not in admin_data:
+                    admin_data['is_active'] = True
+                    
+                response = supabase.table("admins").insert(admin_data).execute()
                 
-            response = supabase.table("admins").insert(admin_data).execute()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            response_data = {'success': True, 'admin': response.data[0] if response.data else None}
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                response_data = {'success': True, 'admin': response.data[0] if response.data else None}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            else:
+                key = data.get('key')
+                value = data.get('value')
+                
+                if key and value is not None:
+                    existing = supabase.table("shop_settings").select("*").eq("key", key).execute()
+                    
+                    if existing.data:
+                        response = supabase.table("shop_settings").update({"value": value}).eq("key", key).execute()
+                    else:
+                        response = supabase.table("shop_settings").insert({"key": key, "value": value}).execute()
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    
+                    response_data = {'success': True}
+                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                else:
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response = {'success': False, 'error': 'Missing key or value'}
+                    self.wfile.write(json.dumps(response).encode('utf-8'))
             
         except Exception as e:
             print(f"Error in admin POST handler: {e}")
@@ -105,12 +146,52 @@ class Handler(BaseHTTPRequestHandler):
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
+    def do_PUT(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            
+            if 'theme_id' in data:
+                theme_id = data['theme_id']
+                supabase.table("shop_themes").update({"is_active": False}).execute()
+                supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                response_data = {'success': True}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            else:
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'success': False, 'error': 'Invalid request'}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                
+        except Exception as e:
+            print(f"Error in admin PUT handler: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'success': False, 'error': str(e)}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+    
     def do_DELETE(self):
         try:
             path_parts = self.path.split('/')
-            admin_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+            resource_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
             
-            response = supabase.table("admins").delete().eq("id", admin_id).execute()
+            if 'admin' in self.path:
+                response = supabase.table("admins").delete().eq("id", resource_id).execute()
+            elif 'order' in self.path:
+                response = supabase.table("orders").delete().eq("id", resource_id).execute()
+            else:
+                raise ValueError("Unknown resource")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
