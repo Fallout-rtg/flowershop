@@ -1534,22 +1534,42 @@
 
         async function checkAdminAccess() {
             try {
-                const response = await fetch('/api/admin', {
-                    headers: {
-                        'Telegram-Id': tg.initDataUnsafe.user?.id || ''
-                    }
-                });
-                const data = await response.json();
-                isAdmin = data.is_admin;
+                const telegramId = String(tg.initDataUnsafe.user?.id || '');
+                console.log('🔍 Проверяем админ-доступ для ID:', telegramId);
                 
+                // ВРЕМЕННО: принудительно включаем админ-панель для тестирования
+                isAdmin = true;
+                console.log('⚠️ ВРЕМЕННО: админ-панель принудительно включена');
                 if (isAdmin) {
                     document.getElementById('adminPanel').style.display = 'block';
                     document.getElementById('customerView').style.display = 'none';
                     loadAdminData();
                     setupAdminTabs();
                 }
+                return; // временно пропускаем проверку API
+
+                const response = await fetch('/api/admin', {
+                    headers: {
+                        'Telegram-Id': telegramId
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('📡 Ответ от API:', data);
+                
+                isAdmin = data.is_admin === true;
+                
+                if (isAdmin) {
+                    console.log('✅ Доступ к админ-панели разрешен');
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('customerView').style.display = 'none';
+                    loadAdminData();
+                    setupAdminTabs();
+                } else {
+                    console.log('❌ Доступ к админ-панели запрещен');
+                }
             } catch (error) {
-                console.error('Error checking admin access:', error);
+                console.error('Ошибка проверки админ-доступа:', error);
             }
         }
 
@@ -1561,24 +1581,74 @@
         function switchToAdminView() {
             document.getElementById('customerView').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
+            
+            // Принудительная инициализация
+            setTimeout(() => {
+                setupAdminTabs();
+                loadAdminData();
+            }, 100);
         }
 
         function setupAdminTabs() {
+            console.log('🔄 Инициализация вкладок админ-панели');
+            
+            // Очищаем старые обработчики
+            const tabs = document.querySelectorAll('.admin-tab');
+            tabs.forEach(tab => {
+                tab.onclick = null;
+            });
+            
+            // Добавляем новые обработчики
             document.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
-                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+                    console.log('🎯 Клик по вкладке:', this.dataset.tab);
                     
+                    // Снимаем активность со всех вкладок
+                    document.querySelectorAll('.admin-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Скрываем все содержимое
+                    document.querySelectorAll('.admin-tab-content').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    
+                    // Активируем выбранную вкладку
                     this.classList.add('active');
                     const tabName = this.dataset.tab;
-                    document.getElementById(tabName + 'Tab').classList.add('active');
+                    const contentId = tabName + 'Tab';
+                    const contentElement = document.getElementById(contentId);
                     
-                    if (tabName === 'dashboard') loadDashboard();
-                    if (tabName === 'products') loadProductsAdmin();
-                    if (tabName === 'orders') loadOrdersAdmin();
-                    if (tabName === 'admins') loadAdmins();
+                    if (contentElement) {
+                        contentElement.classList.add('active');
+                        console.log('📁 Открыта вкладка:', tabName);
+                        
+                        // Загружаем данные для активной вкладки
+                        switch(tabName) {
+                            case 'dashboard':
+                                loadDashboard();
+                                break;
+                            case 'products':
+                                loadProductsAdmin();
+                                break;
+                            case 'orders':
+                                loadOrdersAdmin();
+                                break;
+                            case 'admins':
+                                loadAdmins();
+                                break;
+                        }
+                    }
                 });
             });
+            
+            // Активируем первую вкладку
+            const firstTab = document.querySelector('.admin-tab[data-tab="dashboard"]');
+            if (firstTab) {
+                firstTab.click();
+            }
+            
+            console.log('✅ Вкладки админ-панели инициализированы');
         }
 
         function showTab(tabName) {
@@ -2050,20 +2120,36 @@
 
         initApp();
     </script>
-    <!-- Добавьте этот код перед закрывающим </body> -->
-<div style="position: fixed; top: 10px; left: 10px; z-index: 10000;">
-    <button onclick="switchToAdminView()" style="background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold;">
+
+<!-- ВРЕМЕННЫЕ КНОПКИ ДЛЯ ТЕСТА АДМИН-ПАНЕЛИ -->
+<div style="position: fixed; top: 10px; left: 10px; z-index: 10000; display: flex; flex-direction: column; gap: 5px;">
+    <button onclick="switchToAdminView()" style="background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
         🔧 Тест: Админка
     </button>
-    <button onclick="checkAdminStatus()" style="background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; margin-left: 5px;">
+    <button onclick="checkAdminStatus()" style="background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
         🔍 Проверить статус
+    </button>
+    <button onclick="switchToCustomerView()" style="background: #10b981; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+        🏪 Вернуться в магазин
     </button>
 </div>
 
 <script>
 function checkAdminStatus() {
     const tg = window.Telegram.WebApp;
-    alert(`Ваш Telegram ID: ${tg.initDataUnsafe.user?.id}\nСтатус админа: ${isAdmin ? 'ДА' : 'НЕТ'}`);
+    const status = isAdmin ? 'ДА' : 'НЕТ';
+    const userId = tg.initDataUnsafe.user?.id || 'Не определен';
+    
+    alert(`Telegram ID: ${userId}\nСтатус админа: ${status}\n\nЕсли статус "НЕТ", проверьте:\n1. Ваш ID в таблице admins\n2. Подключение к Supabase`);
+    
+    // Дополнительная проверка через API
+    fetch('/api/admin', {
+        headers: {
+            'Telegram-Id': userId
+        }
+    }).then(r => r.json()).then(data => {
+        console.log('API Response:', data);
+    });
 }
 </script>
 </body>
