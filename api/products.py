@@ -58,6 +58,20 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             product_data = json.loads(post_data)
             
+            required_fields = ['name', 'price', 'category']
+            for field in required_fields:
+                if field not in product_data or not product_data[field]:
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response = {'success': False, 'error': f'Missing required field: {field}'}
+                    self.wfile.write(json.dumps(response).encode('utf-8'))
+                    return
+            
+            if 'is_available' not in product_data:
+                product_data['is_available'] = True
+            
             response = supabase.table("products").insert(product_data).execute()
             
             self.send_response(200)
@@ -111,7 +125,16 @@ class Handler(BaseHTTPRequestHandler):
         try:
             product_id = self.path.split('/')[-1]
             
-            response = supabase.table("products").delete().eq("id", product_id).execute()
+            if not product_id.isdigit():
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'success': False, 'error': 'Invalid product ID'}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                return
+            
+            response = supabase.table("products").delete().eq("id", int(product_id)).execute()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
