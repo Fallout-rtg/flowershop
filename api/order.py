@@ -3,6 +3,7 @@ import json
 import os
 import requests
 import sys
+from datetime import datetime
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -111,12 +112,17 @@ class Handler(BaseHTTPRequestHandler):
             
             delivery_option = order_data.get('delivery_option', 'pickup')
             delivery_address = order_data.get('delivery_address', '')
+            promocode_id = order_data.get('promocode_id')
+            discount_amount = order_data.get('discount_amount', 0)
             
-            admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address)
-            db_success = self.save_order_to_db(order_data, delivery_option, delivery_address)
+            admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address, discount_amount)
+            db_success = self.save_order_to_db(order_data, delivery_option, delivery_address, promocode_id, discount_amount)
+            
+            if db_success and promocode_id:
+                self.update_promocode_usage(promocode_id)
             
             if db_success:
-                self.send_user_confirmation(order_data, delivery_option, delivery_address)
+                self.send_user_confirmation(order_data, delivery_option, delivery_address, discount_amount)
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -168,7 +174,7 @@ class Handler(BaseHTTPRequestHandler):
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
-    def send_admin_notification(self, order_data, delivery_option, delivery_address):
+    def send_admin_notification(self, order_data, delivery_option, delivery_address, discount_amount):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             
@@ -212,7 +218,9 @@ class Handler(BaseHTTPRequestHandler):
                     
                     delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
             
-            total_with_delivery = cart_total + delivery_cost
+            total_with_delivery = cart_total + delivery_cost - discount_amount
+            
+            discount_text = f"🎫 Скидка по промокоду: -{discount_amount} ₽\n" if discount_amount > 0 else ""
             
             message = f"""🎉 *НОВЫЙ ЗАКАЗ!*
 
@@ -229,7 +237,7 @@ class Handler(BaseHTTPRequestHandler):
 
 💵 *Сумма заказа:* {cart_total} ₽
 🚚 *Доставка:* {f'{delivery_cost} ₽' if delivery_cost > 0 else 'Бесплатно'} {f'(бесплатно от {free_delivery_min} ₽)' if delivery_cost > 0 else ''}
-💎 *Итого к оплате:* {total_with_delivery} ₽
+{discount_text}💎 *Итого к оплате:* {total_with_delivery} ₽
 
 📋 *Комментарий:* {order_data.get('comment', 'Нет комментария')}
 
@@ -264,9 +272,25 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Error sending admin notification: {e}")
             return False
 
-    def save_order_to_db(self, order_data, delivery_option, delivery_address):
+    def save_order_to_db(self, order_data, delivery_option, delivery_address, promocode_id, discount_amount):
         try:
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
+            
+            cart_total = order_data['total']
+            delivery_cost = 0
+            free_delivery_min = 3000
+            
+            if delivery_option == "delivery":
+                settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
+                if settings_response.data:
+                    delivery_price = settings_response.data[0]['value'].get('value', 200)
+                    free_delivery_min_response = supabase.table("shop_settings").select("value").eq("key", "free_delivery_min").execute()
+                    if free_delivery_min_response.data:
+                        free_delivery_min = free_delivery_min_response.data[0]['value'].get('value', 3000)
+                    
+                    delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
+            
+            final_amount = cart_total + delivery_cost - discount_amount
             
             order_record = {
                 "user_id": str(order_data['user']['id']),
@@ -277,7 +301,10 @@ class Handler(BaseHTTPRequestHandler):
                 "delivery_option": delivery_option,
                 "delivery_address": delivery_address,
                 "items": order_data['items'],
-                "total_amount": order_data['total'],
+                "total_amount": cart_total,
+                "discount_amount": discount_amount,
+                "final_amount": final_amount,
+                "promocode_id": promocode_id,
                 "status_id": 1,
                 "profit": 0
             }
@@ -290,7 +317,7 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Error saving order to DB: {e}")
             return False
 
-    def send_user_confirmation(self, order_data, delivery_option, delivery_address):
+    def send_user_confirmation(self, order_data, delivery_option, delivery_address, discount_amount):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             user_chat_id = order_data['user']['id']
@@ -328,7 +355,9 @@ class Handler(BaseHTTPRequestHandler):
                     
                     delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
             
-            total_with_delivery = cart_total + delivery_cost
+            final_amount = cart_total + delivery_cost - discount_amount
+            
+            discount_text = f"🎫 Скидка по промокоду: -{discount_amount} ₽\n" if discount_amount > 0 else ""
             
             message = f"""✅ *Ваш заказ принят!*
 
@@ -339,7 +368,7 @@ class Handler(BaseHTTPRequestHandler):
 
 💵 *Сумма заказа:* {cart_total} ₽
 🚚 *Доставка:* {f'{delivery_cost} ₽' if delivery_cost > 0 else 'Бесплатно'} {f'(бесплатно от {free_delivery_min} ₽)' if delivery_cost > 0 else ''}
-💎 *Итого к оплате:* {total_with_delivery} ₽
+{discount_text}💎 *Итого к оплате:* {final_amount} ₽
 
 📞 *Ваш телефон:* {order_data['phone']}
 
@@ -401,3 +430,13 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             print(f"Error sending order notification: {e}")
             return False
+
+    def update_promocode_usage(self, promocode_id):
+        try:
+            promocode_response = supabase.table("promocodes").select("used_count").eq("id", promocode_id).execute()
+            if promocode_response.data:
+                current_count = promocode_response.data[0].get('used_count', 0)
+                supabase.table("promocodes").update({"used_count": current_count + 1}).eq("id", promocode_id).execute()
+                
+        except Exception as e:
+            print(f"Error updating promocode usage: {e}")
