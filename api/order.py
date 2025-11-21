@@ -25,8 +25,19 @@ class Handler(BaseHTTPRequestHandler):
             is_admin = self.headers.get('Is-Admin', 'false') == 'true'
             
             if is_admin:
-                response = supabase.table("orders").select("*, order_statuses(name)").execute()
-                orders = response.data
+                orders_response = supabase.table("orders").select("*").execute()
+                statuses_response = supabase.table("order_statuses").select("*").execute()
+                
+                orders = orders_response.data
+                statuses = statuses_response.data
+                
+                status_map = {status['id']: status for status in statuses}
+                
+                for order in orders:
+                    status_info = status_map.get(order['status_id'])
+                    if status_info:
+                        order['status_name'] = status_info['name']
+                        order['status_color'] = status_info['color']
             else:
                 response = supabase.table("orders").select("*").eq("user_id", user_id).execute()
                 orders = response.data
@@ -94,11 +105,14 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             order_data = json.loads(post_data)
             
-            admin_success = self.send_admin_notification(order_data)
-            db_success = self.save_order_to_db(order_data)
+            delivery_option = order_data.get('delivery_option', 'pickup')
+            delivery_address = order_data.get('delivery_address', '')
+            
+            admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address)
+            db_success = self.save_order_to_db(order_data, delivery_option, delivery_address)
             
             if db_success:
-                self.send_user_confirmation(order_data)
+                self.send_user_confirmation(order_data, delivery_option, delivery_address)
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -117,21 +131,42 @@ class Handler(BaseHTTPRequestHandler):
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
-    def send_admin_notification(self, order_data):
+    def send_admin_notification(self, order_data, delivery_option, delivery_address):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
-            admin_chat_id = os.environ.get('ADMIN_CHAT_ID')
             
-            if not bot_token or not admin_chat_id:
-                print("Missing BOT_TOKEN or ADMIN_CHAT_ID")
+            admins_response = supabase.table("admins").select("telegram_id").eq("is_active", True).execute()
+            admin_chat_ids = [admin['telegram_id'] for admin in admins_response.data]
+            
+            if not bot_token or not admin_chat_ids:
+                print("Missing BOT_TOKEN or no active admins")
                 return False
             
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
+            telegram_link = f"tg://openmessage?user_id={order_data['user']['id']}"
+            phone_link = f"https://t.me/+{clean_phone}" if clean_phone.startswith('7') else f"https://t.me/+7{clean_phone}"
+            
+            delivery_info = "🚚 Доставка" if delivery_option == "delivery" else "🏪 Самовывоз"
+            if delivery_option == "delivery" and delivery_address:
+                delivery_info += f"\n📍 Адрес: {delivery_address}"
+            else:
+                settings_response = supabase.table("shop_settings").select("value").eq("key", "contacts").execute()
+                if settings_response.data:
+                    contacts = settings_response.data[0]['value']
+                    pickup_address = contacts.get('value', '').split('📍')[-1].strip() if '📍' in contacts.get('value', '') else "Ярославль, ул. Цветочная, 15"
+                    delivery_info += f"\n📍 Адрес самовывоза: {pickup_address}"
             
             items_text = "\n".join([
                 f"• {item['name']} - {item['quantity']} шт. × {item['price']} ₽ = {item['total']} ₽" 
                 for item in order_data['items']
             ])
+            
+            total_with_delivery = order_data['total']
+            if delivery_option == "delivery":
+                settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
+                if settings_response.data:
+                    delivery_price = settings_response.data[0]['value'].get('value', 200)
+                    total_with_delivery += delivery_price
             
             message = f"""🎉 *НОВЫЙ ЗАКАЗ!*
 
@@ -140,33 +175,50 @@ class Handler(BaseHTTPRequestHandler):
 📛 Имя: {order_data['user']['first_name']}
 👤 Юзернейм: @{order_data['user']['username']}
 📞 Телефон: `{clean_phone}`
-🏙️ Город: Ярославль
+
+{delivery_info}
 
 🛍️ *Состав заказа:*
 {items_text}
 
-💵 *Итого к оплате:* {order_data['total']} ₽
+💵 *Сумма заказа:* {order_data['total']} ₽
+🚚 *Доставка:* {'200 ₽' if delivery_option == 'delivery' else 'Бесплатно'}
+💎 *Итого к оплате:* {total_with_delivery} ₽
 
-📋 *Комментарий:* {order_data['comment'] or 'Нет комментария'}
+📋 *Комментарий:* {order_data.get('comment', 'Нет комментария')}
 
-🕐 *Время заказа:* {order_data['time']}"""
+🕐 *Время заказа:* {order_data['time']}
+
+💬 *Связаться с клиентом:*
+[📱 По ID]({telegram_link}) | [☎️ По номеру]({phone_link})"""
             
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            payload = {
-                'chat_id': admin_chat_id,
-                'text': message,
-                'parse_mode': 'Markdown',
-                'disable_web_page_preview': True
-            }
+            success_count = 0
+            for admin_chat_id in admin_chat_ids:
+                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                payload = {
+                    'chat_id': admin_chat_id,
+                    'text': message,
+                    'parse_mode': 'Markdown',
+                    'disable_web_page_preview': True,
+                    'reply_markup': {
+                        'inline_keyboard': [[
+                            {'text': '📱 Написать по ID', 'url': telegram_link},
+                            {'text': '☎️ Написать по номеру', 'url': phone_link}
+                        ]]
+                    }
+                }
+                
+                response = requests.post(url, json=payload, timeout=10)
+                if response.status_code == 200:
+                    success_count += 1
             
-            response = requests.post(url, json=payload, timeout=10)
-            return response.status_code == 200
+            return success_count > 0
             
         except Exception as e:
             print(f"Error sending admin notification: {e}")
             return False
 
-    def save_order_to_db(self, order_data):
+    def save_order_to_db(self, order_data, delivery_option, delivery_address):
         try:
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             
@@ -176,6 +228,8 @@ class Handler(BaseHTTPRequestHandler):
                 "user_username": order_data['user'].get('username', ''),
                 "phone": clean_phone,
                 "comment": order_data.get('comment', ''),
+                "delivery_option": delivery_option,
+                "delivery_address": delivery_address,
                 "items": order_data['items'],
                 "total_amount": order_data['total'],
                 "status_id": 1
@@ -189,7 +243,7 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Error saving order to DB: {e}")
             return False
 
-    def send_user_confirmation(self, order_data):
+    def send_user_confirmation(self, order_data, delivery_option, delivery_address):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             user_chat_id = order_data['user']['id']
@@ -203,18 +257,40 @@ class Handler(BaseHTTPRequestHandler):
                 for item in order_data['items']
             ])
             
+            delivery_info = "🚚 Доставка" if delivery_option == "delivery" else "🏪 Самовывоз"
+            if delivery_option == "delivery" and delivery_address:
+                delivery_info += f"\n📍 Адрес доставки: {delivery_address}"
+            else:
+                settings_response = supabase.table("shop_settings").select("value").eq("key", "contacts").execute()
+                if settings_response.data:
+                    contacts = settings_response.data[0]['value']
+                    pickup_address = contacts.get('value', '').split('📍')[-1].strip() if '📍' in contacts.get('value', '') else "Ярославль, ул. Цветочная, 15"
+                    delivery_info += f"\n📍 Адрес самовывоза: {pickup_address}"
+            
+            total_with_delivery = order_data['total']
+            delivery_price = 0
+            if delivery_option == "delivery":
+                settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
+                if settings_response.data:
+                    delivery_price = settings_response.data[0]['value'].get('value', 200)
+                    total_with_delivery += delivery_price
+            
             message = f"""✅ *Ваш заказ принят!*
+
+{delivery_info}
 
 🛍 *Состав заказа:*
 {items_text}
 
 💵 *Сумма заказа:* {order_data['total']} ₽
+🚚 *Доставка:* {f'{delivery_price} ₽' if delivery_option == 'delivery' else 'Бесплатно'}
+💎 *Итого к оплате:* {total_with_delivery} ₽
 
 📞 *Ваш телефон:* {order_data['phone']}
 
 ⏱ *Время заказа:* {order_data['time']}
 
-Мы свяжемся с вами в ближайшее время для подтверждения заказа и уточнения деталей доставки.
+Мы свяжемся с вами в ближайшее время для подтверждения заказа и уточнения деталей.
 
 Спасибо за ваш заказ! 💐"""
             
@@ -240,7 +316,7 @@ class Handler(BaseHTTPRequestHandler):
                 print("Missing BOT_TOKEN")
                 return False
             
-            order_response = supabase.table("orders").select("*, order_statuses(name)").eq("id", order_id).execute()
+            order_response = supabase.table("orders").select("*").eq("id", order_id).execute()
             if not order_response.data:
                 return False
             
