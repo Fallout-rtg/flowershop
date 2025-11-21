@@ -2050,5 +2050,21 @@
 
         initApp();
     </script>
+    <!-- Добавьте этот код перед закрывающим </body> -->
+<div style="position: fixed; top: 10px; left: 10px; z-index: 10000;">
+    <button onclick="switchToAdminView()" style="background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold;">
+        🔧 Тест: Админка
+    </button>
+    <button onclick="checkAdminStatus()" style="background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; margin-left: 5px;">
+        🔍 Проверить статус
+    </button>
+</div>
+
+<script>
+function checkAdminStatus() {
+    const tg = window.Telegram.WebApp;
+    alert(`Ваш Telegram ID: ${tg.initDataUnsafe.user?.id}\nСтатус админа: ${isAdmin ? 'ДА' : 'НЕТ'}`);
+}
+</script>
 </body>
 </html>
