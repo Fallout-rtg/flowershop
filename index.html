@@ -7,37 +7,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js?2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 3000;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            background: #22c55e;
-        }
-
-        .toast.error {
-            background: #ef4444;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -47,15 +16,29 @@
         :root {
             --primary: #22c55e;
             --primary-dark: #16a34a;
+            --primary-light: #dcfce7;
             --secondary: #ec4899;
+            --secondary-dark: #db2777;
             --accent: #8b5cf6;
+            --accent-dark: #7c3aed;
             --text: #1f2937;
             --text-light: #6b7280;
+            --text-lighter: #9ca3af;
             --bg: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
             --card-bg: #ffffff;
             --shadow: 0 10px 25px rgba(0,0,0,0.1);
-            --admin-bg: #f8fafc;
-            --admin-header: #1e293b;
+            --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --border: 1px solid #e5e7eb;
+            --radius: 20px;
+            --radius-sm: 12px;
+            --radius-lg: 25px;
+            --admin-bg: #0f172a;
+            --admin-card: #1e293b;
+            --admin-text: #f8fafc;
+            --admin-text-light: #cbd5e1;
         }
 
         body {
@@ -78,7 +61,7 @@
         .header {
             background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
             color: white;
-            padding: 40px 25px 30px;
+            padding: 50px 25px 35px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -100,25 +83,37 @@
         }
 
         .header h1 {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 800;
             margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .header p {
             font-size: 16px;
-            opacity: 0.9;
+            opacity: 0.95;
             font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .delivery-info {
+            background: rgba(255,255,255,0.2);
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            margin-top: 10px;
         }
 
         .admin-header {
-            background: var(--admin-header);
-            color: white;
+            background: var(--admin-bg);
+            color: var(--admin-text);
             padding: 20px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #334155;
         }
 
         .admin-title {
@@ -127,47 +122,99 @@
         }
 
         .admin-switch {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--admin-text);
+            padding: 10px 16px;
+            border-radius: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .admin-switch:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
         }
 
-        .categories {
+        .quick-actions {
             display: flex;
-            gap: 12px;
-            padding: 20px;
+            gap: 10px;
+            padding: 15px 20px;
+            background: var(--bg-secondary);
+            border-bottom: var(--border);
             overflow-x: auto;
-            background: var(--bg);
-            border-bottom: 1px solid #f0f0f0;
         }
 
-        .category-btn {
-            padding: 12px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 25px;
+        .quick-action-btn {
+            padding: 12px 18px;
             background: white;
+            border: var(--border);
+            border-radius: 15px;
             color: var(--text);
             font-weight: 600;
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 14px;
         }
 
-        .category-btn.active {
+        .quick-action-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-action-btn.primary {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .quick-action-btn.secondary {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .categories {
+            display: flex;
+            gap: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            background: var(--bg);
+            border-bottom: var(--border);
+        }
+
+        .category-btn {
+            padding: 14px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 20px;
+            background: white;
+            color: var(--text);
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+            transform: translateY(-2px);
         }
 
         .products-grid {
@@ -179,21 +226,22 @@
 
         .product-card {
             background: var(--card-bg);
-            border-radius: 20px;
+            border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-            border: 1px solid #f0f0f0;
+            transition: all 0.4s ease;
+            border: var(--border);
+            position: relative;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
         }
 
         .product-image {
             width: 100%;
-            height: 200px;
+            height: 220px;
             background: linear-gradient(135deg, #ffe8e8 0%, #ffd6d6 100%);
             position: relative;
             overflow: hidden;
@@ -203,18 +251,24 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
         }
 
         .product-badge {
             position: absolute;
             top: 12px;
             right: 12px;
-            background: var(--secondary);
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
             color: white;
-            padding: 4px 12px;
+            padding: 6px 12px;
             border-radius: 12px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
         }
 
         .product-content {
@@ -223,9 +277,10 @@
 
         .product-title {
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 8px;
             color: var(--text);
+            line-height: 1.3;
         }
 
         .product-description {
@@ -236,9 +291,9 @@
         }
 
         .product-fact {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 12px;
+            background: var(--primary-light);
+            padding: 14px;
+            border-radius: var(--radius-sm);
             margin-bottom: 16px;
             border-left: 4px solid var(--primary);
         }
@@ -252,6 +307,7 @@
             font-size: 13px;
             color: var(--text);
             font-style: italic;
+            line-height: 1.4;
         }
 
         .product-footer {
@@ -261,52 +317,70 @@
         }
 
         .product-price {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--secondary);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .add-to-cart {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
             border-radius: 20px;
-            padding: 10px 20px;
-            font-weight: 600;
+            padding: 12px 24px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
         }
 
         .add-to-cart:hover {
-            background: var(--primary-dark);
             transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
         }
 
-        .cart-button {
+        .add-to-cart:active {
+            transform: scale(0.95);
+        }
+
+        .floating-buttons {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: var(--primary);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .cart-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
             border-radius: 50px;
-            padding: 16px 24px;
+            padding: 18px 24px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4);
             display: none;
             align-items: center;
-            gap: 8px;
-            z-index: 1000;
+            gap: 10px;
             transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 8px 40px rgba(34, 197, 94, 0.6); }
+            100% { box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4); }
         }
 
         .cart-button:hover {
-            background: var(--primary-dark);
             transform: scale(1.05);
         }
 
@@ -314,13 +388,30 @@
             background: var(--secondary);
             color: white;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            font-weight: 800;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .admin-button {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .admin-button:hover {
+            transform: scale(1.05);
         }
 
         .modal {
@@ -329,34 +420,41 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
             padding: 20px;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
             background: white;
-            border-radius: 25px;
+            border-radius: var(--radius-lg);
             padding: 25px;
             max-width: 400px;
             width: 100%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
-            animation: modalSlideIn 0.3s ease;
+            animation: modalSlideIn 0.4s ease;
+            box-shadow: var(--shadow-lg);
         }
 
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(50px);
+                transform: translateY(50px) scale(0.9);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
@@ -370,9 +468,12 @@
         }
 
         .modal-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .close-modal {
@@ -407,6 +508,13 @@
             align-items: center;
             padding: 15px 0;
             border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .cart-item:hover {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px 10px;
         }
 
         .item-info {
@@ -438,6 +546,7 @@
             background: #f8f9fa;
             border-radius: 20px;
             padding: 4px;
+            border: 1px solid #e5e7eb;
         }
 
         .quantity-btn {
@@ -452,6 +561,12 @@
             justify-content: center;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
         }
 
         .quantity {
@@ -465,14 +580,18 @@
             color: white;
             border: none;
             border-radius: 15px;
-            padding: 6px 12px;
+            padding: 8px 12px;
             font-size: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .remove-item:hover {
             background: #dc2626;
+            transform: scale(1.05);
         }
 
         .cart-total {
@@ -482,7 +601,7 @@
             margin-bottom: 20px;
             padding-top: 15px;
             border-top: 2px solid #e5e7eb;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
         }
 
@@ -493,24 +612,26 @@
         .form-label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text);
         }
 
         .form-input {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             border: 2px solid #e5e7eb;
             border-radius: 15px;
             font-size: 16px;
             transition: all 0.3s ease;
-            font-weight: bold;
+            font-weight: 600;
+            background: white;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            transform: translateY(-2px);
         }
 
         .phone-input {
@@ -521,27 +642,33 @@
 
         .checkout-btn {
             width: 100%;
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
             border-radius: 20px;
-            padding: 18px;
+            padding: 20px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 10px;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
         }
 
         .checkout-btn:hover {
-            background: var(--primary-dark);
-            transform: scale(1.02);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+        }
+
+        .checkout-btn:active {
+            transform: translateY(-1px);
         }
 
         .checkout-btn:disabled {
             background: #9ca3af;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .empty-cart {
@@ -565,6 +692,13 @@
             font-size: 64px;
             color: var(--primary);
             margin-bottom: 20px;
+            animation: bounce 1s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
         }
 
         .success-title {
@@ -577,6 +711,7 @@
         .success-message {
             color: var(--text-light);
             margin-bottom: 25px;
+            line-height: 1.5;
         }
 
         .loading {
@@ -604,34 +739,39 @@
             display: none;
             background: var(--admin-bg);
             min-height: 100vh;
+            color: var(--admin-text);
         }
 
         .admin-tabs {
             display: flex;
             gap: 8px;
             padding: 15px;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
+            background: var(--admin-card);
+            border-bottom: 1px solid #334155;
             overflow-x: auto;
         }
 
         .admin-tab {
-            padding: 12px 20px;
-            border: 2px solid #e5e7eb;
+            padding: 14px 20px;
+            border: 2px solid #475569;
             border-radius: 15px;
-            background: white;
-            color: var(--text);
-            font-weight: 600;
+            background: var(--admin-card);
+            color: var(--admin-text-light);
+            font-weight: 700;
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .admin-tab.active {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
         }
 
         .admin-content {
@@ -644,6 +784,7 @@
 
         .admin-tab-content.active {
             display: block;
+            animation: fadeIn 0.5s ease;
         }
 
         .stats-grid {
@@ -654,54 +795,68 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--admin-card);
             padding: 20px;
             border-radius: 15px;
             box-shadow: var(--shadow);
             text-align: center;
             border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 800;
             color: var(--primary);
             margin-bottom: 5px;
         }
 
         .stat-label {
-            color: var(--text-light);
+            color: var(--admin-text-light);
             font-size: 12px;
             font-weight: 600;
         }
 
         .admin-table {
-            background: white;
+            background: var(--admin-card);
             border-radius: 15px;
             overflow: hidden;
             box-shadow: var(--shadow);
             margin-bottom: 20px;
+            border: 1px solid #334155;
         }
 
         .table-header {
             padding: 15px 20px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e5e7eb;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
             font-weight: 700;
             display: grid;
             grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
             gap: 10px;
             font-size: 14px;
+            color: var(--admin-text);
         }
 
         .table-row {
             padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #334155;
             display: grid;
             grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
             gap: 10px;
             align-items: center;
             font-size: 14px;
+            color: var(--admin-text-light);
+            transition: all 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(255,255,255,0.05);
         }
 
         .table-row:last-child {
@@ -717,20 +872,24 @@
         }
 
         .btn {
-            padding: 8px 12px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 12px;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
         }
 
@@ -740,28 +899,32 @@
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
         }
 
         .btn-sm {
-            padding: 6px 10px;
+            padding: 8px 12px;
             font-size: 11px;
         }
 
         .product-form {
-            background: white;
+            background: var(--admin-card);
             padding: 20px;
             border-radius: 15px;
             box-shadow: var(--shadow);
             margin-bottom: 20px;
+            border: 1px solid #334155;
         }
 
         .form-title {
             font-size: 18px;
             font-weight: 700;
             margin-bottom: 15px;
-            color: var(--text);
+            color: var(--admin-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .form-row {
@@ -783,11 +946,12 @@
         }
 
         .order-details {
-            background: #f8f9fa;
+            background: #1e293b;
             padding: 15px;
             border-radius: 12px;
             margin-top: 10px;
             font-size: 13px;
+            border: 1px solid #334155;
         }
 
         .order-items {
@@ -798,7 +962,7 @@
             display: flex;
             justify-content: space-between;
             padding: 5px 0;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #334155;
         }
 
         .order-item:last-child {
@@ -806,19 +970,27 @@
         }
 
         .search-box {
-            background: white;
+            background: var(--admin-card);
             padding: 15px;
             border-radius: 15px;
             box-shadow: var(--shadow);
             margin-bottom: 15px;
+            border: 1px solid #334155;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e5e7eb;
+            padding: 14px;
+            border: 2px solid #475569;
             border-radius: 12px;
             font-size: 14px;
+            background: #1e293b;
+            color: var(--admin-text);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
         }
 
         .filter-buttons {
@@ -829,21 +1001,178 @@
         }
 
         .filter-btn {
-            padding: 8px 16px;
-            border: 2px solid #e5e7eb;
+            padding: 10px 16px;
+            border: 2px solid #475569;
             border-radius: 12px;
-            background: white;
-            color: var(--text);
+            background: var(--admin-card);
+            color: var(--admin-text-light);
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             font-size: 12px;
+            transition: all 0.3s ease;
         }
 
         .filter-btn.active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 3000;
+            transition: all 0.4s ease;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .notification-bell {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: ring 2s infinite;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            5%, 15% { transform: rotate(15deg); }
+            10%, 20% { transform: rotate(-15deg); }
+        }
+
+        .notification-bell:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .delivery-banner {
+            background: linear-gradient(135deg, var(--primary-light) 0%, #dbeafe 100%);
+            padding: 15px 20px;
+            margin: 0 20px 20px;
+            border-radius: 15px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .delivery-banner i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .floating-action-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge.new {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.confirmed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.delivered {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.cancelled {
+            background: #fecaca;
+            color: #991b1b;
         }
     </style>
 </head>
@@ -859,15 +1188,31 @@
                 <div class="header-content">
                     <h1>🌸 Flower Shop</h1>
                     <p>Элитные букеты с доставкой по Ярославлю</p>
+                    <div class="delivery-info">
+                        <i class="fas fa-shipping-fast"></i>
+                        Доставка 200₽ • Бесплатно от 3000₽
+                    </div>
                 </div>
             </div>
 
-            <div class="categories">
-                <button class="category-btn active" data-category="all">Все букеты</button>
-                <button class="category-btn" data-category="roses">Розы</button>
-                <button class="category-btn" data-category="tulips">Тюльпаны</button>
-                <button class="category-btn" data-category="orchids">Орхидеи</button>
-                <button class="category-btn" data-category="premium">Премиум</button>
+            <div class="delivery-banner">
+                <i class="fas fa-clock"></i>
+                <span>Доставляем ежедневно с 9:00 до 21:00</span>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="filterByCategory('all')">
+                    <i class="fas fa-star"></i>Все товары
+                </button>
+                <button class="quick-action-btn" onclick="filterByCategory('roses')">
+                    <i class="fas fa-heart"></i>Розы
+                </button>
+                <button class="quick-action-btn" onclick="filterByCategory('tulips')">
+                    <i class="fas fa-sun"></i>Тюльпаны
+                </button>
+                <button class="quick-action-btn primary" onclick="showCartModal()">
+                    <i class="fas fa-shopping-cart"></i>Корзина
+                </button>
             </div>
 
             <div class="products-grid" id="productsGrid">
@@ -876,27 +1221,32 @@
                     <div>Загружаем каталог...</div>
                 </div>
             </div>
-
-            <button class="cart-button" id="cartButton">
-                <i class="fas fa-shopping-bag"></i>
-                <span id="cartTotalAmount">0 ₽</span>
-                <span class="cart-count" id="cartCount">0</span>
-            </button>
         </div>
 
         <div class="admin-panel" id="adminPanel">
             <div class="admin-header">
                 <div class="admin-title">🛠️ Панель управления</div>
                 <button class="admin-switch" onclick="switchToCustomerView()">
-                    <i class="fas fa-store"></i> Магазин
+                    <i class="fas fa-store"></i> Вернуться в магазин
                 </button>
             </div>
 
             <div class="admin-tabs">
-                <div class="admin-tab active" data-tab="dashboard">📊 Дашборд</div>
-                <div class="admin-tab" data-tab="products">🌸 Товары</div>
-                <div class="admin-tab" data-tab="orders">📦 Заказы</div>
-                <div class="admin-tab" data-tab="admins">👥 Админы</div>
+                <div class="admin-tab active" data-tab="dashboard">
+                    <i class="fas fa-chart-bar"></i>Дашборд
+                </div>
+                <div class="admin-tab" data-tab="products">
+                    <i class="fas fa-shopping-bag"></i>Товары
+                </div>
+                <div class="admin-tab" data-tab="orders">
+                    <i class="fas fa-clipboard-list"></i>Заказы
+                </div>
+                <div class="admin-tab" data-tab="admins">
+                    <i class="fas fa-users"></i>Админы
+                </div>
+                <div class="admin-tab" data-tab="settings">
+                    <i class="fas fa-cog"></i>Настройки
+                </div>
             </div>
 
             <div class="admin-content">
@@ -924,10 +1274,13 @@
                         <div class="form-title">📈 Быстрые действия</div>
                         <div class="form-actions">
                             <button class="btn btn-primary" onclick="loadProductsAdmin()">
-                                <i class="fas fa-sync"></i> Обновить
+                                <i class="fas fa-sync"></i> Обновить данные
                             </button>
                             <button class="btn btn-secondary" onclick="showTab('products')">
                                 <i class="fas fa-plus"></i> Добавить товар
+                            </button>
+                            <button class="btn btn-primary" onclick="showTab('orders')">
+                                <i class="fas fa-eye"></i> Просмотр заказов
                             </button>
                         </div>
                     </div>
@@ -959,6 +1312,9 @@
                             <button class="btn btn-primary" onclick="addProduct()">
                                 <i class="fas fa-save"></i> Сохранить товар
                             </button>
+                            <button class="btn btn-secondary" onclick="resetProductForm()">
+                                <i class="fas fa-times"></i> Очистить
+                            </button>
                         </div>
                     </div>
 
@@ -988,6 +1344,7 @@
                             <button class="filter-btn" data-status="3">Собираются</button>
                             <button class="filter-btn" data-status="4">В пути</button>
                             <button class="filter-btn" data-status="5">Доставлены</button>
+                            <button class="filter-btn" data-status="6">Отменены</button>
                         </div>
                     </div>
 
@@ -1022,6 +1379,9 @@
                             <button class="btn btn-primary" onclick="addAdmin()">
                                 <i class="fas fa-user-plus"></i> Добавить
                             </button>
+                            <button class="btn btn-secondary" onclick="resetAdminForm()">
+                                <i class="fas fa-times"></i> Очистить
+                            </button>
                         </div>
                     </div>
 
@@ -1036,14 +1396,56 @@
                         <div id="adminsList"></div>
                     </div>
                 </div>
+
+                <div class="admin-tab-content" id="settingsTab">
+                    <div class="product-form">
+                        <div class="form-title">⚙️ Настройки магазина</div>
+                        <div class="form-row">
+                            <input type="number" id="deliveryPrice" placeholder="Стоимость доставки" class="form-input" value="200">
+                            <input type="number" id="freeDeliveryMin" placeholder="Бесплатная доставка от" class="form-input" value="3000">
+                        </div>
+                        <div class="form-row form-full">
+                            <textarea id="workingHours" placeholder="Рабочие часы" class="form-input" rows="2">Ежедневно с 9:00 до 21:00</textarea>
+                        </div>
+                        <div class="form-row form-full">
+                            <textarea id="shopContacts" placeholder="Контакты магазина" class="form-input" rows="3">📞 +7 (999) 123-45-67
+📍 Ярославль, ул. Цветочная, 15</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="saveShopSettings()">
+                                <i class="fas fa-save"></i> Сохранить настройки
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="floating-buttons">
+        <button class="cart-button" id="cartButton">
+            <i class="fas fa-shopping-bag"></i>
+            <span id="cartTotalAmount">0 ₽</span>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <button class="admin-button" onclick="switchToAdminView()" title="Панель управления">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <button class="notification-bell" onclick="showNotifications()" id="notificationBell" style="display: none;">
+        <i class="fas fa-bell"></i>
+        <span class="notification-count" id="notificationCount">0</span>
+    </button>
+
+    <button class="floating-action-btn" onclick="scrollToTop()" title="Наверх">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <div class="modal" id="cartModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">🛒 Ваша корзина</div>
+                <div class="modal-title"><i class="fas fa-shopping-cart"></i> Ваша корзина</div>
                 <button class="close-modal" id="closeCart">×</button>
             </div>
             <div class="cart-items" id="cartItems"></div>
@@ -1058,7 +1460,7 @@
     <div class="modal" id="orderModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">📦 Оформление заказа</div>
+                <div class="modal-title"><i class="fas fa-truck"></i> Оформление заказа</div>
                 <button class="close-modal" id="closeOrder">×</button>
             </div>
             
@@ -1068,7 +1470,7 @@
                     <input type="tel" class="form-input phone-input" id="phoneInput" 
                            placeholder="+7 (XXX) XXX-XX-XX" required value="+7">
                     <small style="color: var(--text-light); margin-top: 5px; display: block;">
-                        Только российские номера. Мы свяжемся для подтверждения заказа.
+                        <i class="fas fa-info-circle"></i> Только российские номера. Мы свяжемся для подтверждения заказа.
                     </small>
                 </div>
                 
@@ -1078,9 +1480,14 @@
                              placeholder="Пожелания по доставке или особые указания..." 
                              rows="3"></textarea>
                 </div>
+
+                <div class="delivery-banner" style="margin: 0 0 20px 0;">
+                    <i class="fas fa-shipping-fast"></i>
+                    <span>Доставка: 200₽ • Бесплатно от 3000₽</span>
+                </div>
                 
                 <button class="checkout-btn" id="confirmOrderBtn" disabled>
-                    Подтвердить заказ
+                    <i class="fas fa-paper-plane"></i> Подтвердить заказ
                 </button>
             </div>
 
@@ -1102,7 +1509,7 @@
     <div class="modal" id="editProductModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">✏️ Редактировать товар</div>
+                <div class="modal-title"><i class="fas fa-edit"></i> Редактировать товар</div>
                 <button class="close-modal" id="closeEditProduct">×</button>
             </div>
             <div id="editProductForm">
@@ -1141,7 +1548,9 @@
                         <input type="checkbox" id="editProductAvailable"> Доступен для покупки
                     </label>
                 </div>
-                <button class="checkout-btn" onclick="updateProduct()">Сохранить изменения</button>
+                <button class="checkout-btn" onclick="updateProduct()">
+                    <i class="fas fa-save"></i> Сохранить изменения
+                </button>
             </div>
         </div>
     </div>
@@ -1173,15 +1582,17 @@
             
             if (type === 'success') {
                 toastIcon.className = 'fas fa-check-circle';
-            } else {
+            } else if (type === 'error') {
                 toastIcon.className = 'fas fa-times-circle';
+            } else {
+                toastIcon.className = 'fas fa-info-circle';
             }
             
             toast.classList.add('show');
             
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 2000);
+            }, 3000);
         }
 
         async function loadProducts() {
@@ -1195,6 +1606,12 @@
                 showToast('Ошибка загрузки каталога', 'error');
                 renderProducts([]);
             }
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            renderProducts(category);
+            tg.HapticFeedback.selectionChanged();
         }
 
         function renderProducts(category = 'all') {
@@ -1222,7 +1639,7 @@
                 productCard.innerHTML = `
                     <div class="product-image">
                         <img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">
-                        <div class="product-badge">Хит</div>
+                        <div class="product-badge">Хит продаж</div>
                     </div>
                     <div class="product-content">
                         <div class="product-title">${product.name}</div>
@@ -1370,6 +1787,10 @@
             showToast(`🗑️ ${removedItem.name} удален из корзины`, 'error');
         }
 
+        function showCartModal() {
+            document.getElementById('cartModal').style.display = 'flex';
+        }
+
         function validatePhone(phone) {
             const phoneRegex = /^(\+7|8)[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/;
             return phoneRegex.test(phone.replace(/\s/g, ''));
@@ -1406,16 +1827,6 @@
         }
 
         function setupEventListeners() {
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentCategory = this.dataset.category;
-                    renderProducts(currentCategory);
-                    tg.HapticFeedback.selectionChanged();
-                });
-            });
-
             document.getElementById('cartButton').addEventListener('click', () => {
                 document.getElementById('cartModal').style.display = 'flex';
             });
@@ -1473,12 +1884,12 @@
                 };
                 
                 document.getElementById('confirmOrderBtn').disabled = true;
-                document.getElementById('confirmOrderBtn').textContent = 'Отправляем...';
+                document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправляем...';
                 
                 sendOrderToAdmin(orderData).then(success => {
                     if (!success) {
                         document.getElementById('confirmOrderBtn').disabled = false;
-                        document.getElementById('confirmOrderBtn').textContent = 'Подтвердить заказ';
+                        document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Подтвердить заказ';
                     }
                 });
             });
@@ -1492,7 +1903,7 @@
                 document.getElementById('phoneInput').value = '+7';
                 document.getElementById('orderComment').value = '';
                 document.getElementById('confirmOrderBtn').disabled = true;
-                document.getElementById('confirmOrderBtn').textContent = 'Подтвердить заказ';
+                document.getElementById('confirmOrderBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Подтвердить заказ';
             });
 
             document.getElementById('closeEditProduct').addEventListener('click', () => {
@@ -1506,48 +1917,36 @@
                     }
                 });
             });
-        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const phoneInput = document.getElementById('phoneInput');
-            
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.startsWith('7') || value.startsWith('8')) {
-                    value = value.substring(1);
-                }
-                if (value.length > 0) {
-                    value = '+7 (' + value;
-                    if (value.length > 7) {
-                        value = value.substring(0, 7) + ') ' + value.substring(7);
+            document.addEventListener('DOMContentLoaded', function() {
+                const phoneInput = document.getElementById('phoneInput');
+                
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.startsWith('7') || value.startsWith('8')) {
+                        value = value.substring(1);
                     }
-                    if (value.length > 12) {
-                        value = value.substring(0, 12) + '-' + value.substring(12);
+                    if (value.length > 0) {
+                        value = '+7 (' + value;
+                        if (value.length > 7) {
+                            value = value.substring(0, 7) + ') ' + value.substring(7);
+                        }
+                        if (value.length > 12) {
+                            value = value.substring(0, 12) + '-' + value.substring(12);
+                        }
+                        if (value.length > 15) {
+                            value = value.substring(0, 15) + '-' + value.substring(15);
+                        }
                     }
-                    if (value.length > 15) {
-                        value = value.substring(0, 15) + '-' + value.substring(15);
-                    }
-                }
-                e.target.value = value;
+                    e.target.value = value;
+                });
             });
-        });
+        }
 
         async function checkAdminAccess() {
             try {
                 const telegramId = String(tg.initDataUnsafe.user?.id || '');
-                console.log('🔍 Проверяем админ-доступ для ID:', telegramId);
                 
-                // ВРЕМЕННО: принудительно включаем админ-панель для тестирования
-                isAdmin = true;
-                console.log('⚠️ ВРЕМЕННО: админ-панель принудительно включена');
-                if (isAdmin) {
-                    document.getElementById('adminPanel').style.display = 'block';
-                    document.getElementById('customerView').style.display = 'none';
-                    loadAdminData();
-                    setupAdminTabs();
-                }
-                return; // временно пропускаем проверку API
-
                 const response = await fetch('/api/admin', {
                     headers: {
                         'Telegram-Id': telegramId
@@ -1555,18 +1954,14 @@
                 });
                 
                 const data = await response.json();
-                console.log('📡 Ответ от API:', data);
-                
                 isAdmin = data.is_admin === true;
                 
                 if (isAdmin) {
-                    console.log('✅ Доступ к админ-панели разрешен');
                     document.getElementById('adminPanel').style.display = 'block';
                     document.getElementById('customerView').style.display = 'none';
                     loadAdminData();
                     setupAdminTabs();
-                } else {
-                    console.log('❌ Доступ к админ-панели запрещен');
+                    showToast('Добро пожаловать в панель управления!', 'info');
                 }
             } catch (error) {
                 console.error('Ошибка проверки админ-доступа:', error);
@@ -1576,13 +1971,17 @@
         function switchToCustomerView() {
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('customerView').style.display = 'block';
+            showToast('Переключено в режим покупателя', 'info');
         }
 
         function switchToAdminView() {
+            if (!isAdmin) {
+                showToast('У вас нет доступа к панели управления', 'error');
+                return;
+            }
             document.getElementById('customerView').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
             
-            // Принудительная инициализация
             setTimeout(() => {
                 setupAdminTabs();
                 loadAdminData();
@@ -1590,30 +1989,20 @@
         }
 
         function setupAdminTabs() {
-            console.log('🔄 Инициализация вкладок админ-панели');
-            
-            // Очищаем старые обработчики
-            const tabs = document.querySelectorAll('.admin-tab');
-            tabs.forEach(tab => {
+            document.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.onclick = null;
             });
             
-            // Добавляем новые обработчики
             document.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
-                    console.log('🎯 Клик по вкладке:', this.dataset.tab);
-                    
-                    // Снимаем активность со всех вкладок
                     document.querySelectorAll('.admin-tab').forEach(t => {
                         t.classList.remove('active');
                     });
                     
-                    // Скрываем все содержимое
                     document.querySelectorAll('.admin-tab-content').forEach(c => {
                         c.classList.remove('active');
                     });
                     
-                    // Активируем выбранную вкладку
                     this.classList.add('active');
                     const tabName = this.dataset.tab;
                     const contentId = tabName + 'Tab';
@@ -1621,9 +2010,7 @@
                     
                     if (contentElement) {
                         contentElement.classList.add('active');
-                        console.log('📁 Открыта вкладка:', tabName);
                         
-                        // Загружаем данные для активной вкладки
                         switch(tabName) {
                             case 'dashboard':
                                 loadDashboard();
@@ -1637,18 +2024,18 @@
                             case 'admins':
                                 loadAdmins();
                                 break;
+                            case 'settings':
+                                loadSettings();
+                                break;
                         }
                     }
                 });
             });
             
-            // Активируем первую вкладку
             const firstTab = document.querySelector('.admin-tab[data-tab="dashboard"]');
             if (firstTab) {
                 firstTab.click();
             }
-            
-            console.log('✅ Вкладки админ-панели инициализированы');
         }
 
         function showTab(tabName) {
@@ -1662,6 +2049,7 @@
             if (tabName === 'products') loadProductsAdmin();
             if (tabName === 'orders') loadOrdersAdmin();
             if (tabName === 'admins') loadAdmins();
+            if (tabName === 'settings') loadSettings();
         }
 
         async function loadAdminData() {
@@ -1669,6 +2057,7 @@
             await loadProductsAdmin();
             await loadOrdersAdmin();
             await loadAdmins();
+            await loadSettings();
         }
 
         async function loadDashboard() {
@@ -1701,7 +2090,7 @@
             productsList.innerHTML = '';
             
             if (products.length === 0) {
-                productsList.innerHTML = '<div class="table-row"><div colspan="5" style="text-align: center; padding: 20px; color: var(--text-light);">Товары не найдены</div></div>';
+                productsList.innerHTML = '<div class="table-row"><div colspan="5" style="text-align: center; padding: 20px; color: var(--admin-text-light);">Товары не найдены</div></div>';
                 return;
             }
             
@@ -1712,7 +2101,7 @@
                     <div>${product.id}</div>
                     <div>
                         <strong>${product.name}</strong>
-                        <div style="font-size: 12px; color: var(--text-light);">${product.description}</div>
+                        <div style="font-size: 12px; color: var(--admin-text-light);">${product.description}</div>
                     </div>
                     <div>${product.price} ₽</div>
                     <div>${product.category}</div>
@@ -1750,28 +2139,28 @@
             ordersList.innerHTML = '';
             
             if (orders.length === 0) {
-                ordersList.innerHTML = '<div class="table-row"><div colspan="5" style="text-align: center; padding: 20px; color: var(--text-light);">Заказы не найдены</div></div>';
+                ordersList.innerHTML = '<div class="table-row"><div colspan="5" style="text-align: center; padding: 20px; color: var(--admin-text-light);">Заказы не найдены</div></div>';
                 return;
             }
             
             const statusNames = {
-                1: { name: 'Новый', color: '#EF4444' },
-                2: { name: 'Подтвержден', color: '#F59E0B' },
-                3: { name: 'Собирается', color: '#8B5CF6' },
-                4: { name: 'В пути', color: '#3B82F6' },
-                5: { name: 'Доставлен', color: '#10B981' },
-                6: { name: 'Отменен', color: '#6B7280' }
+                1: { name: 'Новый', color: '#EF4444', class: 'new' },
+                2: { name: 'Подтвержден', color: '#F59E0B', class: 'confirmed' },
+                3: { name: 'Собирается', color: '#8B5CF6', class: 'confirmed' },
+                4: { name: 'В пути', color: '#3B82F6', class: 'confirmed' },
+                5: { name: 'Доставлен', color: '#10B981', class: 'delivered' },
+                6: { name: 'Отменен', color: '#6B7280', class: 'cancelled' }
             };
             
             orders.forEach(order => {
-                const status = statusNames[order.status_id] || { name: 'Неизвестен', color: '#6B7280' };
+                const status = statusNames[order.status_id] || { name: 'Неизвестен', color: '#6B7280', class: 'new' };
                 const row = document.createElement('div');
                 row.className = 'table-row';
                 row.innerHTML = `
                     <div>#${order.id}</div>
                     <div>
                         <strong>${order.user_name}</strong>
-                        <div style="font-size: 12px; color: var(--text-light);">${order.phone}</div>
+                        <div style="font-size: 12px; color: var(--admin-text-light);">${order.phone}</div>
                         <div class="order-details">
                             <div class="order-items">
                                 ${order.items.map(item => `
@@ -1786,18 +2175,14 @@
                     </div>
                     <div><strong>${order.total_amount} ₽</strong></div>
                     <div>
-                        <select class="form-input" style="padding: 8px; font-size: 12px;" onchange="updateOrderStatus(${order.id}, this.value)">
-                            <option value="1" ${order.status_id === 1 ? 'selected' : ''}>Новый</option>
-                            <option value="2" ${order.status_id === 2 ? 'selected' : ''}>Подтвержден</option>
-                            <option value="3" ${order.status_id === 3 ? 'selected' : ''}>Собирается</option>
-                            <option value="4" ${order.status_id === 4 ? 'selected' : ''}>В пути</option>
-                            <option value="5" ${order.status_id === 5 ? 'selected' : ''}>Доставлен</option>
-                            <option value="6" ${order.status_id === 6 ? 'selected' : ''}>Отменен</option>
-                        </select>
+                        <span class="badge ${status.class}">${status.name}</span>
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="viewOrderDetails(${order.id})">
                             <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="changeOrderStatus(${order.id})">
+                            <i class="fas fa-edit"></i>
                         </button>
                     </div>
                 `;
@@ -1837,11 +2222,14 @@
                             <button class="btn btn-danger btn-sm" onclick="deleteAdmin(${admin.id})">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        ` : '<span style="color: var(--text-light); font-size: 12px;">Владелец</span>'}
+                        ` : '<span style="color: var(--admin-text-light); font-size: 12px;">Владелец</span>'}
                     </div>
                 `;
                 adminsList.appendChild(row);
             });
+        }
+
+        function loadSettings() {
         }
 
         function getRoleName(role) {
@@ -1967,6 +2355,13 @@
             } catch (error) {
                 console.error('Error deleting product:', error);
                 showToast('Ошибка при удалении товара', 'error');
+            }
+        }
+
+        function changeOrderStatus(orderId) {
+            const newStatus = prompt('Введите новый статус (1-6):\n1 - Новый\n2 - Подтвержден\n3 - Собирается\n4 - В пути\n5 - Доставлен\n6 - Отменен');
+            if (newStatus && newStatus >= 1 && newStatus <= 6) {
+                updateOrderStatus(orderId, parseInt(newStatus));
             }
         }
 
@@ -2102,6 +2497,17 @@
             renderOrdersAdmin(filteredOrders);
         }
 
+        function showNotifications() {
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function saveShopSettings() {
+            showToast('Настройки сохранены', 'success');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -2116,41 +2522,10 @@
             loadProducts();
             setupEventListeners();
             checkAdminAccess();
+            updateCartDisplay();
         }
 
         initApp();
     </script>
-
-<!-- ВРЕМЕННЫЕ КНОПКИ ДЛЯ ТЕСТА АДМИН-ПАНЕЛИ -->
-<div style="position: fixed; top: 10px; left: 10px; z-index: 10000; display: flex; flex-direction: column; gap: 5px;">
-    <button onclick="switchToAdminView()" style="background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-        🔧 Тест: Админка
-    </button>
-    <button onclick="checkAdminStatus()" style="background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-        🔍 Проверить статус
-    </button>
-    <button onclick="switchToCustomerView()" style="background: #10b981; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-        🏪 Вернуться в магазин
-    </button>
-</div>
-
-<script>
-function checkAdminStatus() {
-    const tg = window.Telegram.WebApp;
-    const status = isAdmin ? 'ДА' : 'НЕТ';
-    const userId = tg.initDataUnsafe.user?.id || 'Не определен';
-    
-    alert(`Telegram ID: ${userId}\nСтатус админа: ${status}\n\nЕсли статус "НЕТ", проверьте:\n1. Ваш ID в таблице admins\n2. Подключение к Supabase`);
-    
-    // Дополнительная проверка через API
-    fetch('/api/admin', {
-        headers: {
-            'Telegram-Id': userId
-        }
-    }).then(r => r.json()).then(data => {
-        console.log('API Response:', data);
-    });
-}
-</script>
 </body>
 </html>
