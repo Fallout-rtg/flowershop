@@ -62,6 +62,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             
+            if not bot_token:
+                print("Missing BOT_TOKEN")
+                return False
+
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
             payload = {
                 'chat_id': user_id,
