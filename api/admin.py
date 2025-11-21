@@ -29,17 +29,13 @@ class Handler(BaseHTTPRequestHandler):
             elif '/stats' in path:
                 orders_response = supabase.table("orders").select("*").execute()
                 products_response = supabase.table("products").select("*").execute()
-                admins_response = supabase.table("admins").select("*").eq("is_active", True).execute()
-                themes_response = supabase.table("shop_themes").select("*").execute()
                 promocodes_response = supabase.table("promocodes").select("*").execute()
                 
                 total_orders = len(orders_response.data)
                 completed_orders = len([o for o in orders_response.data if o.get('status_id') == 5])
-                total_revenue = sum(order['total_amount'] for order in orders_response.data if order.get('status_id') == 5)
+                total_revenue = sum(order.get('profit', 0) for order in orders_response.data if order.get('status_id') == 5)
                 potential_revenue = sum(order['total_amount'] for order in orders_response.data if order.get('status_id') != 5)
                 total_products = len(products_response.data)
-                active_admins = len(admins_response.data)
-                available_themes = len(themes_response.data)
                 active_promocodes = len([p for p in promocodes_response.data if p.get('is_active')])
                 
                 data = {
@@ -48,13 +44,8 @@ class Handler(BaseHTTPRequestHandler):
                     'total_revenue': total_revenue,
                     'potential_revenue': potential_revenue,
                     'total_products': total_products,
-                    'active_admins': active_admins,
-                    'available_themes': available_themes,
                     'active_promocodes': active_promocodes
                 }
-            elif '/statuses' in path:
-                response = supabase.table("order_statuses").select("*").execute()
-                data = response.data
             elif '/themes' in path:
                 response = supabase.table("shop_themes").select("*").execute()
                 data = response.data
@@ -157,8 +148,13 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'theme_id' in data:
                 theme_id = data['theme_id']
-                supabase.table("shop_themes").update({"is_active": False}).execute()
+                supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
                 supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
+                
+                supabase.table("shop_settings").upsert({
+                    "key": "active_theme",
+                    "value": {"value": str(theme_id)}
+                }).execute()
                 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
