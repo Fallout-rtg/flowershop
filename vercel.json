@@ -2,7 +2,15 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/admin.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "api/bot.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/notifications.py",
       "use": "@vercel/python"
     },
     {
@@ -14,26 +22,38 @@
       "use": "@vercel/python"
     },
     {
-      "src": "api/admin.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/notifications.py",
-      "use": "@vercel/python"
-    },
-    {
       "src": "index.html",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/api/admin",
+      "dest": "/api/admin.py",
+      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+    },
+    {
+      "src": "/api/admin/(.*)",
+      "dest": "/api/admin.py",
+      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+    },
+    {
       "src": "/api/bot",
       "dest": "/api/bot.py",
       "methods": ["GET", "POST"]
     },
     {
+      "src": "/api/notifications",
+      "dest": "/api/notifications.py",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
       "src": "/api/order",
+      "dest": "/api/order.py",
+      "methods": ["GET", "POST", "PUT", "OPTIONS"]
+    },
+    {
+      "src": "/api/order/(.*)",
       "dest": "/api/order.py",
       "methods": ["GET", "POST", "PUT", "OPTIONS"]
     },
@@ -43,14 +63,9 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
-      "src": "/api/admin",
-      "dest": "/api/admin.py",
-      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
-    },
-    {
-      "src": "/api/notifications",
-      "dest": "/api/notifications.py",
-      "methods": ["POST", "OPTIONS"]
+      "src": "/api/products/(.*)",
+      "dest": "/api/products.py",
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
       "src": "/",
