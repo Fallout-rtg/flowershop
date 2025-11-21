@@ -23,8 +23,17 @@ class Handler(BaseHTTPRequestHandler):
         try:
             print(f"📨 Received GET request: {self.path}")
             path = self.path
-            telegram_id = self.headers.get('Telegram-Id', '')
-            print(f"🔍 Checking admin access for Telegram ID: {telegram_id}")
+            telegram_id = self.headers.get('Telegram-Id', '').strip()
+            print(f"🔍 Checking admin access for Telegram ID: '{telegram_id}'")
+            
+            # Проверяем подключение к Supabase
+            try:
+                # Тестовый запрос к products чтобы проверить подключение
+                test_response = supabase.table("products").select("id").limit(1).execute()
+                print(f"✅ Supabase connection test: {len(test_response.data)} products found")
+            except Exception as e:
+                print(f"❌ Supabase connection failed: {e}")
+                raise e
             
             if '/admins' in path:
                 print("📋 Fetching all admins")
@@ -58,36 +67,51 @@ class Handler(BaseHTTPRequestHandler):
                 print(f"✅ Found {len(data)} statuses")
                 
             else:
-                # Проверяем активных администраторов
-                print(f"🔐 Checking admin status for: {telegram_id}")
-                response = supabase.table("admins").select("*").eq("telegram_id", telegram_id).eq("is_active", True).execute()
-                print(f"📡 Supabase response: {len(response.data)} records found")
+                # Детальная проверка администратора
+                print(f"🔐 Detailed admin check for: '{telegram_id}'")
                 
-                if response.data:
-                    for record in response.data:
-                        print(f"👤 Admin record: {record}")
+                # 1. Сначала проверим без условия is_active
+                response_all = supabase.table("admins").select("*").eq("telegram_id", telegram_id).execute()
+                print(f"📡 All records found (including inactive): {len(response_all.data)}")
                 
-                is_admin = len(response.data) > 0
+                # 2. Проверим с условием is_active
+                response_active = supabase.table("admins").select("*").eq("telegram_id", telegram_id).eq("is_active", True).execute()
+                print(f"📡 Active records found: {len(response_active.data)}")
                 
-                # Если нашли активного админа, возвращаем его данные
+                # 3. Выведем все записи для отладки
+                if response_all.data:
+                    for i, record in enumerate(response_all.data):
+                        print(f"👤 Record {i+1}: id={record.get('id')}, telegram_id='{record.get('telegram_id')}', is_active={record.get('is_active')}, role={record.get('role')}")
+                
+                # Проверяем есть ли активные администраторы
+                is_admin = len(response_active.data) > 0
+                
                 if is_admin:
-                    admin_data = response.data[0]
+                    admin_data = response_active.data[0]
                     data = {
                         'is_admin': True,
                         'is_active': admin_data.get('is_active', True),
                         'role': admin_data.get('role', 'manager'),
                         'first_name': admin_data.get('first_name', ''),
                         'username': admin_data.get('username', ''),
-                        'telegram_id': admin_data.get('telegram_id', '')
+                        'telegram_id': admin_data.get('telegram_id', ''),
+                        'debug': {
+                            'all_records': len(response_all.data),
+                            'active_records': len(response_active.data)
+                        }
                     }
-                    print(f"✅ Admin access granted: {data}")
+                    print(f"✅ Admin access GRANTED: {data}")
                 else:
                     data = {
                         'is_admin': False,
                         'is_active': False,
-                        'found_records': len(response.data)
+                        'debug': {
+                            'all_records': len(response_all.data),
+                            'active_records': len(response_active.data),
+                            'searched_telegram_id': telegram_id
+                        }
                     }
-                    print(f"❌ Admin access denied. Found {len(response.data)} records")
+                    print(f"❌ Admin access DENIED. All records: {len(response_all.data)}, Active records: {len(response_active.data)}")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -99,6 +123,9 @@ class Handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             print(f"❌ Error in admin GET handler: {e}")
+            import traceback
+            print(f"🔍 Stack trace: {traceback.format_exc()}")
+            
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -114,7 +141,6 @@ class Handler(BaseHTTPRequestHandler):
             
             print(f"📝 Adding new admin: {admin_data}")
             
-            # Убедимся, что новый админ активен по умолчанию
             if 'is_active' not in admin_data:
                 admin_data['is_active'] = True
                 
