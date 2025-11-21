@@ -47,6 +47,7 @@ class Handler(BaseHTTPRequestHandler):
                     "description": "Роскошные красные розы в элегантной упаковке",
                     "fact": "Красные розы символизируют глубокую любовь и страсть. В Древнем Риме они были символом Венеры - богини любви.",
                     "is_available": True,
+                    "is_featured": True,
                     "sort_order": 1
                 }
             ]
@@ -72,6 +73,9 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'is_available' not in product_data:
                 product_data['is_available'] = True
+            
+            if 'is_featured' not in product_data:
+                product_data['is_featured'] = False
             
             max_order_response = supabase.table("products").select("sort_order").order("sort_order", desc=True).limit(1).execute()
             max_order = max_order_response.data[0]['sort_order'] if max_order_response.data else 0
