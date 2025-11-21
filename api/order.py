@@ -15,7 +15,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET, PUT')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET, PUT, DELETE')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
     
@@ -74,6 +74,10 @@ class Handler(BaseHTTPRequestHandler):
             update_data = {}
             if status_id is not None:
                 update_data['status_id'] = status_id
+                if status_id == 5:
+                    order_response = supabase.table("orders").select("total_amount").eq("id", order_id).execute()
+                    if order_response.data:
+                        update_data['profit'] = order_response.data[0]['total_amount']
             if admin_notes is not None:
                 update_data['admin_notes'] = admin_notes
             
@@ -131,6 +135,39 @@ class Handler(BaseHTTPRequestHandler):
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
+    def do_DELETE(self):
+        try:
+            path_parts = self.path.split('/')
+            order_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+            
+            if not order_id.isdigit():
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'success': False, 'error': 'Invalid order ID'}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                return
+            
+            response = supabase.table("orders").delete().eq("id", int(order_id)).execute()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            response_data = {'success': True}
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Error in order DELETE handler: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'success': False, 'error': str(e)}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+    
     def send_admin_notification(self, order_data, delivery_option, delivery_address):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
@@ -153,7 +190,7 @@ class Handler(BaseHTTPRequestHandler):
                 settings_response = supabase.table("shop_settings").select("value").eq("key", "contacts").execute()
                 if settings_response.data:
                     contacts = settings_response.data[0]['value']
-                    pickup_address = contacts.get('value', '').split('📍')[-1].strip() if '📍' in contacts.get('value', '') else "Ярославль, ул. Цветочная, 15"
+                    pickup_address = contacts.get('address', 'Ярославль, ул. Цветочная, 15')
                     delivery_info += f"\n📍 Адрес самовывоза: {pickup_address}"
             
             items_text = "\n".join([
@@ -161,12 +198,21 @@ class Handler(BaseHTTPRequestHandler):
                 for item in order_data['items']
             ])
             
-            total_with_delivery = order_data['total']
+            cart_total = order_data['total']
+            delivery_cost = 0
+            free_delivery_min = 3000
+            
             if delivery_option == "delivery":
                 settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
                 if settings_response.data:
                     delivery_price = settings_response.data[0]['value'].get('value', 200)
-                    total_with_delivery += delivery_price
+                    free_delivery_min_response = supabase.table("shop_settings").select("value").eq("key", "free_delivery_min").execute()
+                    if free_delivery_min_response.data:
+                        free_delivery_min = free_delivery_min_response.data[0]['value'].get('value', 3000)
+                    
+                    delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
+            
+            total_with_delivery = cart_total + delivery_cost
             
             message = f"""🎉 *НОВЫЙ ЗАКАЗ!*
 
@@ -181,8 +227,8 @@ class Handler(BaseHTTPRequestHandler):
 🛍️ *Состав заказа:*
 {items_text}
 
-💵 *Сумма заказа:* {order_data['total']} ₽
-🚚 *Доставка:* {'200 ₽' if delivery_option == 'delivery' else 'Бесплатно'}
+💵 *Сумма заказа:* {cart_total} ₽
+🚚 *Доставка:* {f'{delivery_cost} ₽' if delivery_cost > 0 else 'Бесплатно'} {f'(бесплатно от {free_delivery_min} ₽)' if delivery_cost > 0 else ''}
 💎 *Итого к оплате:* {total_with_delivery} ₽
 
 📋 *Комментарий:* {order_data.get('comment', 'Нет комментария')}
@@ -232,7 +278,8 @@ class Handler(BaseHTTPRequestHandler):
                 "delivery_address": delivery_address,
                 "items": order_data['items'],
                 "total_amount": order_data['total'],
-                "status_id": 1
+                "status_id": 1,
+                "profit": 0
             }
             
             result = supabase.table("orders").insert(order_record).execute()
@@ -264,16 +311,24 @@ class Handler(BaseHTTPRequestHandler):
                 settings_response = supabase.table("shop_settings").select("value").eq("key", "contacts").execute()
                 if settings_response.data:
                     contacts = settings_response.data[0]['value']
-                    pickup_address = contacts.get('value', '').split('📍')[-1].strip() if '📍' in contacts.get('value', '') else "Ярославль, ул. Цветочная, 15"
+                    pickup_address = contacts.get('address', 'Ярославль, ул. Цветочная, 15')
                     delivery_info += f"\n📍 Адрес самовывоза: {pickup_address}"
             
-            total_with_delivery = order_data['total']
-            delivery_price = 0
+            cart_total = order_data['total']
+            delivery_cost = 0
+            free_delivery_min = 3000
+            
             if delivery_option == "delivery":
                 settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
                 if settings_response.data:
                     delivery_price = settings_response.data[0]['value'].get('value', 200)
-                    total_with_delivery += delivery_price
+                    free_delivery_min_response = supabase.table("shop_settings").select("value").eq("key", "free_delivery_min").execute()
+                    if free_delivery_min_response.data:
+                        free_delivery_min = free_delivery_min_response.data[0]['value'].get('value', 3000)
+                    
+                    delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
+            
+            total_with_delivery = cart_total + delivery_cost
             
             message = f"""✅ *Ваш заказ принят!*
 
@@ -282,8 +337,8 @@ class Handler(BaseHTTPRequestHandler):
 🛍 *Состав заказа:*
 {items_text}
 
-💵 *Сумма заказа:* {order_data['total']} ₽
-🚚 *Доставка:* {f'{delivery_price} ₽' if delivery_option == 'delivery' else 'Бесплатно'}
+💵 *Сумма заказа:* {cart_total} ₽
+🚚 *Доставка:* {f'{delivery_cost} ₽' if delivery_cost > 0 else 'Бесплатно'} {f'(бесплатно от {free_delivery_min} ₽)' if delivery_cost > 0 else ''}
 💎 *Итого к оплате:* {total_with_delivery} ₽
 
 📞 *Ваш телефон:* {order_data['phone']}
