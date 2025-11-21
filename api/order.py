@@ -57,8 +57,11 @@ class Handler(BaseHTTPRequestHandler):
             status_id = order_data.get('status_id')
             admin_notes = order_data.get('admin_notes', '')
             
+            if not order_id:
+                raise ValueError("Order ID is required")
+            
             update_data = {}
-            if status_id:
+            if status_id is not None:
                 update_data['status_id'] = status_id
             if admin_notes is not None:
                 update_data['admin_notes'] = admin_notes
@@ -120,6 +123,7 @@ class Handler(BaseHTTPRequestHandler):
             admin_chat_id = os.environ.get('ADMIN_CHAT_ID')
             
             if not bot_token or not admin_chat_id:
+                print("Missing BOT_TOKEN or ADMIN_CHAT_ID")
                 return False
             
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
@@ -129,29 +133,29 @@ class Handler(BaseHTTPRequestHandler):
                 for item in order_data['items']
             ])
             
-            message = f"""🎉 <b>НОВЫЙ ЗАКАЗ!</b>
+            message = f"""🎉 *НОВЫЙ ЗАКАЗ!*
 
-👤 <b>Информация о клиенте:</b>
-🆔 ID: <code>{order_data['user']['id']}</code>
+👤 *Информация о клиенте:*
+🆔 ID: `{order_data['user']['id']}`
 📛 Имя: {order_data['user']['first_name']}
 👤 Юзернейм: @{order_data['user']['username']}
-📞 Телефон: <code>{clean_phone}</code>
+📞 Телефон: `{clean_phone}`
 🏙️ Город: Ярославль
 
-🛍️ <b>Состав заказа:</b>
+🛍️ *Состав заказа:*
 {items_text}
 
-💵 <b>Итого к оплате:</b> {order_data['total']} ₽
+💵 *Итого к оплате:* {order_data['total']} ₽
 
-📋 <b>Комментарий:</b> {order_data['comment'] or 'Нет комментария'}
+📋 *Комментарий:* {order_data['comment'] or 'Нет комментария'}
 
-🕐 <b>Время заказа:</b> {order_data['time']}"""
+🕐 *Время заказа:* {order_data['time']}"""
             
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
             payload = {
                 'chat_id': admin_chat_id,
                 'text': message,
-                'parse_mode': 'HTML',
+                'parse_mode': 'Markdown',
                 'disable_web_page_preview': True
             }
             
@@ -178,7 +182,7 @@ class Handler(BaseHTTPRequestHandler):
             }
             
             result = supabase.table("orders").insert(order_record).execute()
-            print(f"Order saved to DB: {result}")
+            print(f"Order saved to DB with ID: {result.data[0]['id'] if result.data else 'Unknown'}")
             return True
             
         except Exception as e:
@@ -189,6 +193,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             user_chat_id = order_data['user']['id']
+            
+            if not bot_token:
+                print("Missing BOT_TOKEN")
+                return False
             
             items_text = "\n".join([
                 f"• {item['name']} - {item['quantity']} шт." 
@@ -228,12 +236,15 @@ class Handler(BaseHTTPRequestHandler):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             
+            if not bot_token:
+                print("Missing BOT_TOKEN")
+                return False
+            
             order_response = supabase.table("orders").select("*, order_statuses(name)").eq("id", order_id).execute()
             if not order_response.data:
                 return False
             
             order = order_response.data[0]
-            status_name = order['order_statuses']['name']
             
             status_messages = {
                 1: "✅ Ваш заказ принят! Мы начинаем его обработку.",
@@ -244,7 +255,7 @@ class Handler(BaseHTTPRequestHandler):
                 6: "❌ Заказ отменен."
             }
             
-            message = status_messages.get(status_id, f"Статус заказа изменен: {status_name}")
+            message = status_messages.get(status_id, f"Статус заказа изменен")
             
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
             payload = {
