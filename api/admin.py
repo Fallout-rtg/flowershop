@@ -107,7 +107,8 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_DELETE(self):
         try:
-            admin_id = self.path.split('/')[-1]
+            path_parts = self.path.split('/')
+            admin_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
             
             response = supabase.table("admins").delete().eq("id", admin_id).execute()
             
