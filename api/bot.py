@@ -3,11 +3,6 @@ import json
 import os
 import requests
 
-try:
-    from health_monitor import health_monitor, perform_health_check
-except ImportError:
-    health_monitor = None
-
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
@@ -27,79 +22,8 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_help_message(chat_id, bot_token)
                 elif text.startswith('/catalog'):
                     self.send_catalog_message(chat_id, bot_token)
-                elif text.startswith('/test'):
-                    self.send_health_check(chat_id, bot_token)
-                else:
-                    self.send_unknown_command(chat_id, bot_token)
-            
-            elif 'callback_query' in update:
-                callback = update['callback_query']
-                chat_id = callback['message']['chat']['id']
-                data = callback['data']
-                
-                if data == 'about':
-                    self.send_about_message(chat_id, bot_token)
-                
-                requests.post(f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery", 
-                            json={'callback_query_id': callback['id']})
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'OK')
-            
-        except Exception as e:
-            if health_monitor:
-                health_monitor.log_error('bot', e, 'POST handler failed')
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b'OK')
-
-    def send_health_check(self, chat_id, bot_token):
-        try:
-            if str(chat_id) != OWNER_ID:
-                message = "❌ Эта команда доступна только владельцу бота"
-                self.send_telegram_message(chat_id, bot_token, message)
-                return
-            
-            message = "🩺 Запускаю полную проверку системы... Это может занять несколько секунд."
-            self.send_telegram_message(chat_id, bot_token, message)
-            
-            report = perform_health_check()
-            success = health_monitor.send_detailed_report(report)
-            
-            if success:
-                message = "✅ Отчёт о состоянии системы отправлен владельцу"
-            else:
-                message = "❌ Не удалось отправить отчёт, но проверка завершена"
-            
-            self.send_telegram_message(chat_id, bot_token, message)
-            
-        except Exception as e:
-            if health_monitor:
-                health_monitor.log_error('bot', e, 'Health check command failed')
-            message = "❌ Ошибка при выполнении проверки системы"
-            self.send_telegram_message(chat_id, bot_token, message)
-
-class Handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            update = json.loads(post_data)
-            
-            bot_token = os.environ.get('BOT_TOKEN')
-            
-            if 'message' in update:
-                chat_id = update['message']['chat']['id']
-                text = update['message'].get('text', '').strip()
-                
-                if text.startswith('/start'):
-                    self.send_welcome_message(chat_id, bot_token)
-                elif text.startswith('/help'):
-                    self.send_help_message(chat_id, bot_token)
-                elif text.startswith('/catalog'):
-                    self.send_catalog_message(chat_id, bot_token)
+                elif text.startswith('/test') and str(chat_id) == '2032240231':
+                    self.run_system_test(chat_id, bot_token)
                 else:
                     self.send_unknown_command(chat_id, bot_token)
             
@@ -174,6 +98,25 @@ class Handler(BaseHTTPRequestHandler):
         message = "Извините, я не понимаю эту команду. Используйте /help для списка доступных команд."
         self.send_telegram_message(chat_id, bot_token, message)
 
+    def run_system_test(self, chat_id, bot_token):
+        try:
+            message = "🔄 *Запуск комплексной проверки системы...*\n\nПожалуйста, подождите 10-15 секунд..."
+            self.send_telegram_message(chat_id, bot_token, message)
+            
+            test_url = "https://flowershop-nine-ashy.vercel.app/api/health/test"
+            response = requests.get(test_url, timeout=30)
+            
+            if response.status_code == 200:
+                message = "✅ *Проверка завершена!*\n\nПодробный отчёт отправлен вам в личные сообщения."
+            else:
+                message = "❌ *Ошибка при выполнении проверки!*\n\nСистема мониторинга недоступна."
+            
+            self.send_telegram_message(chat_id, bot_token, message)
+            
+        except Exception as e:
+            error_message = f"❌ *Ошибка при запуске проверки:*\n`{str(e)}`"
+            self.send_telegram_message(chat_id, bot_token, error_message)
+
     def send_telegram_message(self, chat_id, bot_token, text, reply_markup=None):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
@@ -186,7 +129,7 @@ class Handler(BaseHTTPRequestHandler):
             payload['reply_markup'] = json.dumps(reply_markup)
             
         try:
-            requests.post(url, json=payload)
+            requests.post(url, json=payload, timeout=10)
         except Exception as e:
             print(f"Error sending Telegram message: {e}")
 
