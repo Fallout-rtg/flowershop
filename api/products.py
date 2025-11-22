@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(__file__))
 
 try:
     from supabase_client import supabase
+    from health import log_error
 except ImportError as e:
     print(f"Import error: {e}")
 
@@ -31,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(products).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in products handler: {e}")
+            log_error("products_GET", e, "", "Failed to fetch products")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -95,7 +96,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in products POST handler: {e}")
+            log_error("products_POST", e, "", f"Product data: {product_data}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -139,7 +140,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in products PUT handler: {e}")
+            log_error("products_PUT", e, "", f"Update data: {data}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -172,7 +173,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in products DELETE handler: {e}")
+            log_error("products_DELETE", e, "", f"Product ID: {product_id}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
