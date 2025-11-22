@@ -30,6 +30,14 @@
       "use": "@vercel/python"
     },
     {
+      "src": "api/health.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/supabase_client.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     }
@@ -91,9 +99,14 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
-  "src": "/api/health",
-  "dest": "/api/health_monitor.py",
-  "methods": ["GET", "POST", "OPTIONS"]
+      "src": "/api/health",
+      "dest": "/api/health.py",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/health/(.*)",
+      "dest": "/api/health.py",
+      "methods": ["GET", "POST", "OPTIONS"]
     },
     {
       "src": "/",
