@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(__file__))
 
 try:
     from supabase_client import supabase
+    from health import log_error
 except ImportError as e:
     print(f"Import error: {e}")
 
@@ -73,7 +74,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in dangerous operations: {e}")
+            log_error("dangerous_operations", e, self.headers.get('Telegram-Id', ''), f"Action: {action}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
