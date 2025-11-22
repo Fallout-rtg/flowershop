@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(__file__))
 
 try:
     from supabase_client import supabase
+    from health import log_error
 except ImportError as e:
     print(f"Import error: {e}")
 
@@ -44,7 +45,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response.data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in promocodes GET: {e}")
+            log_error("promocodes_GET", e, self.headers.get('Telegram-Id', ''), "Failed to fetch promocodes")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -58,20 +59,6 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
             
-            telegram_id = self.headers.get('Telegram-Id', '')
-            
-            admin_response = supabase.table("admins").select("role,id").eq("telegram_id", telegram_id).eq("is_active", True).execute()
-            is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
-            
-            if not is_owner:
-                self.send_response(403)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response = {'success': False, 'error': 'Only owners can create promocodes'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
-                return
-            
             if data.get('action') == 'validate':
                 code = data.get('code')
                 order_amount = data.get('order_amount', 0)
@@ -79,17 +66,17 @@ class Handler(BaseHTTPRequestHandler):
                 promocode_response = supabase.table("promocodes").select("*").eq("code", code).eq("is_active", True).execute()
                 
                 if not promocode_response.data:
-                    response_data = {'valid': False, 'error': 'Promocode not found'}
+                    response_data = {'valid': False, 'error': 'Промокод не найден'}
                 else:
                     promocode = promocode_response.data[0]
                     now = datetime.now().isoformat()
                     
                     if promocode.get('valid_until') and promocode['valid_until'] < now:
-                        response_data = {'valid': False, 'error': 'Promocode expired'}
+                        response_data = {'valid': False, 'error': 'Промокод просрочен'}
                     elif promocode.get('max_uses') and promocode.get('used_count', 0) >= promocode['max_uses']:
-                        response_data = {'valid': False, 'error': 'Promocode usage limit reached'}
+                        response_data = {'valid': False, 'error': 'Лимит использований промокода исчерпан'}
                     elif promocode.get('min_order_amount', 0) > order_amount:
-                        response_data = {'valid': False, 'error': f'Minimum order amount: {promocode["min_order_amount"]}₽'}
+                        response_data = {'valid': False, 'error': f'Минимальная сумма заказа для промокода: {promocode["min_order_amount"]}₽'}
                     else:
                         discount_amount = 0
                         if promocode['discount_type'] == 'percentage':
@@ -112,6 +99,20 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 
             else:
+                telegram_id = self.headers.get('Telegram-Id', '')
+                
+                admin_response = supabase.table("admins").select("role,id").eq("telegram_id", telegram_id).eq("is_active", True).execute()
+                is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
+                
+                if not is_owner:
+                    self.send_response(403)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response = {'success': False, 'error': 'Только владельцы могут создавать промокоды'}
+                    self.wfile.write(json.dumps(response).encode('utf-8'))
+                    return
+                
                 promocode_data = {
                     'code': data['code'],
                     'discount_type': data['discount_type'],
@@ -133,7 +134,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 
         except Exception as e:
-            print(f"Error in promocodes POST: {e}")
+            log_error("promocodes_POST", e, self.headers.get('Telegram-Id', ''), f"Action: {data.get('action')}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -170,7 +171,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in promocodes DELETE: {e}")
+            log_error("promocodes_DELETE", e, self.headers.get('Telegram-Id', ''), f"Promocode ID: {promocode_id}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
