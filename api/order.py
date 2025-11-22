@@ -3,11 +3,13 @@ import json
 import os
 import requests
 import sys
+from datetime import datetime
 
 sys.path.append(os.path.dirname(__file__))
 
 try:
     from supabase_client import supabase
+    from health import log_error
 except ImportError as e:
     print(f"Import error: {e}")
 
@@ -50,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(orders).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in order GET handler: {e}")
+            log_error("order_GET", e, self.headers.get('User-Id', ''), "Failed to fetch orders")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -93,7 +95,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in order PUT handler: {e}")
+            log_error("order_PUT", e, self.headers.get('User-Id', ''), f"Order ID: {order_data.get('order_id')}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -107,6 +109,8 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             order_data = json.loads(post_data)
             
+            user_id = str(order_data['user']['id'])
+            
             db_success = self.save_order_to_db(order_data)
             
             if db_success:
@@ -119,6 +123,8 @@ class Handler(BaseHTTPRequestHandler):
                 
                 if promocode_id:
                     self.update_promocode_usage(promocode_id)
+                
+                log_error("order_POST", "Order created successfully", user_id, f"Order total: {order_data['total']}")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -129,7 +135,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in order POST handler: {e}")
+            log_error("order_POST", e, order_data.get('user', {}).get('id', ''), "Failed to create order")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -162,7 +168,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in order DELETE handler: {e}")
+            log_error("order_DELETE", e, self.headers.get('User-Id', ''), f"Order ID: {order_id}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -178,12 +184,11 @@ class Handler(BaseHTTPRequestHandler):
             admin_chat_ids = [admin['telegram_id'] for admin in admins_response.data]
             
             if not bot_token or not admin_chat_ids:
-                print("Missing BOT_TOKEN or no active admins")
+                log_error("order_notification", "Missing BOT_TOKEN or no active admins", order_data['user']['id'], "Admin notification failed")
                 return False
             
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             telegram_link = f"tg://openmessage?user_id={order_data['user']['id']}"
-            phone_link = f"https://t.me/+{clean_phone}" if clean_phone.startswith('7') else f"https://t.me/+7{clean_phone}"
             
             delivery_info = "🚚 Доставка" if delivery_option == "delivery" else "🏪 Самовывоз"
             if delivery_option == "delivery" and delivery_address:
@@ -240,7 +245,7 @@ class Handler(BaseHTTPRequestHandler):
 🕐 *Время заказа:* {order_data['time']}
 
 💬 *Связаться с клиентом:*
-[📱 По ID]({telegram_link}) | [☎️ По номеру]({phone_link})"""
+[📱 Написать в Telegram]({telegram_link})"""
             
             success_count = 0
             for admin_chat_id in admin_chat_ids:
@@ -252,8 +257,7 @@ class Handler(BaseHTTPRequestHandler):
                     'disable_web_page_preview': True,
                     'reply_markup': {
                         'inline_keyboard': [[
-                            {'text': '📱 Написать по ID', 'url': telegram_link},
-                            {'text': '☎️ Написать по номеру', 'url': phone_link}
+                            {'text': '📱 Написать клиенту', 'url': telegram_link}
                         ]]
                     }
                 }
@@ -265,7 +269,7 @@ class Handler(BaseHTTPRequestHandler):
             return success_count > 0
             
         except Exception as e:
-            print(f"Error sending admin notification: {e}")
+            log_error("admin_notification", e, order_data['user']['id'], "Failed to send admin notification")
             return False
 
     def save_order_to_db(self, order_data):
@@ -311,11 +315,16 @@ class Handler(BaseHTTPRequestHandler):
             }
             
             result = supabase.table("orders").insert(order_record).execute()
-            print(f"Order saved to DB with ID: {result.data[0]['id'] if result.data else 'Unknown'}")
-            return True
             
+            if result.data:
+                log_error("order_save", "Order saved successfully", order_data['user']['id'], f"Order ID: {result.data[0]['id']}")
+                return True
+            else:
+                log_error("order_save", "No data returned from insert", order_data['user']['id'], "Order save failed")
+                return False
+                
         except Exception as e:
-            print(f"Error saving order to DB: {e}")
+            log_error("order_save", e, order_data['user']['id'], "Failed to save order to database")
             return False
 
     def send_order_notification(self, order_id, status_id):
@@ -323,7 +332,7 @@ class Handler(BaseHTTPRequestHandler):
             bot_token = os.environ.get('BOT_TOKEN')
             
             if not bot_token:
-                print("Missing BOT_TOKEN")
+                log_error("order_notification", "Missing BOT_TOKEN", "", "Failed to send order notification")
                 return False
             
             order_response = supabase.table("orders").select("*").eq("id", order_id).execute()
@@ -354,7 +363,7 @@ class Handler(BaseHTTPRequestHandler):
             return response.status_code == 200
             
         except Exception as e:
-            print(f"Error sending order notification: {e}")
+            log_error("order_notification", e, "", f"Order ID: {order_id}")
             return False
 
     def update_promocode_usage(self, promocode_id):
@@ -365,4 +374,4 @@ class Handler(BaseHTTPRequestHandler):
                 supabase.table("promocodes").update({"used_count": current_count + 1}).eq("id", promocode_id).execute()
                 
         except Exception as e:
-            print(f"Error updating promocode usage: {e}")
+            log_error("promocode_update", e, "", f"Promocode ID: {promocode_id}")
