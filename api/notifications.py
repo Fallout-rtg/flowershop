@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(__file__))
 
 try:
     from supabase_client import supabase
+    from health import log_error
 except ImportError as e:
     print(f"Import error: {e}")
 
@@ -50,7 +51,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
             
         except Exception as e:
-            print(f"Error in notifications handler: {e}")
+            log_error("notifications", e, notification_data.get('user_id', ''), "Failed to send notification")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -63,7 +64,7 @@ class Handler(BaseHTTPRequestHandler):
             bot_token = os.environ.get('BOT_TOKEN')
             
             if not bot_token:
-                print("Missing BOT_TOKEN")
+                log_error("telegram_notification", "Missing BOT_TOKEN", user_id, "Failed to send Telegram notification")
                 return False
 
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -77,5 +78,5 @@ class Handler(BaseHTTPRequestHandler):
             return response.status_code == 200
             
         except Exception as e:
-            print(f"Error sending Telegram notification: {e}")
+            log_error("telegram_notification", e, user_id, "Failed to send Telegram notification")
             return False
