@@ -117,7 +117,7 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(post_data)
             
             if 'reorder' in data:
-                products_order = data['products_order']
+                products_order = data['reorder']
                 for product_id, sort_order in products_order.items():
                     supabase.table("products").update({"sort_order": sort_order}).eq("id", int(product_id)).execute()
                 
