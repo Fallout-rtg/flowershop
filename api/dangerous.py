@@ -37,7 +37,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                response = {'success': False, 'error': 'Access denied'}
+                response = {'success': False, 'error': 'Access denied. Only owners can perform dangerous actions.'}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
                 return
             
@@ -54,15 +54,24 @@ class Handler(BaseHTTPRequestHandler):
             
             if action == 'reset_orders':
                 result = supabase.table("orders").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': f'Все заказы удалены ({len(result.data) if result.data else 0} записей)'}
+                response_data = {'success': True, 'message': f'All orders deleted ({len(result.data) if result.data else 0} records)'}
                 
             elif action == 'reset_stats':
-                result = supabase.table("orders").update({"profit": 0}).neq("id", 0).execute()
-                response_data = {'success': True, 'message': 'Статистика прибыли сброшена'}
+                update_result = supabase.table("orders").update({"profit": 0}).neq("id", 0).execute()
+                delete_result = supabase.table("customer_stats").delete().neq("id", 0).execute()
+                response_data = {'success': True, 'message': 'All statistics reset successfully'}
                 
             elif action == 'delete_promocodes':
                 result = supabase.table("promocodes").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': f'Все промокоды удалены ({len(result.data) if result.data else 0} записей)'}
+                response_data = {'success': True, 'message': f'All promocodes deleted ({len(result.data) if result.data else 0} records)'}
+                
+            elif action == 'delete_products':
+                result = supabase.table("products").delete().neq("id", 0).execute()
+                response_data = {'success': True, 'message': f'All products deleted ({len(result.data) if result.data else 0} records)'}
+                
+            elif action == 'clear_customers':
+                result = supabase.table("customers").delete().neq("id", 0).execute()
+                response_data = {'success': True, 'message': f'All customers deleted ({len(result.data) if result.data else 0} records)'}
                 
             else:
                 response_data = {'success': False, 'error': 'Unknown action'}
