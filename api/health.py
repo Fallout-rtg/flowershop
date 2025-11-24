@@ -17,7 +17,7 @@ except ImportError as e:
 
 OWNER_CHAT_ID = "2032240231"
 
-class HealthHandler(BaseHTTPRequestHandler):
+class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -27,7 +27,7 @@ class HealthHandler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
-            if self.path == '/test':
+            if self.path == '/test' or self.path == '/api/health/test':
                 report = self.run_comprehensive_test()
                 
                 self.send_response(200)
@@ -135,7 +135,7 @@ class HealthHandler(BaseHTTPRequestHandler):
             if hasattr(response, 'count'):
                 result['details']['products_count'] = response.count
             else:
-                result['details']['products_count'] = 'Неизвестно'
+                result['details']['products_count'] = len(response.data) if response.data else 0
                 
         except Exception as e:
             result['status'] = 'error'
@@ -212,11 +212,8 @@ class HealthHandler(BaseHTTPRequestHandler):
             try:
                 response = supabase.table(table).select("id", count="exact").limit(1).execute()
                 
-                if hasattr(response, 'count'):
-                    count = response.count
-                    result['details'][table] = f'✓ Доступна ({count} записей)'
-                else:
-                    result['details'][table] = '✓ Доступна'
+                count = len(response.data) if response.data else 0
+                result['details'][table] = f'✓ Доступна ({count} записей)'
                     
             except Exception as e:
                 result['details'][table] = f'✗ Ошибка: {str(e)}'
@@ -233,9 +230,9 @@ class HealthHandler(BaseHTTPRequestHandler):
                 orders = supabase.table("orders").select("id", count="exact").execute()
                 admins = supabase.table("admins").select("id", count="exact").execute()
                 
-                stats['total_products'] = products.count if hasattr(products, 'count') else 'N/A'
-                stats['total_orders'] = orders.count if hasattr(orders, 'count') else 'N/A'
-                stats['active_admins'] = admins.count if hasattr(admins, 'count') else 'N/A'
+                stats['total_products'] = len(products.data) if products.data else 0
+                stats['total_orders'] = len(orders.data) if orders.data else 0
+                stats['active_admins'] = len(admins.data) if admins.data else 0
             
             stats['server_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             stats['python_version'] = sys.version.split()[0]
