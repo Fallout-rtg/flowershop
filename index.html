@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -20,7 +21,7 @@
         }
         body{
             font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-            background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);
+            background:var(--header-bg);
             color:var(--text);min-height:100vh;line-height:1.5
         }
         .app-container{max-width:400px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative;overflow-x:hidden}
@@ -287,7 +288,8 @@
         .dropdown-item.selected{background:var(--primary-light);color:var(--primary)}
         
         .category-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
-        .icon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+        .icon-scroll-container{max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin-top:8px}
+        .icon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
         .icon-option{padding:12px;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;text-align:center;transition:all 0.2s ease;min-height:44px}
         .icon-option.selected{border-color:var(--primary);background:var(--primary-light)}
         .icon-option i{font-size:18px;margin-bottom:4px}
@@ -478,38 +480,72 @@
                             </div>
                             <div class="form-full">
                                 <label class="form-label">Выберите иконку:</label>
-                                <div class="icon-grid" id="iconGrid">
-                                    <div class="icon-option" data-icon="fas fa-heart">
-                                        <i class="fas fa-heart"></i>
-                                        <div>Сердце</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-star">
-                                        <i class="fas fa-star"></i>
-                                        <div>Звезда</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-sun">
-                                        <i class="fas fa-sun"></i>
-                                        <div>Солнце</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-moon">
-                                        <i class="fas fa-moon"></i>
-                                        <div>Луна</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-leaf">
-                                        <i class="fas fa-leaf"></i>
-                                        <div>Лист</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-spa">
-                                        <i class="fas fa-spa"></i>
-                                        <div>Цветок</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-seedling">
-                                        <i class="fas fa-seedling"></i>
-                                        <div>Росток</div>
-                                    </div>
-                                    <div class="icon-option" data-icon="fas fa-feather">
-                                        <i class="fas fa-feather"></i>
-                                        <div>Перо</div>
+                                <div class="icon-scroll-container">
+                                    <div class="icon-grid" id="iconGrid">
+                                        <div class="icon-option" data-icon="fas fa-heart">
+                                            <i class="fas fa-heart"></i>
+                                            <div>Сердце</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-star">
+                                            <i class="fas fa-star"></i>
+                                            <div>Звезда</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-sun">
+                                            <i class="fas fa-sun"></i>
+                                            <div>Солнце</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-moon">
+                                            <i class="fas fa-moon"></i>
+                                            <div>Луна</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-leaf">
+                                            <i class="fas fa-leaf"></i>
+                                            <div>Лист</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-spa">
+                                            <i class="fas fa-spa"></i>
+                                            <div>Цветок</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-seedling">
+                                            <i class="fas fa-seedling"></i>
+                                            <div>Росток</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-feather">
+                                            <i class="fas fa-feather"></i>
+                                            <div>Перо</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-cloud">
+                                            <i class="fas fa-cloud"></i>
+                                            <div>Облако</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-fire">
+                                            <i class="fas fa-fire"></i>
+                                            <div>Огонь</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-water">
+                                            <i class="fas fa-tint"></i>
+                                            <div>Вода</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-snowflake">
+                                            <i class="fas fa-snowflake"></i>
+                                            <div>Снег</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-tree">
+                                            <i class="fas fa-tree"></i>
+                                            <div>Дерево</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-mountain">
+                                            <i class="fas fa-mountain"></i>
+                                            <div>Гора</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-umbrella">
+                                            <i class="fas fa-umbrella"></i>
+                                            <div>Зонт</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-gem">
+                                            <i class="fas fa-gem"></i>
+                                            <div>Кристалл</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -712,7 +748,7 @@
                         <div class="settings-group">
                             <div class="settings-label">Узор шапки магазина</div>
                             <div class="pattern-grid" id="patternGrid">
-                                <div class="pattern-option dots selected" data-pattern="dots">Горошек</div>
+                                <div class="pattern-option dots" data-pattern="dots">Горошек</div>
                                 <div class="pattern-option lines" data-pattern="lines">Полоски</div>
                                 <div class="pattern-option flowers" data-pattern="flowers">Цветочки</div>
                             </div>
@@ -1361,3 +1397,4 @@
     </script>
 </body>
 </html>
+```
