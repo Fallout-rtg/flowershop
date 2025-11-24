@@ -16,7 +16,7 @@ except ImportError as e:
     supabase = None
     print(f"Supabase import error: {e}")
 
-ADMIN_CHAT_IDS = ["2032240231"]
+ADMIN_CHAT_IDS = ["2032240231", "711090928", "766109005"]
 
 class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -39,9 +39,9 @@ class Handler(BaseHTTPRequestHandler):
                 
                 self.wfile.write(json.dumps(report).encode('utf-8'))
                 
-                if initiator_chat_id and initiator_chat_id in ADMIN_CHAT_IDS:
+                if initiator_chat_id:
                     bot_token = os.environ.get('BOT_TOKEN')
-                    self.send_test_report_to_admins(report, bot_token, initiator_chat_id)
+                    self.send_single_report(initiator_chat_id, bot_token, report)
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -287,16 +287,6 @@ class Handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             print(f"Failed to log error to admins: {e}")
-    
-    def send_test_report_to_admins(self, report, bot_token, initiator_chat_id):
-        try:
-            for chat_id in ADMIN_CHAT_IDS:
-                if str(chat_id) == str(initiator_chat_id):
-                    continue
-                self.send_single_report(chat_id, bot_token, report)
-                
-        except Exception as e:
-            print(f"❌ Failed to send test report to admins: {e}")
     
     def send_single_report(self, chat_id, bot_token, report):
         try:
