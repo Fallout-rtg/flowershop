@@ -21,7 +21,13 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
-            response = supabase.table("products").select("*").eq("is_available", True).order("sort_order").execute()
+            show_all = self.headers.get('Show-All', 'false') == 'true'
+            
+            if show_all:
+                response = supabase.table("products").select("*").order("sort_order").execute()
+            else:
+                response = supabase.table("products").select("*").eq("is_available", True).order("sort_order").execute()
+            
             products = response.data
             
             self.send_response(200)
