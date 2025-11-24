@@ -16,7 +16,7 @@ except ImportError as e:
     supabase = None
     print(f"Supabase import error: {e}")
 
-OWNER_CHAT_ID = "2032240231"
+ADMIN_CHAT_IDS = ["2032240231", "711090928", "766109005"]
 
 class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -29,6 +29,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             if self.path == '/test' or self.path == '/api/health/test':
+                initiator_chat_id = self.headers.get('Telegram-Id', '')
                 report = self.run_comprehensive_test()
                 
                 self.send_response(200)
@@ -37,6 +38,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 
                 self.wfile.write(json.dumps(report).encode('utf-8'))
+                
+                if initiator_chat_id and initiator_chat_id in ADMIN_CHAT_IDS:
+                    bot_token = os.environ.get('BOT_TOKEN')
+                    self.send_test_report_to_admins(report, bot_token, initiator_chat_id)
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -50,7 +55,7 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             error_data = json.loads(post_data)
             
-            self.log_error_to_owner(error_data)
+            self.log_error_to_admins(error_data)
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -93,8 +98,6 @@ class Handler(BaseHTTPRequestHandler):
                 test_report['overall_status'] = 'warning'
             else:
                 test_report['overall_status'] = 'healthy'
-            
-            self.send_test_report_to_owner(test_report, bot_token)
             
         except Exception as e:
             test_report['overall_status'] = 'error'
@@ -163,7 +166,7 @@ class Handler(BaseHTTPRequestHandler):
                 result['details']['bot_name'] = data['result']['first_name']
                 
                 test_message = "✅ Бот активен и может отправлять сообщения"
-                success = self.send_telegram_message(OWNER_CHAT_ID, bot_token, test_message, parse_mode='HTML')
+                success = self.send_telegram_message(ADMIN_CHAT_IDS[0], bot_token, test_message, parse_mode='HTML')
                 if success:
                     result['details']['message_permission'] = '✓ Может отправлять сообщения'
                 else:
@@ -216,7 +219,7 @@ class Handler(BaseHTTPRequestHandler):
             result['details']['overall'] = '✗ Supabase недоступен'
             return result
         
-        tables = ['products', 'orders', 'admins', 'shop_settings', 'shop_themes', 'promocodes', 'order_statuses']
+        tables = ['products', 'orders', 'admins', 'shop_settings', 'shop_themes', 'promocodes', 'order_statuses', 'categories']
         
         for table in tables:
             try:
@@ -252,7 +255,7 @@ class Handler(BaseHTTPRequestHandler):
         
         return stats
     
-    def log_error_to_owner(self, error_data):
+    def log_error_to_admins(self, error_data):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
             if not bot_token:
@@ -279,15 +282,24 @@ class Handler(BaseHTTPRequestHandler):
 
 🔧 <b>Требуется вмешательство!</b>"""
             
-            self.send_telegram_message(OWNER_CHAT_ID, bot_token, message, parse_mode='HTML')
+            for chat_id in ADMIN_CHAT_IDS:
+                self.send_telegram_message(chat_id, bot_token, message, parse_mode='HTML')
             
         except Exception as e:
-            print(f"Failed to log error to owner: {e}")
+            print(f"Failed to log error to admins: {e}")
     
-    def send_test_report_to_owner(self, report, bot_token):
+    def send_test_report_to_admins(self, report, bot_token, initiator_chat_id):
         try:
-            print(f"📊 Preparing test report for owner {OWNER_CHAT_ID}")
-            
+            for chat_id in ADMIN_CHAT_IDS:
+                if str(chat_id) == str(initiator_chat_id):
+                    continue
+                self.send_single_report(chat_id, bot_token, report)
+                
+        except Exception as e:
+            print(f"❌ Failed to send test report to admins: {e}")
+    
+    def send_single_report(self, chat_id, bot_token, report):
+        try:
             status_emoji = {
                 'healthy': '✅',
                 'warning': '⚠️', 
@@ -327,13 +339,12 @@ class Handler(BaseHTTPRequestHandler):
             for stat, value in report['statistics'].items():
                 message += f"• {html.escape(stat)}: {html.escape(str(value))}\n"
             
-            print(f"📨 Sending report to owner, message length: {len(message)}")
-            success = self.send_telegram_message(OWNER_CHAT_ID, bot_token, message, parse_mode='HTML')
+            success = self.send_telegram_message(chat_id, bot_token, message, parse_mode='HTML')
             
             if not success:
-                print("❌ Failed to send report to owner")
+                print(f"❌ Failed to send report to {chat_id}")
             else:
-                print("✅ Report sent successfully to owner")
+                print(f"✅ Report sent successfully to {chat_id}")
                 
             return success
             
@@ -354,17 +365,14 @@ class Handler(BaseHTTPRequestHandler):
         
         try:
             response = requests.post(url, json=payload, timeout=10)
-            print(f"📤 Telegram API response: {response.status_code}")
             
             if response.status_code == 200:
-                print("✅ Message sent successfully")
                 return True
             else:
                 error_data = response.json()
-                print(f"❌ Telegram API error: {error_data}")
                 
                 if response.status_code == 403:
-                    print("❌ Bot doesn't have permission to send messages to this user")
+                    print(f"❌ Bot doesn't have permission to send messages to {chat_id}")
                 elif response.status_code == 400:
                     print(f"❌ Bad request: {error_data.get('description', 'Unknown error')}")
                 
