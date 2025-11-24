@@ -160,6 +160,22 @@ class Handler(BaseHTTPRequestHandler):
                 result['details']['connection'] = '✓ Успешно'
                 result['details']['bot_username'] = data['result']['username']
                 result['details']['bot_name'] = data['result']['first_name']
+                
+                test_message = "✅ Бот активен и может отправлять сообщения"
+                test_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                test_payload = {
+                    'chat_id': OWNER_CHAT_ID,
+                    'text': test_message,
+                    'parse_mode': 'Markdown'
+                }
+                
+                test_response = requests.post(test_url, json=test_payload, timeout=10)
+                if test_response.status_code == 200:
+                    result['details']['message_permission'] = '✓ Может отправлять сообщения'
+                else:
+                    result['details']['message_permission'] = f'✗ Не может отправлять сообщения (HTTP {test_response.status_code})'
+                    result['status'] = 'warning'
+                    
             else:
                 result['status'] = 'error'
                 result['details']['connection'] = f'✗ HTTP {response.status_code}'
@@ -276,6 +292,8 @@ class Handler(BaseHTTPRequestHandler):
     
     def send_test_report_to_owner(self, report, bot_token):
         try:
+            print(f"📊 Preparing test report for owner {OWNER_CHAT_ID}")
+            
             status_emoji = {
                 'healthy': '✅',
                 'warning': '⚠️', 
@@ -315,10 +333,19 @@ class Handler(BaseHTTPRequestHandler):
             for stat, value in report['statistics'].items():
                 message += f"• {stat}: {value}\n"
             
-            self.send_telegram_message(OWNER_CHAT_ID, bot_token, message)
+            print(f"📨 Sending report to owner, message length: {len(message)}")
+            success = self.send_telegram_message(OWNER_CHAT_ID, bot_token, message)
+            
+            if not success:
+                print("❌ Failed to send report to owner")
+            else:
+                print("✅ Report sent successfully to owner")
+                
+            return success
             
         except Exception as e:
-            print(f"Failed to send test report: {e}")
+            print(f"❌ Failed to send test report: {e}")
+            return False
     
     def send_telegram_message(self, chat_id, bot_token, text):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -331,20 +358,23 @@ class Handler(BaseHTTPRequestHandler):
         
         try:
             response = requests.post(url, json=payload, timeout=10)
+            print(f"📤 Telegram API response: {response.status_code}")
+            
             if response.status_code == 200:
+                print("✅ Message sent successfully")
                 return True
             else:
                 error_data = response.json()
-                print(f"Telegram API error: {error_data}")
+                print(f"❌ Telegram API error: {error_data}")
                 
                 if response.status_code == 403:
-                    print("Bot doesn't have permission to send messages to this user")
+                    print("❌ Bot doesn't have permission to send messages to this user")
                 elif response.status_code == 400:
-                    print(f"Bad request: {error_data.get('description', 'Unknown error')}")
+                    print(f"❌ Bad request: {error_data.get('description', 'Unknown error')}")
                 
                 return False
         except Exception as e:
-            print(f"Failed to send Telegram message: {e}")
+            print(f"❌ Failed to send Telegram message: {e}")
             return False
     
     def send_error_response(self, error_message):
