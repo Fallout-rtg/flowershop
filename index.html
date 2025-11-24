@@ -197,18 +197,18 @@
         
         .theme-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
         .theme-option{height:80px;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:all 0.2s ease;position:relative}
-        .theme-option.selected{border-color:var(--primary)}
-        .theme-option::after{content:'✓';position:absolute;top:8px;right:8px;background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:0;transition:opacity 0.2s ease}
+        .theme-option.selected{border-color:#10b981}
+        .theme-option::after{content:'✓';position:absolute;top:8px;right:8px;background:#10b981;color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:0;transition:opacity 0.2s ease}
         .theme-option.selected::after{opacity:1}
         
         .pattern-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
         .pattern-option{height:60px;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:all 0.2s ease;position:relative;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:var(--text)}
-        .pattern-option.selected{border-color:var(--primary)}
-        .pattern-option::after{content:'✓';position:absolute;top:8px;right:8px;background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:0;transition:opacity 0.2s ease}
+        .pattern-option.selected{border-color:#10b981}
+        .pattern-option::after{content:'✓';position:absolute;top:8px;right:8px;background:#10b981;color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:0;transition:opacity 0.2s ease}
         .pattern-option.selected::after{opacity:1}
         .pattern-option.dots{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="5" fill="%23dc2626" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>')}
         .pattern-option.lines{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="%23dc2626" stroke-width="2" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23lines)"/></svg>')}
-        .pattern-option.flowers{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,5 C10,5 7.5,7.5 7.5,10 C7.5,12.5 10,15 12.5,15 C15,15 17.5,12.5 17.5,10 C17.5,7.5 15,5 12.5,5 Z" fill="%23dc2626" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        .pattern-option.flowers{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,5 C10,5 7.5,7.5 7.5,10 C7.5,12.5 10,15 12.5,15 C15,15 17.5,12.5 17.5,10 C7.5,7.5 15,5 12.5,5 Z" fill="%23dc2626" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
         
         .help-section{display:none}
         .help-section.active{display:block}
@@ -230,10 +230,11 @@
         .sortable-handle:active{cursor:grabbing}
         .sortable-ghost{opacity:0.4}
         
-        .table-header.products-header{grid-template-columns:50px 1fr 80px 80px 120px}
+        .table-header.products-header{grid-template-columns:50px 80px 1fr 80px 100px 80px 80px 120px}
         .table-header.orders-header{grid-template-columns:60px 1fr 80px 80px 140px}
-        .table-header.admins-header{grid-template-columns:60px 1fr 1fr 80px 100px}
+        .table-header.admins-header{grid-template-columns:60px 1fr 1fr 100px 120px}
         .table-header.promocodes-header{grid-template-columns:1fr 80px 80px 80px 100px}
+        .table-header.categories-header{grid-template-columns:40px 1fr 1fr 80px 100px}
         
         .quick-actions{display:flex;gap:8px;padding:12px 16px;background:var(--bg-secondary);border-bottom:var(--border);overflow-x:auto}
         .quick-action-btn{padding:12px 16px;background:white;border:var(--border);border-radius:12px;color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:6px;font-size:13px;flex-shrink:0;min-height:44px}
@@ -274,6 +275,36 @@
         .status-option{padding:12px 16px;border:2px solid #e5e7eb;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.2s ease;min-height:44px}
         .status-option:hover{background:#f8f9fa}
         .status-option.selected{border-color:var(--primary);background:var(--primary-light)}
+        
+        .dropdown{position:relative;display:inline-block;width:100%}
+        .dropdown-toggle{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:12px;background:white;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:44px}
+        .dropdown-menu{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #e5e7eb;border-radius:12px;box-shadow:var(--shadow-lg);z-index:1000;max-height:200px;overflow-y:auto}
+        .dropdown-menu.show{display:block;animation:dropdownSlide 0.2s ease}
+        @keyframes dropdownSlide{from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)}}
+        .dropdown-item{padding:12px 16px;cursor:pointer;transition:all 0.2s ease;border-bottom:1px solid #f0f0f0;min-height:44px}
+        .dropdown-item:last-child{border-bottom:none}
+        .dropdown-item:hover{background:#f8f9fa}
+        .dropdown-item.selected{background:var(--primary-light);color:var(--primary)}
+        
+        .category-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
+        .icon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+        .icon-option{padding:12px;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;text-align:center;transition:all 0.2s ease;min-height:44px}
+        .icon-option.selected{border-color:var(--primary);background:var(--primary-light)}
+        .icon-option i{font-size:18px;margin-bottom:4px}
+        
+        .product-status{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700}
+        .status-active{background:#dcfce7;color:#166534}
+        .status-inactive{background:#f3f4f6;color:#6b7280;text-decoration:line-through}
+        
+        .table-image{width:40px;height:40px;border-radius:8px;object-fit:cover}
+        .table-product-image{width:60px;height:60px;border-radius:8px;object-fit:cover}
+        
+        .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}
+        @keyframes loading{0%{background-position:200% 0} 100%{background-position:-200% 0}}
+        .skeleton-text{height:12px;border-radius:4px;margin-bottom:8px}
+        .skeleton-image{width:100%;height:180px;border-radius:var(--radius)}
+        
+        .dark-mode{display:none}
     </style>
 </head>
 <body>
@@ -287,7 +318,7 @@
             <div class="header dots" id="shopHeader">
                 <div class="header-content">
                     <h1 id="shopName">🌸 Flower Shop</h1>
-                    <p>Элитные букеты с доставкой по Ярославлю</p>
+                    <p id="shopSubtitle">Элитные букеты с доставкой по Ярославлю</p>
                     <div class="delivery-info">
                         <i class="fas fa-shipping-fast"></i>
                         <span id="deliveryInfoText">Доставка 200₽ • Бесплатно от 3000₽</span>
@@ -300,22 +331,11 @@
                 <span id="workingHoursText">Доставляем ежедневно с 9:00 до 21:00</span>
             </div>
 
-            <div class="categories">
-                <button class="category-btn active" onclick="filterByCategory('all')">
-                    <i class="fas fa-star"></i>Все товары
-                </button>
-                <button class="category-btn" onclick="filterByCategory('roses')">
-                    <i class="fas fa-heart"></i>Розы
-                </button>
-                <button class="category-btn" onclick="filterByCategory('tulips')">
-                    <i class="fas fa-sun"></i>Тюльпаны
-                </button>
-                <button class="category-btn" onclick="filterByCategory('orchids')">
-                    <i class="fas fa-spa"></i>Орхидеи
-                </button>
-                <button class="category-btn" onclick="filterByCategory('premium')">
-                    <i class="fas fa-crown"></i>Премиум
-                </button>
+            <div class="categories" id="categoriesContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загружаем категории...</div>
+                </div>
             </div>
 
             <div class="products-grid" id="productsGrid">
@@ -416,12 +436,14 @@
                             </div>
                             <div class="form-row">
                                 <input type="text" id="productImage" placeholder="Ссылка на изображение" class="form-input">
-                                <select id="productCategory" class="form-input">
-                                    <option value="roses">Розы</option>
-                                    <option value="tulips">Тюльпаны</option>
-                                    <option value="orchids">Орхидеи</option>
-                                    <option value="premium">Премиум букеты</option>
-                                </select>
+                                <div class="dropdown">
+                                    <div class="dropdown-toggle" id="categoryDropdownToggle">
+                                        <span>Выберите категорию</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="dropdown-menu" id="categoryDropdown">
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-row form-full">
                                 <textarea id="productDescription" placeholder="Подробное описание товара" class="form-input" rows="2"></textarea>
@@ -444,19 +466,93 @@
                         </div>
                     </div>
 
+                    <div class="category-form">
+                        <div class="form-title" onclick="toggleCategoryForm()">
+                            <i class="fas fa-chevron-down" id="categoryFormIcon"></i>
+                            📁 Управление категориями
+                        </div>
+                        <div class="collapsible-content" id="categoryFormContent">
+                            <div class="form-row">
+                                <input type="text" id="categoryName" placeholder="Название категории" class="form-input">
+                                <input type="text" id="categorySlug" placeholder="Slug (англ.)" class="form-input">
+                            </div>
+                            <div class="form-full">
+                                <label class="form-label">Выберите иконку:</label>
+                                <div class="icon-grid" id="iconGrid">
+                                    <div class="icon-option" data-icon="fas fa-heart">
+                                        <i class="fas fa-heart"></i>
+                                        <div>Сердце</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-star">
+                                        <i class="fas fa-star"></i>
+                                        <div>Звезда</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-sun">
+                                        <i class="fas fa-sun"></i>
+                                        <div>Солнце</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-moon">
+                                        <i class="fas fa-moon"></i>
+                                        <div>Луна</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-leaf">
+                                        <i class="fas fa-leaf"></i>
+                                        <div>Лист</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-spa">
+                                        <i class="fas fa-spa"></i>
+                                        <div>Цветок</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-seedling">
+                                        <i class="fas fa-seedling"></i>
+                                        <div>Росток</div>
+                                    </div>
+                                    <div class="icon-option" data-icon="fas fa-feather">
+                                        <i class="fas fa-feather"></i>
+                                        <div>Перо</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" onclick="addCategory()">
+                                    <i class="fas fa-plus"></i> Создать категорию
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="search-box">
                         <input type="text" id="productSearch" placeholder="🔍 Поиск по названию, описанию или категории..." class="search-input" onkeyup="filterProducts()">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-status="all">Все товары</button>
+                            <button class="filter-btn" data-status="active">Активные</button>
+                            <button class="filter-btn" data-status="inactive">Неактивные</button>
+                        </div>
                     </div>
 
                     <div class="admin-table">
                         <div class="table-header products-header">
-                            <div>Перемещение</div>
-                            <div>Товар</div>
+                            <div>ID</div>
+                            <div>Изобр.</div>
+                            <div>Название</div>
                             <div>Цена</div>
                             <div>Категория</div>
+                            <div>Статус</div>
+                            <div>Порядок</div>
                             <div>Действия</div>
                         </div>
                         <div id="productsList"></div>
+                    </div>
+
+                    <div class="admin-table">
+                        <div class="table-header categories-header">
+                            <div>ID</div>
+                            <div>Название</div>
+                            <div>Slug</div>
+                            <div>Иконка</div>
+                            <div>Действия</div>
+                        </div>
+                        <div id="categoriesList"></div>
                     </div>
                 </div>
 
@@ -489,14 +585,20 @@
                 </div>
 
                 <div class="admin-tab-content" id="promocodesTab">
-                    <div class="promo-form" id="promoFormContainer" style="display:none">
+                    <div class="promo-form" id="promoFormContainer">
                         <div class="form-title">🏷️ Создать промокод</div>
                         <div class="promo-row">
                             <input type="text" id="promoCode" placeholder="Код промокода" class="form-input">
-                            <select id="promoDiscountType" class="form-input">
-                                <option value="percentage">Процент</option>
-                                <option value="fixed">Фиксированная</option>
-                            </select>
+                            <div class="dropdown">
+                                <div class="dropdown-toggle" id="discountTypeDropdownToggle">
+                                    <span>Тип скидки</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="dropdown-menu" id="discountTypeDropdown">
+                                    <div class="dropdown-item" data-value="percentage">Процентная</div>
+                                    <div class="dropdown-item" data-value="fixed">Фиксированная</div>
+                                </div>
+                            </div>
                         </div>
                         <div class="promo-row">
                             <div class="promo-field">
@@ -532,7 +634,7 @@
                 </div>
 
                 <div class="admin-tab-content" id="adminsTab">
-                    <div class="product-form" id="adminFormContainer" style="display:none">
+                    <div class="product-form" id="adminFormContainer">
                         <div class="form-title">👤 Добавить администратора</div>
                         <div class="form-row">
                             <input type="text" id="adminTelegramId" placeholder="Telegram ID" class="form-input">
@@ -540,10 +642,16 @@
                         </div>
                         <div class="form-row">
                             <input type="text" id="adminFirstName" placeholder="Имя администратора" class="form-input">
-                            <select id="adminRole" class="form-input">
-                                <option value="admin">Администратор</option>
-                                <option value="owner">Владелец</option>
-                            </select>
+                            <div class="dropdown">
+                                <div class="dropdown-toggle" id="roleDropdownToggle">
+                                    <span>Выберите роль</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="dropdown-menu" id="roleDropdown">
+                                    <div class="dropdown-item" data-value="admin">Администратор</div>
+                                    <div class="dropdown-item" data-value="owner">Владелец</div>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-actions">
                             <button class="btn btn-primary" onclick="addAdmin()">
@@ -576,6 +684,9 @@
                             <div class="settings-row">
                                 <input type="text" id="shopNameInput" placeholder="Название магазина" class="settings-input">
                                 <input type="text" id="shopPhone" placeholder="Телефон" class="settings-input">
+                            </div>
+                            <div class="settings-full">
+                                <input type="text" id="shopSubtitleInput" placeholder="Подзаголовок магазина" class="settings-input">
                             </div>
                             <div class="settings-full">
                                 <input type="text" id="shopAddress" placeholder="Адрес магазина" class="settings-input">
@@ -623,15 +734,22 @@
                         </div>
 
                         <div class="help-item">
-                            <h3>🛍️ Управление товарами</h3>
+                            <h3>🛍️ Управление товарами и категориями</h3>
                             <p><strong>Добавление товаров:</strong></p>
                             <ul>
                                 <li>Перейдите в раздел "Товары"</li>
                                 <li>Нажмите "Добавить новый товар"</li>
                                 <li>Заполните все обязательные поля</li>
-                                <li>Укажите цену, категорию и загрузите изображение</li>
+                                <li>Выберите категорию из выпадающего списка</li>
+                                <li>Укажите цену и загрузите изображение</li>
                             </ul>
-                            <p><strong>Редактирование порядка:</strong> Используйте кнопки ↑ и ↓ для изменения порядка отображения товаров</p>
+                            <p><strong>Управление категориями:</strong></p>
+                            <ul>
+                                <li>Создавайте новые категории с иконками</li>
+                                <li>Удаляйте ненужные категории</li>
+                                <li>Назначайте товарам соответствующие категории</li>
+                            </ul>
+                            <p><strong>Сортировка товаров:</strong> Используйте фильтры для просмотра активных/неактивных товаров</p>
                         </div>
 
                         <div class="help-item">
@@ -660,7 +778,8 @@
                             <h3>⚙️ Настройки магазина</h3>
                             <p><strong>Основные настройки:</strong></p>
                             <ul>
-                                <li>Название магазина и контактные данные</li>
+                                <li>Название магазина и подзаголовок</li>
+                                <li>Контактные данные и адрес</li>
                                 <li>Стоимость доставки и условия бесплатной доставки</li>
                                 <li>Выбор темы оформления из доступных вариантов</li>
                                 <li>Выбор узора для шапки магазина</li>
@@ -694,6 +813,8 @@
                                 <li>Удаление всех заказов</li>
                                 <li>Сброс статистики</li>
                                 <li>Удаление всех промокодов</li>
+                                <li>Удаление всех товаров</li>
+                                <li>Очистка базы клиентов</li>
                             </ul>
                             <p>Для выполнения этих операций требуется ввод специальных кодов подтверждения.</p>
                         </div>
@@ -742,6 +863,34 @@
                             <i class="fas fa-tags"></i> Удалить все промокоды
                         </button>
                     </div>
+
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Удаление всех товаров
+                        </div>
+                        <div class="dangerous-description">
+                            Полностью удалит все товары из каталога. Действие необратимо.
+                        </div>
+                        <input type="text" class="dangerous-input" id="deleteProductsCode" placeholder="Введите код подтверждения DELETE_PRODUCTS">
+                        <button class="dangerous-btn" onclick="dangerousAction('delete_products')">
+                            <i class="fas fa-boxes"></i> Удалить все товары
+                        </button>
+                    </div>
+
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Очистка базы клиентов
+                        </div>
+                        <div class="dangerous-description">
+                            Удалит всех клиентов из системы. Статистика заказов сохранится.
+                        </div>
+                        <input type="text" class="dangerous-input" id="clearCustomersCode" placeholder="Введите код подтверждения CLEAR_CUSTOMERS">
+                        <button class="dangerous-btn" onclick="dangerousAction('clear_customers')">
+                            <i class="fas fa-users"></i> Очистить базу клиентов
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -783,6 +932,7 @@
                             <li>Изменять количество каждого товара</li>
                             <li>Удалять ненужные позиции</li>
                             <li>Видеть итоговую сумму заказа</li>
+                            <li>Применять промокоды для получения скидки</li>
                         </ul>
                     </div>
                 </div>
@@ -966,12 +1116,14 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Категория</label>
-                    <select class="form-input" id="editProductCategory">
-                        <option value="roses">Розы</option>
-                        <option value="tulips">Тюльпаны</option>
-                        <option value="orchids">Орхидеи</option>
-                        <option value="premium">Премиум букеты</option>
-                    </select>
+                    <div class="dropdown">
+                        <div class="dropdown-toggle" id="editCategoryDropdownToggle">
+                            <span>Выберите категорию</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-menu" id="editCategoryDropdown">
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Описание</label>
@@ -1031,21 +1183,31 @@
     <script>
         let tg=window.Telegram.WebApp;tg.expand();tg.ready();
         let cart=[];let currentCategory='all';let products=[];let isAdmin=false;let currentUserRole='';
-        let adminData={products:[],orders:[],admins:[],stats:{},settings:{},themes:[],promocodes:[]};
+        let adminData={products:[],orders:[],admins:[],stats:{},settings:{},themes:[],promocodes:[],categories:[]};
         let deliveryOption='pickup';let deliveryPrice=200;let freeDeliveryMin=3000;
         let currentOrdersPage=1;let ordersPerPage=10;
         let appliedPromocode=null;
         let activePattern='dots';
         let currentOrderId=null;
         let selectedStatus=null;
+        let selectedCategory=null;
+        let selectedIcon=null;
+        let selectedDiscountType='percentage';
+        let selectedRole='admin';
 
         function showToast(message,type='success'){const toast=document.getElementById('toast');const toastMessage=document.getElementById('toastMessage');const toastIcon=document.getElementById('toastIcon');toastMessage.textContent=message;toast.className='toast';toast.classList.add(type);if(type==='success'){toastIcon.className='fas fa-check-circle'}else if(type==='error'){toastIcon.className='fas fa-times-circle'}else{toastIcon.className='fas fa-info-circle'}toast.classList.add('show');setTimeout(()=>{toast.classList.remove('show')},2000)}
 
         async function loadProducts(){try{const response=await fetch('/api/products');if(!response.ok)throw new Error('Network error');products=await response.json();renderProducts()}catch(error){console.error('Error loading products:',error);showToast('Ошибка загрузки каталога','error');renderProducts([])}}
 
+        async function loadCategories(){try{const response=await fetch('/api/admin/categories');if(response.ok){const categories=await response.json();adminData.categories=categories;renderCategories(categories);renderCategoryDropdowns(categories)}else{await createDefaultCategories()}}catch(error){console.error('Error loading categories:',error);await createDefaultCategories()}}
+
+        async function createDefaultCategories(){const defaultCategories=[{name:'Розы',slug:'roses',icon:'fas fa-heart'},{name:'Тюльпаны',slug:'tulips',icon:'fas fa-sun'},{name:'Орхидеи',slug:'orchids',icon:'fas fa-spa'},{name:'Премиум букеты',slug:'premium',icon:'fas fa-crown'}];for(const category of defaultCategories){try{await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)})}catch(e){console.error('Error creating category:',e)}}await loadCategories()}
+
+        function renderCategories(categories){const container=document.getElementById('categoriesContainer');if(!categories||categories.length===0){container.innerHTML='<div class="loading"><div>Категории не найдены</div></div>';return}container.innerHTML='<button class="category-btn active" onclick="filterByCategory(\'all\')"><i class="fas fa-star"></i>Все товары</button>';categories.forEach(category=>{if(category.is_active){const btn=document.createElement('button');btn.className='category-btn';btn.onclick=()=>filterByCategory(category.slug);btn.innerHTML=`<i class="${category.icon}"></i>${category.name}`;container.appendChild(btn)}})}
+
         function filterByCategory(category){currentCategory=category;document.querySelectorAll('.category-btn').forEach(btn=>btn.classList.remove('active'));event.target.classList.add('active');renderProducts(category);tg.HapticFeedback.selectionChanged()}
 
-        function renderProducts(category='all'){const grid=document.getElementById('productsGrid');if(products.length===0){grid.innerHTML='<div class="loading"><div>Товары временно недоступны</div></div>';return}grid.innerHTML='';const filteredProducts=category==='all'?products:products.filter(product=>product.category===category);if(filteredProducts.length===0){grid.innerHTML='<div class="loading"><div>В этой категории пока нет товаров</div></div>';return}filteredProducts.forEach(product=>{const productCard=document.createElement('div');productCard.className='product-card';productCard.innerHTML=`<div class="product-image"><img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">${product.is_featured?'<div class="product-badge">Хит</div>':''}</div><div class="product-content"><div class="product-title">${product.name}</div><div class="product-description">${product.description}</div>${product.fact?`<div class="product-fact"><i class="fas fa-lightbulb"></i><span class="product-fact-text">${product.fact}</span></div>`:''}<div class="product-footer"><div class="product-price">${product.price.toLocaleString()} ₽</div><button class="add-to-cart" data-id="${product.id}"><i class="fas fa-plus"></i>В корзину</button></div></div>`;grid.appendChild(productCard)});document.querySelectorAll('.add-to-cart').forEach(button=>{button.addEventListener('click',(e)=>{const productId=parseInt(e.target.closest('.add-to-cart').dataset.id);addToCart(productId)})});document.querySelectorAll('.product-fact').forEach(fact=>{fact.addEventListener('click',function(){const icon=this.querySelector('i');icon.style.color='#fbbf24';icon.style.textShadow='0 0 10px #f59e0b, 0 0 20px #f59e0b';icon.style.transform='scale(1.1)';setTimeout(()=>{icon.style.color='#f59e0b';icon.style.textShadow='none';icon.style.transform='scale(1)'},1000)})})}
+        function renderProducts(category='all'){const grid=document.getElementById('productsGrid');if(products.length===0){grid.innerHTML='<div class="loading"><div>Товары временно недоступны</div></div>';return}grid.innerHTML='';const filteredProducts=category==='all'?products:products.filter(product=>product.category===category);if(filteredProducts.length===0){grid.innerHTML='<div class="loading"><div>В этой категории пока нет товаров</div></div>';return}filteredProducts.forEach(product=>{if(product.is_available){const productCard=document.createElement('div');productCard.className='product-card';productCard.innerHTML=`<div class="product-image"><img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">${product.is_featured?'<div class="product-badge">Хит</div>':''}</div><div class="product-content"><div class="product-title">${product.name}</div><div class="product-description">${product.description}</div>${product.fact?`<div class="product-fact"><i class="fas fa-lightbulb"></i><span class="product-fact-text">${product.fact}</span></div>`:''}<div class="product-footer"><div class="product-price">${product.price.toLocaleString()} ₽</div><button class="add-to-cart" data-id="${product.id}"><i class="fas fa-plus"></i>В корзину</button></div></div>`;grid.appendChild(productCard)}});document.querySelectorAll('.add-to-cart').forEach(button=>{button.addEventListener('click',(e)=>{const productId=parseInt(e.target.closest('.add-to-cart').dataset.id);addToCart(productId)})});document.querySelectorAll('.product-fact').forEach(fact=>{fact.addEventListener('click',function(){const icon=this.querySelector('i');icon.style.color='#fbbf24';icon.style.textShadow='0 0 10px #f59e0b, 0 0 20px #f59e0b';icon.style.transform='scale(1.1)';setTimeout(()=>{icon.style.color='#f59e0b';icon.style.textShadow='none';icon.style.transform='scale(1)'},1000)})})}
 
         function addToCart(productId){const product=products.find(p=>p.id===productId);if(product){const existingItem=cart.find(item=>item.id===productId);if(existingItem){existingItem.quantity+=1}else{cart.push({...product,quantity:1})}updateCartDisplay();tg.HapticFeedback.impactOccurred('soft');showToast('Товар добавлен в корзину','success')}}
 
@@ -1077,7 +1239,13 @@
 
         function closeOrderSuccess(){document.getElementById('orderModal').style.display='none';cart=[];appliedPromocode=null;updateCartDisplay();document.getElementById('orderForm').style.display='block';document.getElementById('orderSuccess').style.display='none';document.getElementById('phoneInput').value='+7';document.getElementById('orderComment').value='';document.getElementById('deliveryAddress').value='';document.getElementById('promoCodeInput').value='';document.getElementById('promoCodeMessage').textContent='';document.getElementById('confirmOrderBtn').disabled=true;document.getElementById('confirmOrderBtn').innerHTML='<i class="fas fa-paper-plane"></i> Оформить заказ';selectDeliveryOption('pickup')}
 
-        function setupEventListeners(){document.getElementById('closeCart').addEventListener('click',()=>{document.getElementById('cartModal').style.display='none'});document.getElementById('closeOrder').addEventListener('click',()=>{document.getElementById('orderModal').style.display='none'});document.getElementById('closeEditProduct').addEventListener('click',()=>{document.getElementById('editProductModal').style.display='none'});document.getElementById('phoneInput').addEventListener('input',function(e){const phone=e.target.value;const isValid=validatePhone(phone);document.getElementById('confirmOrderBtn').disabled=!isValid;if(phone&&!isValid){this.style.borderColor='#ef4444'}else{this.style.borderColor=isValid?'#22c55e':'#e5e7eb'}});document.querySelectorAll('.modal').forEach(modal=>{modal.addEventListener('click',(e)=>{if(e.target===modal){modal.style.display='none'}})});const phoneInput=document.getElementById('phoneInput');phoneInput.addEventListener('input',function(e){let value=e.target.value.replace(/\D/g,'');if(value.startsWith('7')||value.startsWith('8')){value=value.substring(1)}if(value.length>0){value='+7 ('+value;if(value.length>7){value=value.substring(0,7)+') '+value.substring(7)}if(value.length>12){value=value.substring(0,12)+'-'+value.substring(12)}if(value.length>15){value=value.substring(0,15)+'-'+value.substring(15)}}e.target.value=value});document.getElementById('promoDiscountType').addEventListener('change',function(){const suffix=document.getElementById('promoDiscountSuffix');suffix.textContent=this.value==='percentage'?'%':'₽'});document.querySelectorAll('.help-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');const helpSection=this.dataset.help;document.getElementById(helpSection+'Help').classList.add('active')})});document.querySelectorAll('.pattern-option').forEach(option=>{option.addEventListener('click',function(){selectPattern(this.dataset.pattern)})})}
+        function setupEventListeners(){document.getElementById('closeCart').addEventListener('click',()=>{document.getElementById('cartModal').style.display='none'});document.getElementById('closeOrder').addEventListener('click',()=>{document.getElementById('orderModal').style.display='none'});document.getElementById('closeEditProduct').addEventListener('click',()=>{document.getElementById('editProductModal').style.display='none'});document.getElementById('phoneInput').addEventListener('input',function(e){const phone=e.target.value;const isValid=validatePhone(phone);document.getElementById('confirmOrderBtn').disabled=!isValid;if(phone&&!isValid){this.style.borderColor='#ef4444'}else{this.style.borderColor=isValid?'#22c55e':'#e5e7eb'}});document.querySelectorAll('.modal').forEach(modal=>{modal.addEventListener('click',(e)=>{if(e.target===modal){modal.style.display='none'}})});const phoneInput=document.getElementById('phoneInput');phoneInput.addEventListener('input',function(e){let value=e.target.value.replace(/\D/g,'');if(value.startsWith('7')||value.startsWith('8')){value=value.substring(1)}if(value.length>0){value='+7 ('+value;if(value.length>7){value=value.substring(0,7)+') '+value.substring(7)}if(value.length>12){value=value.substring(0,12)+'-'+value.substring(12)}if(value.length>15){value=value.substring(0,15)+'-'+value.substring(15)}}e.target.value=value});document.querySelectorAll('.help-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');const helpSection=this.dataset.help;document.getElementById(helpSection+'Help').classList.add('active')})});document.querySelectorAll('.pattern-option').forEach(option=>{option.addEventListener('click',function(){selectPattern(this.dataset.pattern)})});initDropdowns();initIconSelection()}
+
+        function initDropdowns(){document.querySelectorAll('.dropdown-toggle').forEach(toggle=>{toggle.addEventListener('click',function(e){e.stopPropagation();const menu=this.nextElementSibling;document.querySelectorAll('.dropdown-menu').forEach(m=>{if(m!==menu)m.classList.remove('show')});menu.classList.toggle('show')})});document.addEventListener('click',()=>{document.querySelectorAll('.dropdown-menu').forEach(menu=>menu.classList.remove('show'))});document.querySelectorAll('.dropdown-item').forEach(item=>{item.addEventListener('click',function(){const dropdown=this.closest('.dropdown');const toggle=dropdown.querySelector('.dropdown-toggle');const value=this.dataset.value;toggle.querySelector('span').textContent=this.textContent;if(dropdown.id==='categoryDropdown'){selectedCategory=value}else if(dropdown.id==='discountTypeDropdown'){selectedDiscountType=value;document.getElementById('promoDiscountSuffix').textContent=value==='percentage'?'%':'₽'}else if(dropdown.id==='roleDropdown'){selectedRole=value}dropdown.querySelector('.dropdown-menu').classList.remove('show')})})}
+
+        function initIconSelection(){document.querySelectorAll('.icon-option').forEach(option=>{option.addEventListener('click',function(){document.querySelectorAll('.icon-option').forEach(opt=>opt.classList.remove('selected'));this.classList.add('selected');selectedIcon=this.dataset.icon})})}
+
+        function renderCategoryDropdowns(categories){const dropdowns=['categoryDropdown','editCategoryDropdown'];dropdowns.forEach(dropdownId=>{const dropdown=document.getElementById(dropdownId);if(dropdown){dropdown.innerHTML='';categories.forEach(category=>{const item=document.createElement('div');item.className='dropdown-item';item.dataset.value=category.slug;item.innerHTML=`<i class="${category.icon}"></i> ${category.name}`;dropdown.appendChild(item)})}})}
 
         async function checkAdminAccess(){try{const telegramId=String(tg.initDataUnsafe.user?.id||'');const response=await fetch('/api/admin',{headers:{'Telegram-Id':telegramId}});const data=await response.json();isAdmin=data.is_admin===true&&data.is_active!==false;currentUserRole=data.role||'';if(isAdmin){document.getElementById('adminButton').style.display='flex';if(currentUserRole==='owner'){document.getElementById('dangerousTab').style.display='flex';document.getElementById('promoFormContainer').style.display='block';document.getElementById('adminFormContainer').style.display='block'}}}catch(error){console.error('Ошибка проверки админ-доступа:',error)}}
 
@@ -1091,13 +1259,15 @@
 
         function showTab(tabName){document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-tab-content').forEach(c=>c.classList.remove('active'));document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');document.getElementById(tabName+'Tab').classList.add('active');if(tabName==='dashboard')loadDashboard();if(tabName==='products')loadProductsAdmin();if(tabName==='orders')loadOrdersAdmin();if(tabName==='promocodes')loadPromocodes();if(tabName==='admins')loadAdmins();if(tabName==='settings')loadSettings()}
 
-        async function loadAdminData(){await loadDashboard();await loadProductsAdmin();await loadOrdersAdmin();await loadPromocodes();await loadAdmins();await loadSettings()}
+        async function loadAdminData(){await loadDashboard();await loadProductsAdmin();await loadOrdersAdmin();await loadPromocodes();await loadAdmins();await loadSettings();await loadCategories()}
 
         async function loadDashboard(){try{const response=await fetch('/api/admin/stats');const stats=await response.json();document.getElementById('totalOrders').textContent=stats.total_orders;document.getElementById('completedOrders').textContent=stats.completed_orders;document.getElementById('totalRevenue').textContent=stats.total_revenue.toLocaleString()+' ₽';document.getElementById('potentialRevenue').textContent=stats.potential_revenue.toLocaleString()+' ₽';document.getElementById('totalProducts').textContent=stats.total_products;document.getElementById('activePromocodes').textContent=stats.active_promocodes||0}catch(error){console.error('Error loading dashboard:',error)}}
 
-        async function loadProductsAdmin(){try{const response=await fetch('/api/products');const products=await response.json();adminData.products=products;renderProductsAdmin(products)}catch(error){console.error('Error loading products admin:',error)}}
+        async function loadProductsAdmin(){try{const response=await fetch('/api/products?show_all=true');const products=await response.json();adminData.products=products;renderProductsAdmin(products)}catch(error){console.error('Error loading products admin:',error)}}
 
-        function renderProductsAdmin(products){const productsList=document.getElementById('productsList');productsList.innerHTML='';if(products.length===0){productsList.innerHTML='<div class="empty-table-message">Товары не найдены</div>';return}products.forEach((product,index)=>{const row=document.createElement('div');row.className='table-row';row.setAttribute('data-id',product.id);row.innerHTML=`<div class="move-buttons"><button class="move-btn" onclick="moveProductUp(${product.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveProductDown(${product.id})" ${index===products.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div><div><strong>${product.name}</strong><div style="font-size:11px;color:var(--text-light)">${product.description}</div></div><div>${product.price} ₽</div><div>${product.category}</div><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div>`;productsList.appendChild(row)})}
+        function renderProductsAdmin(products){const productsList=document.getElementById('productsList');productsList.innerHTML='';if(products.length===0){productsList.innerHTML='<div class="empty-table-message">Товары не найдены</div>';return}products.forEach((product,index)=>{const row=document.createElement('div');row.className='table-row';row.setAttribute('data-id',product.id);const category=adminData.categories.find(c=>c.slug===product.category);row.innerHTML=`<div>${product.id}</div><div><img src="${product.image_url}" alt="${product.name}" class="table-product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCAyMEMyNSAzMCAyMCAyMCAzMCAxMEM0MCAyMCAzNSAzMCAzMCAyMFoiIGZpbGw9IiNFNUU1RTUiLz4KPC9zdmc+'"></div><div><strong>${product.name}</strong><div style="font-size:11px;color:var(--text-light)">${product.description}</div></div><div>${product.price} ₽</div><div>${category?category.name:product.category}</div><div><span class="product-status ${product.is_available?'status-active':'status-inactive'}">${product.is_available?'Активен':'Неактивен'}</span></div><div class="move-buttons"><button class="move-btn" onclick="moveProductUp(${product.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveProductDown(${product.id})" ${index===products.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div>`;productsList.appendChild(row)})}
+
+        function renderCategoriesAdmin(categories){const categoriesList=document.getElementById('categoriesList');categoriesList.innerHTML='';if(categories.length===0){categoriesList.innerHTML='<div class="empty-table-message">Категории не найдены</div>';return}categories.forEach(category=>{const row=document.createElement('div');row.className='table-row';row.innerHTML=`<div>${category.id}</div><div><i class="${category.icon}"></i> ${category.name}</div><div>${category.slug}</div><div><i class="${category.icon}"></i></div><div class="admin-actions">${currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--text-light);font-size:10px">Нельзя удалить</span>'}</div>`;categoriesList.appendChild(row)})}
 
         async function moveProductUp(productId){const products=adminData.products;const index=products.findIndex(p=>p.id===productId);if(index>0){[products[index],products[index-1]]=[products[index-1],products[index]];await updateProductsOrder();loadProductsAdmin()}}
 
@@ -1117,7 +1287,7 @@
 
         function renderAdmins(admins){const adminsList=document.getElementById('adminsList');adminsList.innerHTML='';if(admins.length===0){adminsList.innerHTML='<div class="empty-table-message">Администраторы не найдены</div>';return}admins.forEach(admin=>{const row=document.createElement('div');row.className='table-row';row.innerHTML=`<div>${admin.id}</div><div>${admin.first_name}</div><div>@${admin.username}</div><div><span class="role-badge ${admin.role==='owner'?'role-owner':'role-admin'}">${admin.role==='owner'?'Владелец':'Админ'}</span></div><div>${admin.role!=='owner'&&currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deleteAdmin(${admin.id})"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--text-light);font-size:10px">Нельзя удалить</span>'}</div>`;adminsList.appendChild(row)})}
 
-        async function loadSettings(){try{const response=await fetch('/api/admin/settings');const settings=await response.json();adminData.settings=settings;document.getElementById('shopNameInput').value=settings.shop_name?.value||'🌸 Flower Shop';document.getElementById('shopPhone').value=settings.contacts?.phone||'+7 (999) 123-45-67';document.getElementById('shopAddress').value=settings.contacts?.address||'Ярославль, ул. Цветочная, 15';document.getElementById('shopWorkingHours').value=settings.working_hours?.value||'Ежедневно с 9:00 до 21:00';document.getElementById('deliveryPrice').value=settings.delivery_price?.value||200;document.getElementById('freeDeliveryMin').value=settings.free_delivery_min?.value||3000;deliveryPrice=settings.delivery_price?.value||200;freeDeliveryMin=settings.free_delivery_min?.value||3000;updateShopHeader();const themesResponse=await fetch('/api/admin/themes');const themes=await themesResponse.json();adminData.themes=themes;renderThemes(themes,settings.active_theme?.value||'6');if(settings.header_patterns){activePattern=settings.header_patterns.active||'dots';applyPattern(activePattern)}}catch(error){console.error('Error loading settings:',error)}}
+        async function loadSettings(){try{const response=await fetch('/api/admin/settings');const settings=await response.json();adminData.settings=settings;document.getElementById('shopNameInput').value=settings.shop_name?.value||'🌸 Flower Shop';document.getElementById('shopSubtitleInput').value=settings.shop_subtitle?.value||'Элитные букеты с доставкой по Ярославлю';document.getElementById('shopPhone').value=settings.contacts?.phone||'+7 (999) 123-45-67';document.getElementById('shopAddress').value=settings.contacts?.address||'Ярославль, ул. Цветочная, 15';document.getElementById('shopWorkingHours').value=settings.working_hours?.value||'Ежедневно с 9:00 до 21:00';document.getElementById('deliveryPrice').value=settings.delivery_price?.value||200;document.getElementById('freeDeliveryMin').value=settings.free_delivery_min?.value||3000;deliveryPrice=settings.delivery_price?.value||200;freeDeliveryMin=settings.free_delivery_min?.value||3000;updateShopHeader();const themesResponse=await fetch('/api/admin/themes');const themes=await themesResponse.json();adminData.themes=themes;renderThemes(themes,settings.active_theme?.value||'6');if(settings.header_patterns){activePattern=settings.header_patterns.active||'dots';applyPattern(activePattern)}}catch(error){console.error('Error loading settings:',error)}}
 
         function renderThemes(themes,activeThemeId){const themeGrid=document.getElementById('themeGrid');themeGrid.innerHTML='';themes.forEach(theme=>{const themeOption=document.createElement('div');themeOption.className=`theme-option ${theme.id==activeThemeId?'selected':''}`;themeOption.style.background=theme.background_value;themeOption.onclick=()=>selectTheme(theme.id);themeGrid.appendChild(themeOption)})}
 
@@ -1129,19 +1299,25 @@
 
         function applyPattern(pattern){const header=document.getElementById('shopHeader');header.className='header '+pattern;}
 
-        function updateShopHeader(){document.getElementById('shopName').textContent=document.getElementById('shopNameInput').value;document.getElementById('deliveryInfoText').textContent=`Доставка ${deliveryPrice}₽ • Бесплатно от ${freeDeliveryMin}₽`;document.getElementById('workingHoursText').textContent=document.getElementById('shopWorkingHours').value;document.getElementById('deliveryPriceText').textContent=`${deliveryPrice} ₽`}
+        function updateShopHeader(){document.getElementById('shopName').textContent=document.getElementById('shopNameInput').value;document.getElementById('shopSubtitle').textContent=document.getElementById('shopSubtitleInput').value;document.getElementById('deliveryInfoText').textContent=`Доставка ${deliveryPrice}₽ • Бесплатно от ${freeDeliveryMin}₽`;document.getElementById('workingHoursText').textContent=document.getElementById('shopWorkingHours').value;document.getElementById('deliveryPriceText').textContent=`${deliveryPrice} ₽`}
 
         function toggleProductForm(){const content=document.getElementById('productFormContent');const icon=document.getElementById('productFormIcon');content.classList.toggle('expanded');icon.style.transform=content.classList.contains('expanded')?'rotate(180deg)':'rotate(0deg)'}
 
-        async function addProduct(){const product={name:document.getElementById('productName').value,price:parseInt(document.getElementById('productPrice').value),image_url:document.getElementById('productImage').value,category:document.getElementById('productCategory').value,description:document.getElementById('productDescription').value,fact:document.getElementById('productFact').value,is_available:true,is_featured:document.getElementById('productFeatured').checked};if(!product.name||!product.price){showToast('Заполните название и цену','error');return}try{const response=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(product)});const result=await response.json();if(result.success){showToast('Товар успешно добавлен','success');loadProductsAdmin();resetProductForm();loadProducts()}}catch(error){console.error('Error adding product:',error);showToast('Ошибка добавления товара','error')}}
+        function toggleCategoryForm(){const content=document.getElementById('categoryFormContent');const icon=document.getElementById('categoryFormIcon');content.classList.toggle('expanded');icon.style.transform=content.classList.contains('expanded')?'rotate(180deg)':'rotate(0deg)'}
 
-        async function addPromocode(){const promoData={code:document.getElementById('promoCode').value,discount_type:document.getElementById('promoDiscountType').value,discount_value:parseInt(document.getElementById('promoDiscountValue').value),min_order_amount:parseInt(document.getElementById('promoMinOrder').value)||0,max_uses:document.getElementById('promoMaxUses').value?parseInt(document.getElementById('promoMaxUses').value):null,valid_until:document.getElementById('promoValidUntil').value||null};if(!promoData.code||!promoData.discount_value){showToast('Заполните код и значение скидки','error');return}try{const response=await fetch('/api/promocodes',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify(promoData)});const result=await response.json();if(result.success){showToast('Промокод успешно создан','success');loadPromocodes();resetPromoForm()}}catch(error){console.error('Error adding promocode:',error);showToast('Ошибка создания промокода','error')}}
+        async function addProduct(){if(!selectedCategory){showToast('Выберите категорию','error');return}const product={name:document.getElementById('productName').value,price:parseInt(document.getElementById('productPrice').value),image_url:document.getElementById('productImage').value,category:selectedCategory,description:document.getElementById('productDescription').value,fact:document.getElementById('productFact').value,is_available:true,is_featured:document.getElementById('productFeatured').checked};if(!product.name||!product.price){showToast('Заполните название и цену','error');return}try{const response=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(product)});const result=await response.json();if(result.success){showToast('Товар успешно добавлен','success');loadProductsAdmin();resetProductForm();loadProducts()}}catch(error){console.error('Error adding product:',error);showToast('Ошибка добавления товара','error')}}
 
-        async function editProduct(productId){const product=adminData.products.find(p=>p.id===productId);if(!product)return;document.getElementById('editProductId').value=product.id;document.getElementById('editProductName').value=product.name;document.getElementById('editProductPrice').value=product.price;document.getElementById('editProductImage').value=product.image_url;document.getElementById('editProductCategory').value=product.category;document.getElementById('editProductDescription').value=product.description||'';document.getElementById('editProductFact').value=product.fact||'';document.getElementById('editProductAvailable').checked=product.is_available;document.getElementById('editProductFeatured').checked=product.is_featured||false;document.getElementById('editProductModal').style.display='flex'}
+        async function addCategory(){if(!selectedIcon){showToast('Выберите иконку для категории','error');return}const category={name:document.getElementById('categoryName').value,slug:document.getElementById('categorySlug').value,icon:selectedIcon};if(!category.name||!category.slug){showToast('Заполните название и slug категории','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)});const result=await response.json();if(result.success){showToast('Категория успешно создана','success');loadCategories();resetCategoryForm();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error adding category:',error);showToast('Ошибка создания категории','error')}}
 
-        async function updateProduct(){const productId=document.getElementById('editProductId').value;const product={name:document.getElementById('editProductName').value,price:parseInt(document.getElementById('editProductPrice').value),image_url:document.getElementById('editProductImage').value,category:document.getElementById('editProductCategory').value,description:document.getElementById('editProductDescription').value,fact:document.getElementById('editProductFact').value,is_available:document.getElementById('editProductAvailable').checked,is_featured:document.getElementById('editProductFeatured').checked};try{const response=await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...product,id:parseInt(productId)})});const result=await response.json();if(result.success){showToast('Товар успешно обновлен','success');document.getElementById('editProductModal').style.display='none';loadProductsAdmin();loadProducts()}}catch(error){console.error('Error updating product:',error);showToast('Ошибка обновления товара','error')}}
+        async function addPromocode(){const promoData={code:document.getElementById('promoCode').value,discount_type:selectedDiscountType,discount_value:parseInt(document.getElementById('promoDiscountValue').value),min_order_amount:parseInt(document.getElementById('promoMinOrder').value)||0,max_uses:document.getElementById('promoMaxUses').value?parseInt(document.getElementById('promoMaxUses').value):null,valid_until:document.getElementById('promoValidUntil').value||null};if(!promoData.code||!promoData.discount_value){showToast('Заполните код и значение скидки','error');return}try{const response=await fetch('/api/promocodes',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify(promoData)});const result=await response.json();if(result.success){showToast('Промокод успешно создан','success');loadPromocodes();resetPromoForm()}}catch(error){console.error('Error adding promocode:',error);showToast('Ошибка создания промокода','error')}}
+
+        async function editProduct(productId){const product=adminData.products.find(p=>p.id===productId);if(!product)return;document.getElementById('editProductId').value=product.id;document.getElementById('editProductName').value=product.name;document.getElementById('editProductPrice').value=product.price;document.getElementById('editProductImage').value=product.image_url;selectedCategory=product.category;document.getElementById('editCategoryDropdownToggle').querySelector('span').textContent=adminData.categories.find(c=>c.slug===product.category)?.name||product.category;document.getElementById('editProductDescription').value=product.description||'';document.getElementById('editProductFact').value=product.fact||'';document.getElementById('editProductAvailable').checked=product.is_available;document.getElementById('editProductFeatured').checked=product.is_featured||false;document.getElementById('editProductModal').style.display='flex'}
+
+        async function updateProduct(){const productId=document.getElementById('editProductId').value;const product={name:document.getElementById('editProductName').value,price:parseInt(document.getElementById('editProductPrice').value),image_url:document.getElementById('editProductImage').value,category:selectedCategory,description:document.getElementById('editProductDescription').value,fact:document.getElementById('editProductFact').value,is_available:document.getElementById('editProductAvailable').checked,is_featured:document.getElementById('editProductFeatured').checked};try{const response=await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...product,id:parseInt(productId)})});const result=await response.json();if(result.success){showToast('Товар успешно обновлен','success');document.getElementById('editProductModal').style.display='none';loadProductsAdmin();loadProducts()}}catch(error){console.error('Error updating product:',error);showToast('Ошибка обновления товара','error')}}
 
         async function deleteProduct(productId){if(!confirm('Удалить этот товар?'))return;try{const response=await fetch(`/api/products/${productId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Товар удален','success');loadProductsAdmin();loadProducts()}}catch(error){console.error('Error deleting product:',error);showToast('Ошибка удаления товара','error')}}
+
+        async function deleteCategory(categoryId){if(!confirm('Удалить эту категорию?'))return;try{const response=await fetch(`/api/admin/category/${categoryId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Категория удалена','success');loadCategories();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error deleting category:',error);showToast('Ошибка удаления категории','error')}}
 
         async function deletePromocode(promocodeId){if(!confirm('Удалить этот промокод?'))return;try{const response=await fetch(`/api/promocodes/${promocodeId}`,{method:'DELETE',headers:{'Telegram-Id':tg.initDataUnsafe.user?.id||''}});const result=await response.json();if(result.success){showToast('Промокод удален','success');loadPromocodes()}}catch(error){console.error('Error deleting promocode:',error);showToast('Ошибка удаления промокода','error')}}
 
@@ -1157,27 +1333,29 @@
 
         async function deleteOrder(orderId){if(!confirm('Удалить этот заказ?'))return;try{const response=await fetch(`/api/order/${orderId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Заказ удален','success');loadOrdersAdmin()}}catch(error){console.error('Error deleting order:',error);showToast('Ошибка удаления заказа','error')}}
 
-        async function addAdmin(){const admin={telegram_id:document.getElementById('adminTelegramId').value,username:document.getElementById('adminUsername').value.replace('@',''),first_name:document.getElementById('adminFirstName').value,role:document.getElementById('adminRole').value};if(!admin.telegram_id||!admin.first_name){showToast('Заполните обязательные поля','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(admin)});const result=await response.json();if(result.success){showToast('Администратор добавлен','success');loadAdmins();resetAdminForm()}}catch(error){console.error('Error adding admin:',error);showToast('Ошибка добавления администратора','error')}}
+        async function addAdmin(){const admin={telegram_id:document.getElementById('adminTelegramId').value,username:document.getElementById('adminUsername').value.replace('@',''),first_name:document.getElementById('adminFirstName').value,role:selectedRole};if(!admin.telegram_id||!admin.first_name){showToast('Заполните обязательные поля','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(admin)});const result=await response.json();if(result.success){showToast('Администратор добавлен','success');loadAdmins();resetAdminForm()}}catch(error){console.error('Error adding admin:',error);showToast('Ошибка добавления администратора','error')}}
 
         async function deleteAdmin(adminId){if(!confirm('Удалить этого администратора?'))return;try{const response=await fetch(`/api/admin/${adminId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Администратор удален','success');loadAdmins()}}catch(error){console.error('Error deleting admin:',error);showToast('Ошибка удаления администратора','error')}}
 
-        function resetProductForm(){document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productImage').value='';document.getElementById('productDescription').value='';document.getElementById('productFact').value='';document.getElementById('productFeatured').checked=false}
+        function resetProductForm(){document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productImage').value='';document.getElementById('productDescription').value='';document.getElementById('productFact').value='';document.getElementById('productFeatured').checked=false;selectedCategory=null;document.getElementById('categoryDropdownToggle').querySelector('span').textContent='Выберите категорию'}
 
-        function resetPromoForm(){document.getElementById('promoCode').value='';document.getElementById('promoDiscountValue').value='';document.getElementById('promoMinOrder').value='';document.getElementById('promoMaxUses').value='';document.getElementById('promoValidUntil').value=''}
+        function resetCategoryForm(){document.getElementById('categoryName').value='';document.getElementById('categorySlug').value='';selectedIcon=null;document.querySelectorAll('.icon-option').forEach(opt=>opt.classList.remove('selected'))}
 
-        function resetAdminForm(){document.getElementById('adminTelegramId').value='';document.getElementById('adminUsername').value='';document.getElementById('adminFirstName').value=''}
+        function resetPromoForm(){document.getElementById('promoCode').value='';document.getElementById('promoDiscountValue').value='';document.getElementById('promoMinOrder').value='';document.getElementById('promoMaxUses').value='';document.getElementById('promoValidUntil').value='';selectedDiscountType='percentage';document.getElementById('discountTypeDropdownToggle').querySelector('span').textContent='Тип скидки'}
 
-        function filterProducts(){const searchTerm=document.getElementById('productSearch').value.toLowerCase();const filteredProducts=adminData.products.filter(product=>product.name.toLowerCase().includes(searchTerm)||product.description.toLowerCase().includes(searchTerm)||product.category.toLowerCase().includes(searchTerm));renderProductsAdmin(filteredProducts)}
+        function resetAdminForm(){document.getElementById('adminTelegramId').value='';document.getElementById('adminUsername').value='';document.getElementById('adminFirstName').value='';selectedRole='admin';document.getElementById('roleDropdownToggle').querySelector('span').textContent='Выберите роль'}
+
+        function filterProducts(){const searchTerm=document.getElementById('productSearch').value.toLowerCase();const activeFilter=document.querySelector('.filter-btn.active')?.dataset.status||'all';const filteredProducts=adminData.products.filter(product=>{const matchesSearch=product.name.toLowerCase().includes(searchTerm)||product.description.toLowerCase().includes(searchTerm)||product.category.toLowerCase().includes(searchTerm);let matchesFilter=true;if(activeFilter==='active'){matchesFilter=product.is_available}else if(activeFilter==='inactive'){matchesFilter=!product.is_available}return matchesSearch&&matchesFilter});renderProductsAdmin(filteredProducts)}
 
         function filterOrders(){const searchTerm=document.getElementById('orderSearch').value.toLowerCase();const activeFilter=document.querySelector('.filter-btn.active')?.dataset.status||'all';const filteredOrders=adminData.orders.filter(order=>{const matchesSearch=order.user_name.toLowerCase().includes(searchTerm)||order.phone.includes(searchTerm)||order.id.toString().includes(searchTerm);const matchesFilter=activeFilter==='all'||order.status_id.toString()===activeFilter;return matchesSearch&&matchesFilter});renderOrdersAdmin(filteredOrders)}
 
-        async function saveShopSettings(){try{const settings={shop_name:document.getElementById('shopNameInput').value,phone:document.getElementById('shopPhone').value,address:document.getElementById('shopAddress').value,working_hours:document.getElementById('shopWorkingHours').value,delivery_price:parseInt(document.getElementById('deliveryPrice').value),free_delivery_min:parseInt(document.getElementById('freeDeliveryMin').value)};deliveryPrice=settings.delivery_price;freeDeliveryMin=settings.free_delivery_min;const updateData=[{key:'shop_name',value:{value:settings.shop_name}},{key:'contacts',value:{phone:settings.phone,address:settings.address}},{key:'working_hours',value:{value:settings.working_hours}},{key:'delivery_price',value:{value:settings.delivery_price}},{key:'free_delivery_min',value:{value:settings.free_delivery_min}},{key:'header_patterns',value:{patterns:['dots','lines','flowers'],active:activePattern}}];let successCount=0;for(const setting of updateData){const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(setting)});if(response.ok){successCount++}}if(successCount>0){showToast('Настройки успешно сохранены','success');updateShopHeader()}else{showToast('Ошибка сохранения настроек','error')}}catch(error){console.error('Error saving settings:',error);showToast('Ошибка сохранения настроек','error')}}
+        async function saveShopSettings(){try{const settings={shop_name:document.getElementById('shopNameInput').value,shop_subtitle:document.getElementById('shopSubtitleInput').value,phone:document.getElementById('shopPhone').value,address:document.getElementById('shopAddress').value,working_hours:document.getElementById('shopWorkingHours').value,delivery_price:parseInt(document.getElementById('deliveryPrice').value),free_delivery_min:parseInt(document.getElementById('freeDeliveryMin').value)};deliveryPrice=settings.delivery_price;freeDeliveryMin=settings.free_delivery_min;const updateData=[{key:'shop_name',value:{value:settings.shop_name}},{key:'shop_subtitle',value:{value:settings.shop_subtitle}},{key:'contacts',value:{phone:settings.phone,address:settings.address}},{key:'working_hours',value:{value:settings.working_hours}},{key:'delivery_price',value:{value:settings.delivery_price}},{key:'free_delivery_min',value:{value:settings.free_delivery_min}},{key:'header_patterns',value:{patterns:['dots','lines','flowers'],active:activePattern}}];let successCount=0;for(const setting of updateData){const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(setting)});if(response.ok){successCount++}}if(successCount>0){showToast('Настройки успешно сохранены','success');updateShopHeader()}else{showToast('Ошибка сохранения настроек','error')}}catch(error){console.error('Error saving settings:',error);showToast('Ошибка сохранения настроек','error')}}
 
-        async function dangerousAction(action){let codeInput;let expectedCode;if(action==='reset_orders'){codeInput=document.getElementById('deleteOrdersCode');expectedCode='DELETE_ORDERS'}else if(action==='reset_stats'){codeInput=document.getElementById('resetStatsCode');expectedCode='RESET_STATS'}else if(action==='delete_promocodes'){codeInput=document.getElementById('deletePromocodesCode');expectedCode='DELETE_PROMOCODES'}if(!codeInput.value||codeInput.value!==expectedCode){showToast('Неверный код подтверждения','error');return}if(!confirm('Вы уверены? Это действие нельзя отменить!'))return;try{const response=await fetch('/api/dangerous',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify({action:action,confirmation_code:codeInput.value})});const result=await response.json();if(result.success){showToast(result.message,'success');codeInput.value='';loadAdminData()}else{showToast(result.error,'error')}}catch(error){console.error('Error performing dangerous action:',error);showToast('Ошибка выполнения операции','error')}}
+        async function dangerousAction(action){let codeInput;let expectedCode;if(action==='reset_orders'){codeInput=document.getElementById('deleteOrdersCode');expectedCode='DELETE_ORDERS'}else if(action==='reset_stats'){codeInput=document.getElementById('resetStatsCode');expectedCode='RESET_STATS'}else if(action==='delete_promocodes'){codeInput=document.getElementById('deletePromocodesCode');expectedCode='DELETE_PROMOCODES'}else if(action==='delete_products'){codeInput=document.getElementById('deleteProductsCode');expectedCode='DELETE_PRODUCTS'}else if(action==='clear_customers'){codeInput=document.getElementById('clearCustomersCode');expectedCode='CLEAR_CUSTOMERS'}if(!codeInput.value||codeInput.value!==expectedCode){showToast('Неверный код подтверждения','error');return}if(!confirm('Вы уверены? Это действие нельзя отменить!'))return;try{const response=await fetch('/api/dangerous',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify({action:action,confirmation_code:codeInput.value})});const result=await response.json();if(result.success){showToast(result.message,'success');codeInput.value='';loadAdminData()}else{showToast(result.error,'error')}}catch(error){console.error('Error performing dangerous action:',error);showToast('Ошибка выполнения операции','error')}}
 
-        document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',function(){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');filterOrders()})})});
+        document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',function(){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');if(this.closest('#productsTab')){filterProducts()}else{filterOrders()}})})});
 
-        function initApp(){loadProducts();setupEventListeners();checkAdminAccess();updateCartDisplay();selectDeliveryOption('pickup');loadSettings();}
+        function initApp(){loadProducts();loadCategories();setupEventListeners();checkAdminAccess();updateCartDisplay();selectDeliveryOption('pickup');loadSettings();}
 
         if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp)}else{initApp()}
     </script>
