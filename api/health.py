@@ -10,7 +10,7 @@ import time
 sys.path.append(os.path.dirname(__file__))
 
 try:
-    from supabase_client import supabase
+    from supabase_init import supabase
 except ImportError as e:
     supabase = None
     print(f"Supabase import error: {e}")
@@ -331,7 +331,18 @@ class Handler(BaseHTTPRequestHandler):
         
         try:
             response = requests.post(url, json=payload, timeout=10)
-            return response.status_code == 200
+            if response.status_code == 200:
+                return True
+            else:
+                error_data = response.json()
+                print(f"Telegram API error: {error_data}")
+                
+                if response.status_code == 403:
+                    print("Bot doesn't have permission to send messages to this user")
+                elif response.status_code == 400:
+                    print(f"Bad request: {error_data.get('description', 'Unknown error')}")
+                
+                return False
         except Exception as e:
             print(f"Failed to send Telegram message: {e}")
             return False
