@@ -8,7 +8,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(__file__))
 
 try:
-    from supabase_client import supabase
+    from supabase_init import supabase
     from health import log_error
 except ImportError as e:
     print(f"Import error: {e}")
@@ -109,9 +109,12 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             order_data = json.loads(post_data)
             
+            print(f"📦 Received order data: {order_data}")
+            
             user_id = str(order_data['user']['id'])
             
             db_success = self.save_order_to_db(order_data)
+            print(f"💾 Database save result: {db_success}")
             
             if db_success:
                 delivery_option = order_data.get('delivery_option', 'pickup')
@@ -120,21 +123,21 @@ class Handler(BaseHTTPRequestHandler):
                 promocode_id = order_data.get('promocode_id')
                 
                 admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address, discount_amount)
+                print(f"📨 Admin notification result: {admin_success}")
                 
                 if promocode_id:
                     self.update_promocode_usage(promocode_id)
-                
-                log_error("order_POST", "Order created successfully", user_id, f"Order total: {order_data['total']}")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
-            response = {'success': True, 'message': 'Order processed successfully'}
+            response = {'success': True, 'message': 'Order processed successfully', 'db_success': db_success}
             self.wfile.write(json.dumps(response).encode('utf-8'))
             
         except Exception as e:
+            print(f"❌ Order POST error: {e}")
             log_error("order_POST", e, order_data.get('user', {}).get('id', ''), "Failed to create order")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -274,6 +277,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def save_order_to_db(self, order_data):
         try:
+            print("💾 Starting to save order to database...")
+            
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             
             cart_total = order_data['total']
@@ -282,18 +287,23 @@ class Handler(BaseHTTPRequestHandler):
             promocode_id = order_data.get('promocode_id')
             discount_amount = order_data.get('discount_amount', 0)
             
+            print(f"🛒 Order details - Total: {cart_total}, Delivery: {delivery_option}")
+            
             delivery_cost = 0
             free_delivery_min = 3000
             
             if delivery_option == "delivery":
-                settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
-                if settings_response.data:
-                    delivery_price = settings_response.data[0]['value'].get('value', 200)
-                    free_delivery_min_response = supabase.table("shop_settings").select("value").eq("key", "free_delivery_min").execute()
-                    if free_delivery_min_response.data:
-                        free_delivery_min = free_delivery_min_response.data[0]['value'].get('value', 3000)
-                    
-                    delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
+                try:
+                    settings_response = supabase.table("shop_settings").select("value").eq("key", "delivery_price").execute()
+                    if settings_response.data:
+                        delivery_price = settings_response.data[0]['value'].get('value', 200)
+                        free_delivery_min_response = supabase.table("shop_settings").select("value").eq("key", "free_delivery_min").execute()
+                        if free_delivery_min_response.data:
+                            free_delivery_min = free_delivery_min_response.data[0]['value'].get('value', 3000)
+                        
+                        delivery_cost = 0 if cart_total >= free_delivery_min else delivery_price
+                except Exception as e:
+                    print(f"⚠️ Delivery settings error: {e}")
             
             final_amount = cart_total + delivery_cost - discount_amount
             
@@ -314,17 +324,22 @@ class Handler(BaseHTTPRequestHandler):
                 "profit": 0
             }
             
+            print(f"📝 Order record prepared: {order_record}")
+            
             result = supabase.table("orders").insert(order_record).execute()
             
+            print(f"✅ Database insert result: {result}")
+            
             if result.data:
-                log_error("order_save", "Order saved successfully", order_data['user']['id'], f"Order ID: {result.data[0]['id']}")
+                order_id = result.data[0]['id'] if result.data else 'unknown'
+                print(f"🎉 Order saved successfully! Order ID: {order_id}")
                 return True
             else:
-                log_error("order_save", "No data returned from insert", order_data['user']['id'], "Order save failed")
+                print("❌ No data returned from insert")
                 return False
                 
         except Exception as e:
-            log_error("order_save", e, order_data['user']['id'], "Failed to save order to database")
+            print(f"💥 Error saving order to database: {e}")
             return False
 
     def send_order_notification(self, order_id, status_id):
