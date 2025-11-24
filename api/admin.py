@@ -24,7 +24,10 @@ class Handler(BaseHTTPRequestHandler):
             path = self.path
             telegram_id = self.headers.get('Telegram-Id', '').strip()
             
-            if '/admins' in path:
+            if '/categories' in path:
+                response = supabase.table("categories").select("*").order("sort_order").execute()
+                data = response.data
+            elif '/admins' in path:
                 response = supabase.table("admins").select("*").execute()
                 data = response.data
             elif '/stats' in path:
@@ -104,6 +107,24 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 
                 response_data = {'success': True, 'admin': response.data[0] if response.data else None}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            elif 'name' in data and 'slug' in data:
+                category_data = {
+                    'name': data['name'],
+                    'slug': data['slug'],
+                    'icon': data.get('icon', 'fas fa-folder'),
+                    'sort_order': data.get('sort_order', 0),
+                    'is_active': data.get('is_active', True)
+                }
+                
+                response = supabase.table("categories").insert(category_data).execute()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                response_data = {'success': True, 'category': response.data[0] if response.data else None}
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
             else:
                 key = data.get('key')
@@ -188,6 +209,8 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'admin' in self.path:
                 response = supabase.table("admins").delete().eq("id", resource_id).execute()
+            elif 'category' in self.path:
+                response = supabase.table("categories").delete().eq("id", resource_id).execute()
             elif 'order' in self.path:
                 response = supabase.table("orders").delete().eq("id", resource_id).execute()
             else:
