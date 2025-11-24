@@ -6,6 +6,7 @@ import sys
 import traceback
 from datetime import datetime
 import time
+import html
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -162,18 +163,11 @@ class Handler(BaseHTTPRequestHandler):
                 result['details']['bot_name'] = data['result']['first_name']
                 
                 test_message = "✅ Бот активен и может отправлять сообщения"
-                test_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                test_payload = {
-                    'chat_id': OWNER_CHAT_ID,
-                    'text': test_message,
-                    'parse_mode': 'Markdown'
-                }
-                
-                test_response = requests.post(test_url, json=test_payload, timeout=10)
-                if test_response.status_code == 200:
+                success = self.send_telegram_message(OWNER_CHAT_ID, bot_token, test_message, parse_mode='HTML')
+                if success:
                     result['details']['message_permission'] = '✓ Может отправлять сообщения'
                 else:
-                    result['details']['message_permission'] = f'✗ Не может отправлять сообщения (HTTP {test_response.status_code})'
+                    result['details']['message_permission'] = '✗ Не может отправлять сообщения'
                     result['status'] = 'warning'
                     
             else:
@@ -271,21 +265,21 @@ class Handler(BaseHTTPRequestHandler):
             user_id = error_data.get('user_id', 'unknown')
             additional_info = error_data.get('additional_info', '')
             
-            message = f"""🚨 *Ошибка в системе*
+            message = f"""🚨 <b>Ошибка в системе</b>
 
-📋 *Модуль:* {module}
-⏰ *Время:* {timestamp}
-👤 *Пользователь:* {user_id}
+📋 <b>Модуль:</b> {html.escape(module)}
+⏰ <b>Время:</b> {html.escape(timestamp)}
+👤 <b>Пользователь:</b> {html.escape(user_id)}
 
-❌ *Ошибка:*
-`{error_message}`
+❌ <b>Ошибка:</b>
+<code>{html.escape(error_message)}</code>
 
-📝 *Дополнительно:*
-{additional_info}
+📝 <b>Дополнительно:</b>
+{html.escape(additional_info)}
 
-🔧 *Требуется вмешательство!*"""
+🔧 <b>Требуется вмешательство!</b>"""
             
-            self.send_telegram_message(OWNER_CHAT_ID, bot_token, message)
+            self.send_telegram_message(OWNER_CHAT_ID, bot_token, message, parse_mode='HTML')
             
         except Exception as e:
             print(f"Failed to log error to owner: {e}")
@@ -303,38 +297,38 @@ class Handler(BaseHTTPRequestHandler):
             
             emoji = status_emoji.get(report['overall_status'], '❓')
             
-            message = f"""{emoji} *Отчёт о состоянии системы*
+            message = f"""{emoji} <b>Отчёт о состоянии системы</b>
 
-📊 *Общий статус:* {report['overall_status'].upper()}
-⏰ *Время проверки:* {report['timestamp']}
+📊 <b>Общий статус:</b> {html.escape(report['overall_status'].upper())}
+⏰ <b>Время проверки:</b> {html.escape(report['timestamp'])}
 
-*Проверка сервисов:*
+<b>Проверка сервисов:</b>
 """
             
             for service, data in report['services'].items():
                 status = data.get('status', 'unknown')
                 service_emoji = status_emoji.get(status, '❓')
-                message += f"{service_emoji} *{service.upper()}*: {status}\n"
+                message += f"{service_emoji} <b>{html.escape(service.upper())}</b>: {html.escape(status)}\n"
                 
                 for detail, value in data.get('details', {}).items():
-                    message += f"  └ {detail}: {value}\n"
+                    message += f"  └ {html.escape(detail)}: {html.escape(str(value))}\n"
             
             if report['errors']:
-                message += "\n*❌ Критические ошибки:*\n"
+                message += "\n<b>❌ Критические ошибки:</b>\n"
                 for error in report['errors']:
-                    message += f"• {error}\n"
+                    message += f"• {html.escape(error)}\n"
             
             if report['warnings']:
-                message += "\n*⚠️ Предупреждения:*\n"
+                message += "\n<b>⚠️ Предупреждения:</b>\n"
                 for warning in report['warnings']:
-                    message += f"• {warning}\n"
+                    message += f"• {html.escape(warning)}\n"
             
-            message += f"\n*📈 Статистика:*\n"
+            message += f"\n<b>📈 Статистика:</b>\n"
             for stat, value in report['statistics'].items():
-                message += f"• {stat}: {value}\n"
+                message += f"• {html.escape(stat)}: {html.escape(str(value))}\n"
             
             print(f"📨 Sending report to owner, message length: {len(message)}")
-            success = self.send_telegram_message(OWNER_CHAT_ID, bot_token, message)
+            success = self.send_telegram_message(OWNER_CHAT_ID, bot_token, message, parse_mode='HTML')
             
             if not success:
                 print("❌ Failed to send report to owner")
@@ -347,14 +341,16 @@ class Handler(BaseHTTPRequestHandler):
             print(f"❌ Failed to send test report: {e}")
             return False
     
-    def send_telegram_message(self, chat_id, bot_token, text):
+    def send_telegram_message(self, chat_id, bot_token, text, parse_mode=None):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
             'chat_id': chat_id,
             'text': text,
-            'parse_mode': 'Markdown',
             'disable_web_page_preview': True
         }
+        
+        if parse_mode:
+            payload['parse_mode'] = parse_mode
         
         try:
             response = requests.post(url, json=payload, timeout=10)
