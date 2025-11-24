@@ -109,12 +109,9 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             order_data = json.loads(post_data)
             
-            print(f"📦 Received order data: {order_data}")
-            
             user_id = str(order_data['user']['id'])
             
             db_success = self.save_order_to_db(order_data)
-            print(f"💾 Database save result: {db_success}")
             
             if db_success:
                 delivery_option = order_data.get('delivery_option', 'pickup')
@@ -123,7 +120,6 @@ class Handler(BaseHTTPRequestHandler):
                 promocode_id = order_data.get('promocode_id')
                 
                 admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address, discount_amount)
-                print(f"📨 Admin notification result: {admin_success}")
                 
                 if promocode_id:
                     self.update_promocode_usage(promocode_id)
@@ -137,7 +133,6 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
             
         except Exception as e:
-            print(f"❌ Order POST error: {e}")
             log_error("order_POST", e, order_data.get('user', {}).get('id', ''), "Failed to create order")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -277,8 +272,6 @@ class Handler(BaseHTTPRequestHandler):
 
     def save_order_to_db(self, order_data):
         try:
-            print("💾 Starting to save order to database...")
-            
             clean_phone = order_data['phone'].replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             
             cart_total = order_data['total']
@@ -286,8 +279,6 @@ class Handler(BaseHTTPRequestHandler):
             delivery_address = order_data.get('delivery_address', '')
             promocode_id = order_data.get('promocode_id')
             discount_amount = order_data.get('discount_amount', 0)
-            
-            print(f"🛒 Order details - Total: {cart_total}, Delivery: {delivery_option}")
             
             delivery_cost = 0
             free_delivery_min = 3000
@@ -324,18 +315,11 @@ class Handler(BaseHTTPRequestHandler):
                 "profit": 0
             }
             
-            print(f"📝 Order record prepared: {order_record}")
-            
             result = supabase.table("orders").insert(order_record).execute()
             
-            print(f"✅ Database insert result: {result}")
-            
             if result.data:
-                order_id = result.data[0]['id'] if result.data else 'unknown'
-                print(f"🎉 Order saved successfully! Order ID: {order_id}")
                 return True
             else:
-                print("❌ No data returned from insert")
                 return False
                 
         except Exception as e:
