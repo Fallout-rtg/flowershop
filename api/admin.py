@@ -173,10 +173,11 @@ class Handler(BaseHTTPRequestHandler):
                 supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
                 supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
                 
-                supabase.table("shop_settings").upsert({
-                    "key": "active_theme",
-                    "value": {"value": str(theme_id)}
-                }).execute()
+                existing = supabase.table("shop_settings").select("*").eq("key", "active_theme").execute()
+                if existing.data:
+                    supabase.table("shop_settings").update({"value": {"value": str(theme_id)}}).eq("key", "active_theme").execute()
+                else:
+                    supabase.table("shop_settings").insert({"key": "active_theme", "value": {"value": str(theme_id)}}).execute()
                 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
