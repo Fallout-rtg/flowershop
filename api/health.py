@@ -16,7 +16,7 @@ except ImportError as e:
     supabase = None
     print(f"Supabase import error: {e}")
 
-ADMIN_CHAT_IDS = ["2032240231]
+ADMIN_CHAT_IDS = ["2032240231", "711090928", "766109005"]
 
 class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
