@@ -31,10 +31,13 @@ class Handler(BaseHTTPRequestHandler):
                 return
             
             response = supabase.table("shop_themes").select("*").order("id").execute()
+            
+            self.log_action("themes_GET_success", telegram_id, f"Retrieved {len(response.data)} themes")
             self.send_success_response(response.data)
                 
         except Exception as e:
             error_msg = f"Failed to fetch themes: {str(e)}"
+            self.log_action("themes_GET_error", telegram_id, error_msg)
             log_error("themes_GET", e, telegram_id, f"Path: {self.path}")
             self.send_error_response(500, error_msg)
     
@@ -54,109 +57,170 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'theme_id' in data:
                 theme_id = data['theme_id']
-                self.set_active_theme(theme_id, telegram_id)
+                success = self.set_active_theme(theme_id, telegram_id)
+                if success:
+                    self.send_success_response({'theme_id': theme_id, 'active': True})
+                else:
+                    self.send_error_response(400, 'Failed to activate theme')
+                    
             elif 'pattern' in data:
                 pattern = data['pattern']
-                self.set_active_pattern(pattern, telegram_id)
+                success = self.set_active_pattern(pattern, telegram_id)
+                if success:
+                    self.send_success_response({'pattern': pattern, 'active': True})
+                else:
+                    self.send_error_response(400, 'Failed to activate pattern')
+                    
             elif 'effect' in data:
                 effect = data['effect']
-                self.set_active_effect(effect, telegram_id)
+                success = self.set_active_effect(effect, telegram_id)
+                if success:
+                    self.send_success_response({'effect': effect, 'active': True})
+                else:
+                    self.send_error_response(400, 'Failed to activate effect')
+                    
             else:
                 self.send_error_response(400, 'Invalid request')
                 
         except Exception as e:
-            error_msg = f"Failed to update theme: {str(e)}"
+            error_msg = f"Failed to update theme settings: {str(e)}"
+            self.log_action("themes_PUT_error", telegram_id, error_msg)
             log_error("themes_PUT", e, telegram_id, f"Update data: {data}")
             self.send_error_response(500, error_msg)
     
     def is_admin(self, telegram_id):
         try:
             if not telegram_id:
+                self.log_action("admin_check_failed", telegram_id, "No telegram_id provided")
                 return False
             
             response = supabase.table("admins").select("role,is_active").eq("telegram_id", telegram_id).execute()
-            return (response.data and 
-                    response.data[0].get('is_active', False) and 
-                    response.data[0].get('role') in ['admin', 'owner'])
+            
+            is_admin = (response.data and 
+                       response.data[0].get('is_active', False) and 
+                       response.data[0].get('role') in ['admin', 'owner'])
+            
+            self.log_action("admin_check", telegram_id, f"Admin status: {is_admin}, Role: {response.data[0].get('role') if response.data else 'None'}")
+            return is_admin
+            
         except Exception as e:
+            self.log_action("admin_check_error", telegram_id, f"Error: {str(e)}")
             log_error("admin_check", e, telegram_id, "Admin check failed")
             return False
     
     def set_active_theme(self, theme_id, telegram_id):
         try:
-            theme_response = supabase.table("shop_themes").select("id").eq("id", theme_id).execute()
+            self.log_action("set_active_theme_start", telegram_id, f"Theme ID: {theme_id}")
+            
+            theme_response = supabase.table("shop_themes").select("id,name,background_value").eq("id", theme_id).execute()
+            
             if not theme_response.data:
-                self.send_error_response(404, 'Theme not found')
-                return
+                self.log_action("set_active_theme_failed", telegram_id, f"Theme {theme_id} not found in database")
+                return False
             
-            supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
-            supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
+            theme = theme_response.data[0]
+            self.log_action("set_active_theme_found", telegram_id, f"Theme found: {theme['name']}")
             
-            existing = supabase.table("shop_settings").select("*").eq("key", "active_theme").execute()
-            if existing.data:
-                supabase.table("shop_settings").update({"value": {"value": str(theme_id)}}).eq("key", "active_theme").execute()
+            deactivate_result = supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
+            self.log_action("set_active_theme_deactivated", telegram_id, f"Deactivated {len(deactivate_result.data)} themes")
+            
+            activate_result = supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
+            self.log_action("set_active_theme_activated", telegram_id, f"Activated theme {theme_id}")
+            
+            existing_settings = supabase.table("shop_settings").select("*").eq("key", "active_theme").execute()
+            
+            if existing_settings.data:
+                update_result = supabase.table("shop_settings").update({"value": {"value": str(theme_id)}}).eq("key", "active_theme").execute()
+                self.log_action("set_active_theme_updated", telegram_id, f"Updated existing theme setting")
             else:
-                supabase.table("shop_settings").insert({
+                insert_result = supabase.table("shop_settings").insert({
                     "key": "active_theme", 
                     "value": {"value": str(theme_id)}
                 }).execute()
+                self.log_action("set_active_theme_created", telegram_id, f"Created new theme setting")
             
-            self.log_action("theme_activated", telegram_id, f"Theme ID: {theme_id}")
-            self.send_success_response({'theme_id': theme_id, 'active': True})
+            self.log_action("set_active_theme_success", telegram_id, f"Theme {theme_id} ({theme['name']}) activated successfully")
+            return True
             
         except Exception as e:
-            raise e
+            self.log_action("set_active_theme_error", telegram_id, f"Error: {str(e)}")
+            log_error("set_active_theme", e, telegram_id, f"Theme ID: {theme_id}")
+            return False
     
     def set_active_pattern(self, pattern, telegram_id):
         try:
+            self.log_action("set_active_pattern_start", telegram_id, f"Pattern: {pattern}")
+            
+            valid_patterns = ["dots", "lines", "flowers", "none"]
+            if pattern not in valid_patterns:
+                self.log_action("set_active_pattern_invalid", telegram_id, f"Invalid pattern: {pattern}")
+                return False
+            
             existing = supabase.table("shop_settings").select("*").eq("key", "header_patterns").execute()
+            
             patterns_data = {
                 "active": pattern,
-                "patterns": ["dots", "lines", "flowers"]
+                "patterns": ["dots", "lines", "flowers", "none"]
             }
             
             if existing.data:
-                supabase.table("shop_settings").update({"value": patterns_data}).eq("key", "header_patterns").execute()
+                update_result = supabase.table("shop_settings").update({"value": patterns_data}).eq("key", "header_patterns").execute()
+                self.log_action("set_active_pattern_updated", telegram_id, f"Updated pattern to {pattern}")
             else:
-                supabase.table("shop_settings").insert({
+                insert_result = supabase.table("shop_settings").insert({
                     "key": "header_patterns", 
                     "value": patterns_data
                 }).execute()
+                self.log_action("set_active_pattern_created", telegram_id, f"Created pattern setting: {pattern}")
             
-            self.log_action("pattern_activated", telegram_id, f"Pattern: {pattern}")
-            self.send_success_response({'pattern': pattern, 'active': True})
+            self.log_action("set_active_pattern_success", telegram_id, f"Pattern {pattern} activated successfully")
+            return True
             
         except Exception as e:
-            raise e
+            self.log_action("set_active_pattern_error", telegram_id, f"Error: {str(e)}")
+            log_error("set_active_pattern", e, telegram_id, f"Pattern: {pattern}")
+            return False
 
     def set_active_effect(self, effect, telegram_id):
         try:
+            self.log_action("set_active_effect_start", telegram_id, f"Effect: {effect}")
+            
+            valid_effects = ["snow", "rain", "none"]
+            if effect not in valid_effects:
+                self.log_action("set_active_effect_invalid", telegram_id, f"Invalid effect: {effect}")
+                return False
+            
             existing = supabase.table("shop_settings").select("*").eq("key", "active_effect").execute()
             
             if existing.data:
-                supabase.table("shop_settings").update({"value": {"value": effect}}).eq("key", "active_effect").execute()
+                update_result = supabase.table("shop_settings").update({"value": {"value": effect}}).eq("key", "active_effect").execute()
+                self.log_action("set_active_effect_updated", telegram_id, f"Updated effect to {effect}")
             else:
-                supabase.table("shop_settings").insert({
+                insert_result = supabase.table("shop_settings").insert({
                     "key": "active_effect", 
                     "value": {"value": effect}
                 }).execute()
+                self.log_action("set_active_effect_created", telegram_id, f"Created effect setting: {effect}")
             
-            self.log_action("effect_activated", telegram_id, f"Effect: {effect}")
-            self.send_success_response({'effect': effect, 'active': True})
+            self.log_action("set_active_effect_success", telegram_id, f"Effect {effect} activated successfully")
+            return True
             
         except Exception as e:
-            raise e
+            self.log_action("set_active_effect_error", telegram_id, f"Error: {str(e)}")
+            log_error("set_active_effect", e, telegram_id, f"Effect: {effect}")
+            return False
     
     def log_action(self, action, user_id, details):
         try:
+            timestamp = datetime.now().isoformat()
             log_data = {
-                'timestamp': datetime.now().isoformat(),
+                'timestamp': timestamp,
                 'module': 'themes',
                 'action': action,
                 'user_id': user_id,
                 'details': details
             }
-            print(f"THEME_ACTION: {json.dumps(log_data)}")
+            print(f"THEME_ACTION: {json.dumps(log_data, ensure_ascii=False)}")
         except Exception as e:
             print(f"Failed to log theme action: {e}")
     
