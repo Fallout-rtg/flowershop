@@ -122,6 +122,11 @@
       "methods": ["GET", "PUT", "OPTIONS"]
     },
     {
+      "src": "/api/themes",
+      "dest": "/api/themes.py",
+      "methods": ["GET", "POST", "PUT", "OPTIONS"]
+    },
+    {
       "src": "/",
       "dest": "/index.html"
     },
