@@ -42,6 +42,10 @@
       "use": "@vercel/python"
     },
     {
+      "src": "api/themes.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     }
@@ -111,6 +115,11 @@
       "src": "/api/health/(.*)",
       "dest": "/api/health.py",
       "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/themes",
+      "dest": "/api/themes.py",
+      "methods": ["GET", "PUT", "OPTIONS"]
     },
     {
       "src": "/",
