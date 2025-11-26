@@ -1,236 +1,1419 @@
-from http.server import BaseHTTPRequestHandler
-import json
-import os
-import sys
-from datetime import datetime
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Shop - Элитные букеты</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --primary:#dc2626;--primary-dark:#b91c1c;--primary-light:#fecaca;
+            --secondary:#ef4444;--secondary-dark:#dc2626;--accent:#dc2626;
+            --accent-dark:#b91c1c;--text:#1f2937;--text-light:#6b7280;
+            --text-lighter:#9ca3af;--bg:#ffffff;--bg-secondary:#f8fafc;
+            --bg-tertiary:#f1f5f9;--card-bg:#ffffff;--shadow:0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg:0 10px 25px rgba(0,0,0,0.12);--shadow-sm:0 1px 4px rgba(0,0,0,0.06);
+            --border:1px solid #e5e7eb;--radius:16px;--radius-sm:10px;--radius-lg:20px;
+            --header-bg:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%)
+        }
+        body{
+            font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+            background:var(--header-bg);
+            color:var(--text);min-height:100vh;line-height:1.5
+        }
+        .app-container{max-width:400px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative;overflow-x:hidden}
+        
+        .snow-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none}
+        .snowflake{position:absolute;background:white;border-radius:50%;opacity:0.8;animation:fall linear infinite}
+        @keyframes fall{0%{transform:translateY(-10px) rotate(0deg)}100%{transform:translateY(100vh) rotate(360deg)}}
+        
+        .header{background:var(--header-bg);color:white;padding:40px 20px 30px;text-align:center;position:relative;overflow:hidden}
+        .header.dots::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        .header.lines::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="white" stroke-width="2" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23lines)"/></svg>')}
+        .header.flowers::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,5 C10,5 7.5,7.5 7.5,10 C7.5,12.5 10,15 12.5,15 C15,15 17.5,12.5 17.5,10 C17.5,7.5 15,5 12.5,5 Z" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        .header-content{position:relative;z-index:2}
+        .header h1{font-size:28px;font-weight:800;margin-bottom:6px;text-shadow:0 2px 4px rgba(0,0,0,0.2)}
+        .header p{font-size:14px;opacity:0.95;font-weight:500;margin-bottom:12px}
+        .delivery-info{background:rgba(255,255,255,0.2);padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;backdrop-filter:blur(10px);margin-top:8px}
+        
+        .categories{display:flex;gap:6px;padding:16px;overflow-x:auto;background:var(--bg);border-bottom:var(--border)}
+        .category-btn{padding:12px 18px;border:2px solid #e5e7eb;border-radius:16px;background:white;color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer;transition:all 0.2s ease;font-size:13px;display:flex;align-items:center;gap:4px;flex-shrink:0}
+        .category-btn.active{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;border-color:var(--primary);box-shadow:var(--shadow-sm)}
+        
+        .products-grid{padding:16px;display:grid;gap:16px;padding-bottom:80px}
+        .product-card{background:var(--card-bg);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:all 0.3s ease;border:var(--border)}
+        .product-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+        .product-image{width:100%;height:180px;background:linear-gradient(135deg,#ffe8e8 0%,#ffd6d6 100%);position:relative;overflow:hidden}
+        .product-image img{width:100%;height:100%;object-fit:cover}
+        .product-badge{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,var(--secondary) 0%,var(--secondary-dark) 100%);color:white;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700}
+        .product-content{padding:16px}
+        .product-title{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text);line-height:1.3}
+        .product-description{font-size:13px;color:var(--text-light);margin-bottom:10px;line-height:1.4}
+        .product-fact{background:white;padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:12px;border:2px solid var(--primary);display:flex;align-items:flex-start;cursor:pointer}
+        .product-fact i{color:#f59e0b;margin-right:8px;transition:all 0.3s ease;flex-shrink:0;margin-top:2px}
+        .product-fact:hover i{color:#fbbf24;text-shadow:0 0 10px #f59e0b,0 0 20px #f59e0b;transform:scale(1.1)}
+        .product-fact-text{font-size:12px;color:var(--text);font-style:italic;line-height:1.4;flex:1}
+        .product-footer{display:flex;justify-content:space-between;align-items:center}
+        .product-price{font-size:18px;font-weight:800;color:var(--secondary)}
+        .add-to-cart{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;border:none;border-radius:16px;padding:12px 16px;font-weight:600;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:6px;font-size:13px;min-height:44px}
+        .add-to-cart:hover{transform:scale(1.05)}
+        
+        .floating-buttons{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:1000}
+        .cart-button{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;border:none;border-radius:40px;padding:14px 20px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-lg);display:none;align-items:center;gap:8px;transition:all 0.2s ease;min-height:44px}
+        .cart-count{background:var(--secondary);color:white;border-radius:50%;width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:800}
+        .admin-button{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:white;border:none;border-radius:40px;padding:14px;font-size:16px;cursor:pointer;box-shadow:var(--shadow-lg);transition:all 0.2s ease;display:none;min-height:44px;min-width:44px;align-items:center;justify-content:center}
+        .help-button{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white;border:none;border-radius:40px;padding:14px;font-size:16px;cursor:pointer;box-shadow:var(--shadow-lg);transition:all 0.2s ease;display:flex;min-height:44px;min-width:44px;align-items:center;justify-content:center}
+        
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:2000;padding:16px;backdrop-filter:blur(5px)}
+        .modal-content{background:white;border-radius:var(--radius-lg);padding:20px;max-width:360px;width:100%;max-height:80vh;overflow-y:auto;animation:modalSlideIn 0.3s ease;box-shadow:var(--shadow-lg)}
+        @keyframes modalSlideIn{from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)}}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f0f0f0}
+        .modal-title{font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px}
+        .close-modal{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;min-height:44px;min-width:44px}
+        .close-modal:hover{background:#f0f0f0}
+        
+        .cart-items{margin-bottom:20px;max-height:250px;overflow-y:auto}
+        .cart-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0}
+        .item-info{flex-grow:1}
+        .item-name{font-weight:700;margin-bottom:2px;color:var(--text);font-size:14px}
+        .item-price{color:var(--secondary);font-weight:700;font-size:14px}
+        .item-actions{display:flex;align-items:center;gap:8px}
+        .quantity-controls{display:flex;align-items:center;gap:6px;background:#f8f9fa;border-radius:16px;padding:3px;border:1px solid #e5e7eb}
+        .quantity-btn{background:var(--primary);color:white;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;font-size:14px;transition:all 0.2s ease;min-height:44px;min-width:44px}
+        .quantity-btn:hover{background:var(--primary-dark)}
+        .quantity{font-weight:700;min-width:24px;text-align:center;font-size:14px}
+        .remove-item{background:#ef4444;color:white;border:none;border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:4px;min-height:44px}
+        .remove-item:hover{background:#dc2626}
+        
+        .cart-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:12px;border-top:2px solid #e5e7eb;font-size:18px;font-weight:800}
+        .form-group{margin-bottom:16px}
+        .form-label{display:block;margin-bottom:6px;font-weight:600;color:var(--text);font-size:14px}
+        .form-input{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:12px;font-size:14px;transition:all 0.2s ease;font-weight:500;background:white;min-height:44px}
+        .form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(220,38,38,0.1)}
+        .phone-input{font-family:monospace;letter-spacing:1px}
+        .checkout-btn{width:100%;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:white;border:none;border-radius:16px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s ease;margin-top:8px;box-shadow:var(--shadow);min-height:44px}
+        .checkout-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+        .checkout-btn:disabled{background:#9ca3af;cursor:not-allowed;transform:none;box-shadow:none}
+        
+        .empty-cart{text-align:center;padding:30px 16px;color:var(--text-light)}
+        .empty-cart i{font-size:40px;color:#d1d5db;margin-bottom:12px}
+        .success-state{text-align:center;padding:24px 16px}
+        .success-icon{font-size:50px;color:#10b981;margin-bottom:16px}
+        .success-title{font-size:20px;font-weight:800;margin-bottom:8px;color:var(--text)}
+        .success-message{color:var(--text-light);margin-bottom:20px;line-height:1.4;font-size:14px}
+        
+        .loading{text-align:center;padding:30px 16px;color:var(--text-light)}
+        .loading-spinner{border:3px solid #f3f3f3;border-top:3px solid var(--primary);border-radius:50%;width:32px;height:32px;animation:spin 1s linear infinite;margin:0 auto 16px}
+        @keyframes spin{0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)}}
+        
+        .admin-panel{display:none;background:var(--bg);min-height:100vh}
+        .admin-header{background:var(--header-bg);color:white;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:var(--border)}
+        .admin-title{font-size:18px;font-weight:700}
+        .admin-switch{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 14px;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:6px;font-size:13px;min-height:44px}
+        .admin-switch:hover{background:rgba(255,255,255,0.3)}
+        
+        .admin-tabs{display:flex;gap:6px;padding:12px;background:var(--bg-secondary);border-bottom:var(--border);overflow-x:auto}
+        .admin-tab{padding:10px 14px;border:2px solid #e5e7eb;border-radius:12px;background:white;color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer;transition:all 0.2s ease;font-size:12px;display:flex;align-items:center;gap:4px;flex-shrink:0;min-height:44px}
+        .admin-tab.active{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;border-color:var(--primary)}
+        .admin-content{padding:16px}
+        .admin-tab-content{display:none}
+        .admin-tab-content.active{display:block}
+        
+        .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+        .stat-card{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);text-align:center;border-left:3px solid var(--primary)}
+        .stat-value{font-size:20px;font-weight:800;color:var(--primary);margin-bottom:4px}
+        .stat-label{color:var(--text-light);font-size:11px;font-weight:600}
+        
+        .product-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
+        .form-title{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:6px;cursor:pointer}
+        .form-title i{transition:transform 0.2s ease}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+        .form-full{grid-column:1/-1}
+        .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+        .collapsible-content{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+        .collapsible-content.expanded{max-height:500px}
+        
+        .search-box{background:white;padding:12px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;border:var(--border)}
+        .search-input{width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:44px}
+        .search-input:focus{outline:none;border-color:var(--primary)}
+        
+        .filter-buttons{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
+        .filter-btn{padding:8px 12px;border:2px solid #e5e7eb;border-radius:10px;background:white;color:var(--text);font-weight:600;cursor:pointer;white-space:nowrap;font-size:11px;transition:all 0.2s ease;flex-shrink:0;min-height:44px}
+        .filter-btn.active{background:var(--primary);color:white;border-color:var(--primary)}
+        
+        .admin-table{background:white;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
+        .table-header{padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e5e7eb;font-weight:700;display:grid;gap:8px;font-size:12px;color:var(--text)}
+        .table-row{padding:12px 16px;border-bottom:1px solid #f0f0f0;display:grid;gap:8px;align-items:center;font-size:12px;color:var(--text-light);transition:all 0.2s ease}
+        .table-row:hover{background:#f8f9fa}
+        .table-row:last-child{border-bottom:none}
+        
+        .status-badge{padding:6px 10px;border-radius:8px;font-size:10px;font-weight:600;text-align:center}
+        .btn{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;transition:all 0.2s ease;display:inline-flex;align-items:center;gap:4px;min-height:44px}
+        .btn:hover{transform:translateY(-1px)}
+        .btn-primary{background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:white}
+        .btn-secondary{background:#6b7280;color:white}
+        .btn-danger{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:white}
+        .btn-sm{padding:8px 12px;font-size:11px}
+        .btn-lg{padding:12px 18px;font-size:14px}
+        
+        .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);color:white;padding:12px 18px;border-radius:20px;box-shadow:var(--shadow-lg);z-index:3000;transition:all 0.3s ease;font-weight:600;display:flex;align-items:center;gap:8px;opacity:0;backdrop-filter:blur(10px);font-size:14px}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:linear-gradient(135deg,#10b981 0%,#059669 100%)}
+        .toast.error{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
+        .toast.info{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%)}
+        
+        .delivery-banner{background:linear-gradient(135deg,var(--primary-light) 0%,#dbeafe 100%);padding:12px 16px;margin:0 16px 16px;border-radius:var(--radius);border-left:3px solid var(--primary);display:flex;align-items:center;gap:8px;font-weight:600;color:var(--text);font-size:13px}
+        .delivery-banner i{color:var(--primary);font-size:16px}
+        
+        .badge{display:inline-flex;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase}
+        .badge.new{background:#fef3c7;color:#92400e}
+        .badge.confirmed{background:#dbeafe;color:#1e40af}
+        .badge.delivered{background:#dcfce7;color:#166534}
+        .badge.cancelled{background:#fecaca;color:#991b1b}
+        
+        .empty-table-message{grid-column:1/-1;text-align:center;padding:30px 16px;color:var(--text-light);font-size:14px}
+        .role-badge{padding:6px 10px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase}
+        .role-owner{background:#fee2e2;color:#dc2626}
+        .role-admin{background:#dbeafe;color:#1d4ed8}
+        
+        .settings-group{margin-bottom:16px}
+        .settings-label{font-weight:600;margin-bottom:6px;color:var(--text);font-size:14px}
+        .settings-hint{font-size:12px;color:var(--text-light);margin-top:4px}
+        .checkbox-group{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+        .checkbox-label{font-weight:600;color:var(--text);font-size:14px}
+        
+        .delivery-option{background:white;border:2px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:12px;cursor:pointer;transition:all 0.2s ease;min-height:44px}
+        .delivery-option.selected{border-color:var(--primary);background:var(--primary-light)}
+        .delivery-option-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+        .delivery-option-title{font-weight:700;font-size:14px}
+        .delivery-option-description{font-size:12px;color:var(--text-light)}
+        .delivery-price{font-weight:700;color:var(--secondary);font-size:14px}
+        
+        .admin-actions{display:flex;gap:6px;flex-wrap:wrap}
+        .contact-btn{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white;border:none;border-radius:6px;padding:8px 12px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;min-height:44px}
+        
+        .settings-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+        .settings-full{grid-column:1/-1}
+        .settings-input{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:44px}
+        .settings-input:focus{outline:none;border-color:var(--primary)}
+        
+        .theme-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+        .theme-option{height:80px;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:all 0.2s ease;position:relative}
+        .theme-option.selected{border-color:#10b981}
+        .theme-option::after{content:'✓';position:absolute;top:8px;right:8px;background:#10b981;color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:0;transition:opacity 0.2s ease}
+        .theme-option.selected::after{opacity:1}
+        
+        .pattern-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+        .pattern-option{height:60px;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:all 0.2s ease;position:relative;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:var(--text)}
+        .pattern-option.selected{border-color:#10b981}
+        .pattern-option::after{content:'✓';position:absolute;top:8px;right:8px;background:#10b981;color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:0;transition:opacity 0.2s ease}
+        .pattern-option.selected::after{opacity:1}
+        .pattern-option.dots{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="5" fill="%23dc2626" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>')}
+        .pattern-option.lines{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="%23dc2626" stroke-width="2" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23lines)"/></svg>')}
+        .pattern-option.flowers{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,5 C10,5 7.5,7.5 7.5,10 C7.5,12.5 10,15 12.5,15 C15,15 17.5,12.5 17.5,10 C7.5,7.5 15,5 12.5,5 Z" fill="%23dc2626" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        
+        .help-section{display:none}
+        .help-section.active{display:block}
+        .help-tabs{display:flex;gap:6px;padding:12px;background:var(--bg-secondary);border-bottom:var(--border);overflow-x:auto}
+        .help-tab{padding:10px 14px;border:2px solid #e5e7eb;border-radius:12px;background:white;color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer;transition:all 0.2s ease;font-size:12px;flex-shrink:0;min-height:44px}
+        .help-tab.active{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;border-color:var(--primary)}
+        .help-content{padding:16px}
+        .help-item{margin-bottom:20px}
+        .help-item h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text)}
+        .help-item p{font-size:14px;color:var(--text-light);line-height:1.5;margin-bottom:8px}
+        .help-item ul{margin-left:20px;color:var(--text-light)}
+        .help-item li{font-size:14px;margin-bottom:4px;line-height:1.4}
+        
+        .order-summary{background:#f8f9fa;padding:16px;border-radius:var(--radius);margin-bottom:16px;border:var(--border)}
+        .summary-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}
+        .summary-row.total{font-weight:700;font-size:16px;border-top:1px solid #e5e7eb;padding-top:8px;margin-top:8px}
+        
+        .sortable-handle{cursor:grab;padding:8px;color:var(--text-light);min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center}
+        .sortable-handle:active{cursor:grabbing}
+        .sortable-ghost{opacity:0.4}
+        
+        .table-header.products-header{grid-template-columns:50px 80px 1fr 80px 100px 80px 80px 120px}
+        .table-header.orders-header{grid-template-columns:60px 1fr 80px 80px 140px}
+        .table-header.admins-header{grid-template-columns:60px 1fr 1fr 100px 120px}
+        .table-header.promocodes-header{grid-template-columns:1fr 80px 80px 80px 100px}
+        .table-header.categories-header{grid-template-columns:40px 1fr 1fr 80px 100px}
+        
+        .quick-actions{display:flex;gap:8px;padding:12px 16px;background:var(--bg-secondary);border-bottom:var(--border);overflow-x:auto}
+        .quick-action-btn{padding:12px 16px;background:white;border:var(--border);border-radius:12px;color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:6px;font-size:13px;flex-shrink:0;min-height:44px}
+        .quick-action-btn:hover{background:var(--primary-light);border-color:var(--primary)}
+        .quick-action-btn.primary{background:var(--primary);color:white;border-color:var(--primary)}
+        
+        .help-view{display:none;background:var(--bg);min-height:100vh}
+        .help-header{background:var(--header-bg);color:white;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:var(--border)}
+        .help-title{font-size:18px;font-weight:700}
+        .help-back{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 14px;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:6px;font-size:13px;min-height:44px}
+        .help-back:hover{background:rgba(255,255,255,0.3)}
+        
+        .pagination{display:flex;justify-content:center;gap:8px;margin-top:16px}
+        .page-btn{padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;background:white;color:var(--text);cursor:pointer;font-size:12px;font-weight:600;min-height:44px}
+        .page-btn.active{background:var(--primary);color:white;border-color:var(--primary)}
+        .page-btn:disabled{opacity:0.5;cursor:not-allowed}
+        
+        .dangerous-section{background:linear-gradient(135deg,#fee2e2 0%,#fecaca 100%);border:2px solid #fca5a5;border-radius:var(--radius);padding:16px;margin-bottom:16px}
+        .dangerous-title{color:#dc2626;font-size:16px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .dangerous-description{color:#991b1b;font-size:13px;margin-bottom:12px}
+        .dangerous-input{width:100%;padding:12px;border:2px solid #fca5a5;border-radius:10px;font-size:13px;margin-bottom:12px;min-height:44px}
+        .dangerous-btn{background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);color:white;border:none;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;transition:all 0.2s ease;min-height:44px}
+        .dangerous-btn:hover{transform:translateY(-2px)}
+        
+        .promo-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
+        .promo-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+        .promo-full{grid-column:1/-1}
+        
+        .move-buttons{display:flex;gap:4px}
+        .move-btn{padding:6px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;color:var(--text-light);min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center}
+        .move-btn:hover{background:#f8f9fa}
+        
+        .promo-field{display:flex;align-items:center;gap:8px}
+        .promo-discount{display:flex;align-items:center;gap:4px}
 
-sys.path.append(os.path.dirname(__file__))
+        .status-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:3000;justify-content:center;align-items:center;padding:16px}
+        .status-modal-content{background:white;border-radius:var(--radius-lg);padding:20px;max-width:320px;width:100%;box-shadow:var(--shadow-lg)}
+        .status-option{padding:12px 16px;border:2px solid #e5e7eb;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.2s ease;min-height:44px}
+        .status-option:hover{background:#f8f9fa}
+        .status-option.selected{border-color:var(--primary);background:var(--primary-light)}
+        
+        .dropdown{position:relative;display:inline-block;width:100%}
+        .dropdown-toggle{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:12px;background:white;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:44px}
+        .dropdown-menu{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #e5e7eb;border-radius:12px;box-shadow:var(--shadow-lg);z-index:1000;max-height:200px;overflow-y:auto}
+        .dropdown-menu.show{display:block;animation:dropdownSlide 0.2s ease}
+        @keyframes dropdownSlide{from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)}}
+        .dropdown-item{padding:12px 16px;cursor:pointer;transition:all 0.2s ease;border-bottom:1px solid #f0f0f0;min-height:44px}
+        .dropdown-item:last-child{border-bottom:none}
+        .dropdown-item:hover{background:#f8f9fa}
+        .dropdown-item.selected{background:var(--primary-light);color:var(--primary)}
+        
+        .category-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
+        .icon-scroll-container{max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin-top:8px}
+        .icon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+        .icon-option{padding:12px;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;text-align:center;transition:all 0.2s ease;min-height:44px}
+        .icon-option.selected{border-color:var(--primary);background:var(--primary-light)}
+        .icon-option i{font-size:18px;margin-bottom:4px}
+        
+        .product-status{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700}
+        .status-active{background:#dcfce7;color:#166534}
+        .status-inactive{background:#f3f4f6;color:#6b7280;text-decoration:line-through}
+        
+        .table-image{width:40px;height:40px;border-radius:8px;object-fit:cover}
+        .table-product-image{width:60px;height:60px;border-radius:8px;object-fit:cover}
+        
+        .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}
+        @keyframes loading{0%{background-position:200% 0} 100%{background-position:-200% 0}}
+        .skeleton-text{height:12px;border-radius:4px;margin-bottom:8px}
+        .skeleton-image{width:100%;height:180px;border-radius:var(--radius)}
+        
+        .dark-mode{display:none}
+    </style>
+</head>
+<body>
+    <div class="snow-container" id="snowContainer"></div>
+    
+    <div class="app-container">
+        <div class="toast" id="toast">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMessage">Добавлено</span>
+        </div>
 
-try:
-    from supabase_client import supabase
-    from health import log_error
-except ImportError as e:
-    print(f"Import error: {e}")
+        <div class="customer-view" id="customerView">
+            <div class="header dots" id="shopHeader">
+                <div class="header-content">
+                    <h1 id="shopName">🌸 Flower Shop</h1>
+                    <p id="shopSubtitle">Элитные букеты с доставкой по Ярославлю</p>
+                    <div class="delivery-info">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span id="deliveryInfoText">Доставка 200₽ • Бесплатно от 3000₽</span>
+                    </div>
+                </div>
+            </div>
 
-class Handler(BaseHTTPRequestHandler):
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-    
-    def do_GET(self):
-        try:
-            path = self.path
-            telegram_id = self.headers.get('Telegram-Id', '').strip()
-            
-            if '/categories' in path:
-                response = supabase.table("categories").select("*").order("sort_order").execute()
-                data = response.data
-            elif '/admins' in path:
-                response = supabase.table("admins").select("*").execute()
-                data = response.data
-            elif '/stats' in path:
-                orders_response = supabase.table("orders").select("*").execute()
-                products_response = supabase.table("products").select("*").execute()
-                promocodes_response = supabase.table("promocodes").select("*").execute()
-                
-                total_orders = len(orders_response.data)
-                completed_orders = len([o for o in orders_response.data if o.get('status_id') == 5])
-                total_revenue = sum(order.get('profit', 0) for order in orders_response.data if order.get('status_id') == 5)
-                potential_revenue = sum(order['total_amount'] for order in orders_response.data if order.get('status_id') != 5)
-                total_products = len(products_response.data)
-                active_promocodes = len([p for p in promocodes_response.data if p.get('is_active')])
-                
-                data = {
-                    'total_orders': total_orders,
-                    'completed_orders': completed_orders,
-                    'total_revenue': total_revenue,
-                    'potential_revenue': potential_revenue,
-                    'total_products': total_products,
-                    'active_promocodes': active_promocodes
-                }
-            elif '/themes' in path:
-                response = supabase.table("shop_themes").select("*").execute()
-                data = response.data
-            elif '/settings' in path:
-                response = supabase.table("shop_settings").select("*").execute()
-                data = {item['key']: item['value'] for item in response.data}
-            else:
-                response = supabase.table("admins").select("*").eq("telegram_id", telegram_id).eq("is_active", True).execute()
-                is_admin = len(response.data) > 0
-                
-                if is_admin:
-                    admin_data = response.data[0]
-                    data = {
-                        'is_admin': True,
-                        'is_active': admin_data.get('is_active', True),
-                        'role': admin_data.get('role', 'manager'),
-                        'first_name': admin_data.get('first_name', ''),
-                        'username': admin_data.get('username', '')
-                    }
-                else:
-                    data = {'is_admin': False}
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            self.wfile.write(json.dumps(data).encode('utf-8'))
-            
-        except Exception as e:
-            log_error("admin_GET", e, self.headers.get('Telegram-Id', ''), f"Path: {path}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-    
-    def do_POST(self):
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data)
-            
-            if 'telegram_id' in data:
-                admin_data = data
-                if 'is_active' not in admin_data:
-                    admin_data['is_active'] = True
+            <div class="delivery-banner">
+                <i class="fas fa-clock"></i>
+                <span id="workingHoursText">Доставляем ежедневно с 9:00 до 21:00</span>
+            </div>
+
+            <div class="categories" id="categoriesContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загружаем категории...</div>
+                </div>
+            </div>
+
+            <div class="products-grid" id="productsGrid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загружаем каталог...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-header">
+                <div class="admin-title">🛠️ Панель управления</div>
+                <button class="admin-switch" onclick="switchToCustomerView()">
+                    <i class="fas fa-store"></i> Магазин
+                </button>
+            </div>
+
+            <div class="admin-tabs">
+                <div class="admin-tab active" data-tab="dashboard">
+                    <i class="fas fa-chart-bar"></i>Главная
+                </div>
+                <div class="admin-tab" data-tab="products">
+                    <i class="fas fa-shopping-bag"></i>Товары
+                </div>
+                <div class="admin-tab" data-tab="orders">
+                    <i class="fas fa-clipboard-list"></i>Заказы
+                </div>
+                <div class="admin-tab" data-tab="promocodes">
+                    <i class="fas fa-tag"></i>Промокоды
+                </div>
+                <div class="admin-tab" data-tab="admins">
+                    <i class="fas fa-users"></i>Админы
+                </div>
+                <div class="admin-tab" data-tab="settings">
+                    <i class="fas fa-cog"></i>Настройки
+                </div>
+                <div class="admin-tab" data-tab="help">
+                    <i class="fas fa-question-circle"></i>Помощь
+                </div>
+                <div class="admin-tab" data-tab="dangerous" id="dangerousTab" style="display:none">
+                    <i class="fas fa-skull-crossbones"></i>Опасные действия
+                </div>
+            </div>
+
+            <div class="admin-content">
+                <div class="admin-tab-content active" id="dashboardTab">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalOrders">0</div>
+                            <div class="stat-label">Всего заказов</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="completedOrders">0</div>
+                            <div class="stat-label">Завершено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalRevenue">0 ₽</div>
+                            <div class="stat-label">Реальная выручка</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="potentialRevenue">0 ₽</div>
+                            <div class="stat-label">Потенциальная</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalProducts">0</div>
+                            <div class="stat-label">Товаров</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="activePromocodes">0</div>
+                            <div class="stat-label">Промокодов</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <button class="quick-action-btn primary" onclick="loadAdminData()">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                        <button class="quick-action-btn" onclick="showTab('products')">
+                            <i class="fas fa-plus"></i> Добавить товар
+                        </button>
+                        <button class="quick-action-btn" onclick="showTab('orders')">
+                            <i class="fas fa-eye"></i> Просмотр заказов
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-tab-content" id="productsTab">
+                    <div class="product-form">
+                        <div class="form-title" onclick="toggleProductForm()">
+                            <i class="fas fa-chevron-down" id="productFormIcon"></i>
+                            ➕ Добавить новый товар
+                        </div>
+                        <div class="collapsible-content" id="productFormContent">
+                            <div class="form-row">
+                                <input type="text" id="productName" placeholder="Название товара" class="form-input">
+                                <input type="number" id="productPrice" placeholder="Цена в рублях" class="form-input">
+                            </div>
+                            <div class="form-row">
+                                <input type="text" id="productImage" placeholder="Ссылка на изображение" class="form-input">
+                                <div class="dropdown">
+                                    <div class="dropdown-toggle" id="categoryDropdownToggle">
+                                        <span>Выберите категорию</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="dropdown-menu" id="categoryDropdown">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row form-full">
+                                <textarea id="productDescription" placeholder="Подробное описание товара" class="form-input" rows="2"></textarea>
+                            </div>
+                            <div class="form-row form-full">
+                                <textarea id="productFact" placeholder="Интересный факт о цветах" class="form-input" rows="2"></textarea>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="productFeatured">
+                                <label class="checkbox-label">Хит товар (бейдж "Хит")</label>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary btn-lg" onclick="addProduct()">
+                                    <i class="fas fa-save"></i> Сохранить товар
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetProductForm()">
+                                    <i class="fas fa-times"></i> Очистить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-form">
+                        <div class="form-title" onclick="toggleCategoryForm()">
+                            <i class="fas fa-chevron-down" id="categoryFormIcon"></i>
+                            📁 Управление категориями
+                        </div>
+                        <div class="collapsible-content" id="categoryFormContent">
+                            <div class="form-row">
+                                <input type="text" id="categoryName" placeholder="Название категории" class="form-input">
+                                <input type="text" id="categorySlug" placeholder="Slug (англ.)" class="form-input">
+                            </div>
+                            <div class="form-full">
+                                <label class="form-label">Выберите иконку:</label>
+                                <div class="icon-scroll-container">
+                                    <div class="icon-grid" id="iconGrid">
+                                        <div class="icon-option" data-icon="fas fa-heart">
+                                            <i class="fas fa-heart"></i>
+                                            <div>Сердце</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-star">
+                                            <i class="fas fa-star"></i>
+                                            <div>Звезда</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-sun">
+                                            <i class="fas fa-sun"></i>
+                                            <div>Солнце</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-moon">
+                                            <i class="fas fa-moon"></i>
+                                            <div>Луна</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-leaf">
+                                            <i class="fas fa-leaf"></i>
+                                            <div>Лист</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-spa">
+                                            <i class="fas fa-spa"></i>
+                                            <div>Цветок</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-seedling">
+                                            <i class="fas fa-seedling"></i>
+                                            <div>Росток</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-feather">
+                                            <i class="fas fa-feather"></i>
+                                            <div>Перо</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-cloud">
+                                            <i class="fas fa-cloud"></i>
+                                            <div>Облако</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-fire">
+                                            <i class="fas fa-fire"></i>
+                                            <div>Огонь</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-water">
+                                            <i class="fas fa-tint"></i>
+                                            <div>Вода</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-snowflake">
+                                            <i class="fas fa-snowflake"></i>
+                                            <div>Снег</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-tree">
+                                            <i class="fas fa-tree"></i>
+                                            <div>Дерево</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-mountain">
+                                            <i class="fas fa-mountain"></i>
+                                            <div>Гора</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-umbrella">
+                                            <i class="fas fa-umbrella"></i>
+                                            <div>Зонт</div>
+                                        </div>
+                                        <div class="icon-option" data-icon="fas fa-gem">
+                                            <i class="fas fa-gem"></i>
+                                            <div>Кристалл</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" onclick="addCategory()">
+                                    <i class="fas fa-plus"></i> Создать категорию
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-box">
+                        <input type="text" id="productSearch" placeholder="🔍 Поиск по названию, описанию или категории..." class="search-input" onkeyup="filterProducts()">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-status="all">Все товары</button>
+                            <button class="filter-btn" data-status="active">Активные</button>
+                            <button class="filter-btn" data-status="inactive">Неактивные</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-table">
+                        <div class="table-header products-header">
+                            <div>ID</div>
+                            <div>Изобр.</div>
+                            <div>Название</div>
+                            <div>Цена</div>
+                            <div>Категория</div>
+                            <div>Статус</div>
+                            <div>Порядок</div>
+                            <div>Действия</div>
+                        </div>
+                        <div id="productsList"></div>
+                    </div>
+
+                    <div class="admin-table">
+                        <div class="table-header categories-header">
+                            <div>ID</div>
+                            <div>Название</div>
+                            <div>Slug</div>
+                            <div>Иконка</div>
+                            <div>Действия</div>
+                        </div>
+                        <div id="categoriesList"></div>
+                    </div>
+                </div>
+
+                <div class="admin-tab-content" id="ordersTab">
+                    <div class="search-box">
+                        <input type="text" id="orderSearch" placeholder="🔍 Поиск по ID, имени или телефону..." class="search-input" onkeyup="filterOrders()">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-status="all">Все заказы</button>
+                            <button class="filter-btn" data-status="1">Новые</button>
+                            <button class="filter-btn" data-status="2">Подтверждены</button>
+                            <button class="filter-btn" data-status="3">Собираются</button>
+                            <button class="filter-btn" data-status="4">В пути</button>
+                            <button class="filter-btn" data-status="5">Доставлены</button>
+                            <button class="filter-btn" data-status="6">Отменены</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-table">
+                        <div class="table-header orders-header">
+                            <div>ID</div>
+                            <div>Клиент</div>
+                            <div>Сумма</div>
+                            <div>Статус</div>
+                            <div>Действия</div>
+                        </div>
+                        <div id="ordersList"></div>
+                    </div>
                     
-                response = supabase.table("admins").insert(admin_data).execute()
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                
-                response_data = {'success': True, 'admin': response.data[0] if response.data else None}
-                self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            elif 'name' in data and 'slug' in data:
-                category_data = {
-                    'name': data['name'],
-                    'slug': data['slug'],
-                    'icon': data.get('icon', 'fas fa-folder'),
-                    'sort_order': data.get('sort_order', 0),
-                    'is_active': data.get('is_active', True)
-                }
-                
-                response = supabase.table("categories").insert(category_data).execute()
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                
-                response_data = {'success': True, 'category': response.data[0] if response.data else None}
-                self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            else:
-                key = data.get('key')
-                value = data.get('value')
-                
-                if key and value is not None:
-                    existing = supabase.table("shop_settings").select("*").eq("key", key).execute()
+                    <div class="pagination" id="ordersPagination"></div>
+                </div>
+
+                <div class="admin-tab-content" id="promocodesTab">
+                    <div class="promo-form" id="promoFormContainer">
+                        <div class="form-title">🏷️ Создать промокод</div>
+                        <div class="promo-row">
+                            <input type="text" id="promoCode" placeholder="Код промокода" class="form-input">
+                            <div class="dropdown">
+                                <div class="dropdown-toggle" id="discountTypeDropdownToggle">
+                                    <span>Тип скидки</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="dropdown-menu" id="discountTypeDropdown">
+                                    <div class="dropdown-item" data-value="percentage">Процентная</div>
+                                    <div class="dropdown-item" data-value="fixed">Фиксированная</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="promo-row">
+                            <div class="promo-field">
+                                <input type="number" id="promoDiscountValue" placeholder="Значение" class="form-input">
+                                <span id="promoDiscountSuffix">%</span>
+                            </div>
+                            <input type="number" id="promoMinOrder" placeholder="Мин. сумма" class="form-input">
+                        </div>
+                        <div class="promo-row">
+                            <input type="number" id="promoMaxUses" placeholder="Лимит использований" class="form-input">
+                            <input type="date" id="promoValidUntil" class="form-input">
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="addPromocode()">
+                                <i class="fas fa-tag"></i> Создать промокод
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetPromoForm()">
+                                <i class="fas fa-times"></i> Очистить
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-table">
+                        <div class="table-header promocodes-header">
+                            <div>Код</div>
+                            <div>Скидка</div>
+                            <div>Использовано</div>
+                            <div>Статус</div>
+                            <div>Действия</div>
+                        </div>
+                        <div id="promocodesList"></div>
+                    </div>
+                </div>
+
+                <div class="admin-tab-content" id="adminsTab">
+                    <div class="product-form" id="adminFormContainer">
+                        <div class="form-title">👤 Добавить администратора</div>
+                        <div class="form-row">
+                            <input type="text" id="adminTelegramId" placeholder="Telegram ID" class="form-input">
+                            <input type="text" id="adminUsername" placeholder="Username (@nickname)" class="form-input">
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="adminFirstName" placeholder="Имя администратора" class="form-input">
+                            <div class="dropdown">
+                                <div class="dropdown-toggle" id="roleDropdownToggle">
+                                    <span>Выберите роль</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="dropdown-menu" id="roleDropdown">
+                                    <div class="dropdown-item" data-value="admin">Администратор</div>
+                                    <div class="dropdown-item" data-value="owner">Владелец</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="addAdmin()">
+                                <i class="fas fa-user-plus"></i> Добавить администратора
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetAdminForm()">
+                                <i class="fas fa-times"></i> Очистить
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-table">
+                        <div class="table-header admins-header">
+                            <div>ID</div>
+                            <div>Имя</div>
+                            <div>Username</div>
+                            <div>Роль</div>
+                            <div>Действия</div>
+                        </div>
+                        <div id="adminsList"></div>
+                    </div>
+                </div>
+
+                <div class="admin-tab-content" id="settingsTab">
+                    <div class="product-form">
+                        <div class="form-title">⚙️ Настройки магазина</div>
+                        
+                        <div class="settings-group">
+                            <div class="settings-label">Основная информация</div>
+                            <div class="settings-row">
+                                <input type="text" id="shopNameInput" placeholder="Название магазина" class="settings-input">
+                                <input type="text" id="shopPhone" placeholder="Телефон" class="settings-input">
+                            </div>
+                            <div class="settings-full">
+                                <input type="text" id="shopSubtitleInput" placeholder="Подзаголовок магазина" class="settings-input">
+                            </div>
+                            <div class="settings-full">
+                                <input type="text" id="shopAddress" placeholder="Адрес магазина" class="settings-input">
+                            </div>
+                            <div class="settings-full">
+                                <textarea id="shopWorkingHours" placeholder="Режим работы" class="settings-input" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-label">Настройки доставки</div>
+                            <div class="settings-row">
+                                <input type="number" id="deliveryPrice" placeholder="Стоимость доставки" class="settings-input">
+                                <input type="number" id="freeDeliveryMin" placeholder="Бесплатно от суммы" class="settings-input">
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-label">Оформление магазина</div>
+                            <div class="theme-grid" id="themeGrid"></div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-label">Узор шапки магазина</div>
+                            <div class="pattern-grid" id="patternGrid">
+                                <div class="pattern-option dots" data-pattern="dots">Горошек</div>
+                                <div class="pattern-option lines" data-pattern="lines">Полоски</div>
+                                <div class="pattern-option flowers" data-pattern="flowers">Цветочки</div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-label">Визуальные эффекты</div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="snowEffect">
+                                <label class="checkbox-label">❄️ Снегопад в каталоге</label>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary btn-lg" onclick="saveShopSettings()">
+                                <i class="fas fa-save"></i> Сохранить все настройки
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-tab-content" id="helpTab">
+                    <div class="help-content">
+                        <div class="help-item">
+                            <h3>📖 Руководство по управлению ботом</h3>
+                            <p>Это руководство поможет вам эффективно управлять вашим цветочным магазином через Telegram бота.</p>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>🛍️ Управление товарами и категориями</h3>
+                            <p><strong>Добавление товаров:</strong></p>
+                            <ul>
+                                <li>Перейдите в раздел "Товары"</li>
+                                <li>Нажмите "Добавить новый товар"</li>
+                                <li>Заполните все обязательные поля</li>
+                                <li>Выберите категорию из выпадающего списка</li>
+                                <li>Укажите цену и загрузите изображение</li>
+                            </ul>
+                            <p><strong>Управление категориями:</strong></p>
+                            <ul>
+                                <li>Создавайте новые категории с иконками</li>
+                                <li>Удаляйте ненужные категории</li>
+                                <li>Назначайте товарам соответствующие категории</li>
+                            </ul>
+                            <p><strong>Сортировка товаров:</strong> Используйте фильтры для просмотра активных/неактивных товаров</p>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>📦 Управление заказами</h3>
+                            <p><strong>Просмотр заказов:</strong></p>
+                            <ul>
+                                <li>Все заказы отображаются в разделе "Заказы"</li>
+                                <li>Используйте фильтры для сортировки по статусам</li>
+                                <li>Поиск по ID, имени клиента или телефону</li>
+                            </ul>
+                            <p><strong>Изменение статусов:</strong> Нажмите на кнопку редактирования статуса заказа для его обновления</p>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>🏷️ Система промокодов</h3>
+                            <p><strong>Создание промокодов:</strong></p>
+                            <ul>
+                                <li>Доступно только для владельцев</li>
+                                <li>Настройте тип скидки (процентная или фиксированная)</li>
+                                <li>Установите лимит использований и срок действия</li>
+                            </ul>
+                            <p><strong>Применение промокодов:</strong> Клиенты могут вводить промокоды при оформлении заказа</p>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>⚙️ Настройки магазина</h3>
+                            <p><strong>Основные настройки:</strong></p>
+                            <ul>
+                                <li>Название магазина и подзаголовок</li>
+                                <li>Контактные данные и адрес</li>
+                                <li>Стоимость доставки и условия бесплатной доставки</li>
+                                <li>Выбор темы оформления из доступных вариантов</li>
+                                <li>Выбор узора для шапки магазина</li>
+                                <li>Включение/выключение снегопада в каталоге</li>
+                            </ul>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>👥 Управление администраторами</h3>
+                            <p><strong>Добавление администраторов:</strong></p>
+                            <ul>
+                                <li>Только владельцы могут добавлять новых администраторов</li>
+                                <li>Укажите Telegram ID и имя администратора</li>
+                                <li>Выберите роль: администратор или владелец</li>
+                            </ul>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>📊 Статистика и аналитика</h3>
+                            <p><strong>Основные метрики:</strong></p>
+                            <ul>
+                                <li>Общее количество заказов и завершённых заказов</li>
+                                <li>Реальная и потенциальная выручка</li>
+                                <li>Количество активных товаров и промокодов</li>
+                            </ul>
+                        </div>
+
+                        <div class="help-item">
+                            <h3>⚠️ Опасные действия</h3>
+                            <p><strong>Доступно только для владельцев:</strong></p>
+                            <ul>
+                                <li>Удаление всех заказов</li>
+                                <li>Сброс статистики</li>
+                                <li>Удаление всех промокодов</li>
+                                <li>Удаление всех товаров</li>
+                                <li>Очистка базы клиентов</li>
+                            </ul>
+                            <p>Для выполнения этих операций требуется ввод специальных кодов подтверждения.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-tab-content" id="dangerousTab">
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Удаление всех заказов
+                        </div>
+                        <div class="dangerous-description">
+                            Это действие полностью удалит все заказы из системы. Восстановление данных будет невозможно.
+                        </div>
+                        <input type="text" class="dangerous-input" id="deleteOrdersCode" placeholder="Введите код подтверждения DELETE_ORDERS">
+                        <button class="dangerous-btn" onclick="dangerousAction('reset_orders')">
+                            <i class="fas fa-trash"></i> Удалить все заказы
+                        </button>
+                    </div>
+
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Сброс статистики
+                        </div>
+                        <div class="dangerous-description">
+                            Обнулит всю статистику выручки и прибыли. Заказы останутся, но их финансовые показатели будут сброшены.
+                        </div>
+                        <input type="text" class="dangerous-input" id="resetStatsCode" placeholder="Введите код подтверждения RESET_STATS">
+                        <button class="dangerous-btn" onclick="dangerousAction('reset_stats')">
+                            <i class="fas fa-chart-line"></i> Сбросить статистику
+                        </button>
+                    </div>
+
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Удаление всех промокодов
+                        </div>
+                        <div class="dangerous-description">
+                            Полностью удалит все промокоды из системы. Действие необратимо.
+                        </div>
+                        <input type="text" class="dangerous-input" id="deletePromocodesCode" placeholder="Введите код подтверждения DELETE_PROMOCODES">
+                        <button class="dangerous-btn" onclick="dangerousAction('delete_promocodes')">
+                            <i class="fas fa-tags"></i> Удалить все промокоды
+                        </button>
+                    </div>
+
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Удаление всех товаров
+                        </div>
+                        <div class="dangerous-description">
+                            Полностью удалит все товары из каталога. Действие необратимо.
+                        </div>
+                        <input type="text" class="dangerous-input" id="deleteProductsCode" placeholder="Введите код подтверждения DELETE_PRODUCTS">
+                        <button class="dangerous-btn" onclick="dangerousAction('delete_products')">
+                            <i class="fas fa-boxes"></i> Удалить все товары
+                        </button>
+                    </div>
+
+                    <div class="dangerous-section">
+                        <div class="dangerous-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Очистка базы клиентов
+                        </div>
+                        <div class="dangerous-description">
+                            Удалит всех клиентов из системы. Статистика заказов сохранится.
+                        </div>
+                        <input type="text" class="dangerous-input" id="clearCustomersCode" placeholder="Введите код подтверждения CLEAR_CUSTOMERS">
+                        <button class="dangerous-btn" onclick="dangerousAction('clear_customers')">
+                            <i class="fas fa-users"></i> Очистить базу клиентов
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-view" id="helpView">
+            <div class="help-header">
+                <div class="help-title">❓ Помощь и инструкции</div>
+                <button class="help-back" onclick="switchToCustomerView()">
+                    <i class="fas fa-arrow-left"></i> Назад в магазин
+                </button>
+            </div>
+
+            <div class="help-tabs">
+                <div class="help-tab active" data-help="ordering">🛍️ Как заказать</div>
+                <div class="help-tab" data-help="delivery">🚚 Доставка</div>
+                <div class="help-tab" data-help="payment">💳 Оплата</div>
+                <div class="help-tab" data-help="contacts">📞 Контакты</div>
+            </div>
+
+            <div class="help-content">
+                <div class="help-section active" id="orderingHelp">
+                    <div class="help-item">
+                        <h3>Как сделать заказ</h3>
+                        <p>Процесс оформления заказа прост и интуитивно понятен:</p>
+                        <ul>
+                            <li>Выберите понравившиеся товары из каталога</li>
+                            <li>Добавьте их в корзину, нажав кнопку "В корзину"</li>
+                            <li>Перейдите в корзину, нажав на плавающую кнопку в правом нижнем углу</li>
+                            <li>Выберите способ получения: доставка или самовывоз</li>
+                            <li>Заполните контактные данные и подтвердите заказ</li>
+                        </ul>
+                    </div>
                     
-                    if existing.data:
-                        response = supabase.table("shop_settings").update({"value": value}).eq("key", key).execute()
-                    else:
-                        response = supabase.table("shop_settings").insert({"key": key, "value": value}).execute()
+                    <div class="help-item">
+                        <h3>Корзина товаров</h3>
+                        <p>В корзине вы можете:</p>
+                        <ul>
+                            <li>Просматривать выбранные товары</li>
+                            <li>Изменять количество каждого товара</li>
+                            <li>Удалять ненужные позиции</li>
+                            <li>Видеть итоговую сумму заказа</li>
+                            <li>Применять промокоды для получения скидки</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section" id="deliveryHelp">
+                    <div class="help-item">
+                        <h3>Условия доставки</h3>
+                        <p>Мы предлагаем два способа получения заказа:</p>
+                        <ul>
+                            <li><strong>Доставка курьером</strong> - привезем заказ по указанному адресу в Ярославле</li>
+                            <li><strong>Самовывоз</strong> - заберете заказ самостоятельно из нашего магазина</li>
+                        </ul>
+                    </div>
                     
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json')
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.end_headers()
+                    <div class="help-item">
+                        <h3>Стоимость доставки</h3>
+                        <p>Доставка стоит 200 рублей. При заказе от 3000 рублей - доставка бесплатная.</p>
+                        <p>Время доставки: ежедневно с 9:00 до 21:00</p>
+                    </div>
+                </div>
+
+                <div class="help-section" id="paymentHelp">
+                    <div class="help-item">
+                        <h3>Способы оплаты</h3>
+                        <p>Мы принимаем следующие способы оплаты:</p>
+                        <ul>
+                            <li>Наличными курьеру при получении</li>
+                            <li>Банковской картой через терминал</li>
+                            <li>Онлайн-переводом по предоплате</li>
+                        </ul>
+                    </div>
                     
-                    response_data = {'success': True}
-                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
-                else:
-                    self.send_response(400)
-                    self.send_header('Content-type', 'application/json')
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.end_headers()
-                    response = {'success': False, 'error': 'Missing key or value'}
-                    self.wfile.write(json.dumps(response).encode('utf-8'))
+                    <div class="help-item">
+                        <h3>Подтверждение заказа</h3>
+                        <p>После оформления заказа наш менеджер свяжется с вами для подтверждения деталей и уточнения способа оплаты.</p>
+                    </div>
+                </div>
+
+                <div class="help-section" id="contactsHelp">
+                    <div class="help-item">
+                        <h3>Наши контакты</h3>
+                        <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
+                        <p><strong>Адрес:</strong> Ярославль, ул. Цветочная, 15</p>
+                        <p><strong>Режим работы:</strong> Ежедневно с 9:00 до 21:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-buttons">
+        <button class="cart-button" id="cartButton" onclick="showCartModal()">
+            <i class="fas fa-shopping-bag"></i>
+            <span id="cartTotalAmount">0 ₽</span>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <button class="admin-button" onclick="switchToAdminView()" title="Панель управления" id="adminButton">
+            <i class="fas fa-cog"></i>
+        </button>
+        <button class="help-button" onclick="showHelp()" title="Помощь" id="helpButton">
+            <i class="fas fa-question"></i>
+        </button>
+    </div>
+
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-shopping-cart"></i> Корзина товаров</div>
+                <button class="close-modal" id="closeCart">×</button>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-total">
+                <span>Сумма заказа:</span>
+                <span id="modalTotal">0 ₽</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn" onclick="showOrderModal()">
+                <i class="fas fa-receipt"></i> Перейти к оформлению
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-file-invoice"></i> Подтверждение заказа</div>
+                <button class="close-modal" id="closeOrder">×</button>
+            </div>
             
-        except Exception as e:
-            log_error("admin_POST", e, self.headers.get('Telegram-Id', ''), f"Data: {data}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-    
-    def do_PUT(self):
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data)
-            
-            if 'theme_id' in data:
-                theme_id = data['theme_id']
-                supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
-                supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
+            <div id="orderForm">
+                <div class="order-summary">
+                    <h3 style="margin-bottom:12px">Детали заказа</h3>
+                    <div id="orderSummaryContent"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Промокод (если есть)</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" class="form-input" id="promoCodeInput" placeholder="Введите промокод">
+                        <button class="btn btn-primary" onclick="validatePromocode()" style="white-space:nowrap">Применить</button>
+                    </div>
+                    <div id="promoCodeMessage" style="font-size:12px;margin-top:4px"></div>
+                </div>
                 
-                existing = supabase.table("shop_settings").select("*").eq("key", "active_theme").execute()
-                if existing.data:
-                    supabase.table("shop_settings").update({"value": {"value": str(theme_id)}}).eq("key", "active_theme").execute()
-                else:
-                    supabase.table("shop_settings").insert({"key": "active_theme", "value": {"value": str(theme_id)}}).execute()
+                <div class="form-group">
+                    <label class="form-label">Контактный телефон *</label>
+                    <input type="tel" class="form-input phone-input" id="phoneInput" placeholder="+7 (XXX) XXX-XX-XX" required value="+7">
+                    <div class="settings-hint">Укажите номер для связи с вами</div>
+                </div>
                 
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
+                <div class="form-group">
+                    <label class="form-label">Способ получения</label>
+                    <div class="delivery-option selected" data-type="pickup" onclick="selectDeliveryOption('pickup')">
+                        <div class="delivery-option-header">
+                            <i class="fas fa-store"></i>
+                            <div class="delivery-option-title">Самовывоз из магазина</div>
+                            <div class="delivery-price">Бесплатно</div>
+                        </div>
+                        <div class="delivery-option-description">Заберите заказ самостоятельно в удобное время</div>
+                    </div>
+                    <div class="delivery-option" data-type="delivery" onclick="selectDeliveryOption('delivery')">
+                        <div class="delivery-option-header">
+                            <i class="fas fa-truck"></i>
+                            <div class="delivery-option-title">Доставка курьером</div>
+                            <div class="delivery-price" id="deliveryPriceText">200 ₽</div>
+                        </div>
+                        <div class="delivery-option-description">Привезем заказ по указанному адресу в Ярославле</div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="addressField" style="display:none">
+                    <label class="form-label">Адрес доставки *</label>
+                    <textarea class="form-input" id="deliveryAddress" placeholder="Укажите полный адрес доставки: улица, дом, квартира..." rows="3"></textarea>
+                </div>
                 
-                response_data = {'success': True}
-                self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            else:
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response = {'success': False, 'error': 'Invalid request'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                <div class="form-group">
+                    <label class="form-label">Комментарий к заказу</label>
+                    <textarea class="form-input" id="orderComment" placeholder="Особые пожелания, время доставки, дополнительные указания..." rows="3"></textarea>
+                </div>
                 
-        except Exception as e:
-            log_error("admin_PUT", e, self.headers.get('Telegram-Id', ''), f"Data: {data}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-    
-    def do_DELETE(self):
-        try:
-            path_parts = self.path.split('/')
-            resource_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
-            
-            if 'admin' in self.path:
-                response = supabase.table("admins").delete().eq("id", resource_id).execute()
-            elif 'category' in self.path:
-                response = supabase.table("categories").delete().eq("id", resource_id).execute()
-            elif 'order' in self.path:
-                response = supabase.table("orders").delete().eq("id", resource_id).execute()
-            else:
-                raise ValueError("Unknown resource")
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            response_data = {'success': True}
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            
-        except Exception as e:
-            log_error("admin_DELETE", e, self.headers.get('Telegram-Id', ''), f"Resource ID: {resource_id}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+                <div class="form-actions" style="margin-top:20px">
+                    <button class="checkout-btn" id="confirmOrderBtn" onclick="submitOrder()" disabled>
+                        <i class="fas fa-paper-plane"></i> Оформить заказ
+                    </button>
+                </div>
+            </div>
+
+            <div id="orderSuccess" style="display:none">
+                <div class="success-state">
+                    <div class="success-icon">🎉</div>
+                    <div class="success-title">Заказ успешно оформлен!</div>
+                    <div class="success-message">
+                        Ваш заказ принят в обработку. Мы свяжемся с вами в ближайшее время для уточнения деталей доставки и подтверждения заказа.
+                    </div>
+                    <button class="checkout-btn" onclick="closeOrderSuccess()">
+                        <i class="fas fa-shopping-bag"></i> Продолжить покупки
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editProductModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-edit"></i> Редактировать товар</div>
+                <button class="close-modal" id="closeEditProduct">×</button>
+            </div>
+            <div id="editProductForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label class="form-label">Название товара</label>
+                    <input type="text" class="form-input" id="editProductName">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Цена</label>
+                    <input type="number" class="form-input" id="editProductPrice">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Изображение</label>
+                    <input type="text" class="form-input" id="editProductImage">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <div class="dropdown">
+                        <div class="dropdown-toggle" id="editCategoryDropdownToggle">
+                            <span>Выберите категорию</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-menu" id="editCategoryDropdown">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea class="form-input" id="editProductDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Интересный факт</label>
+                    <textarea class="form-input" id="editProductFact" rows="2"></textarea>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="editProductAvailable" checked>
+                    <label class="checkbox-label">Товар доступен для заказа</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="editProductFeatured">
+                    <label class="checkbox-label">Хит товар (бейдж "Хит")</label>
+                </div>
+                <button class="checkout-btn" onclick="updateProduct()">
+                    <i class="fas fa-save"></i> Сохранить изменения
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-modal" id="statusModal">
+        <div class="status-modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-edit"></i> Изменить статус заказа</div>
+                <button class="close-modal" onclick="closeStatusModal()">×</button>
+            </div>
+            <div class="form-group">
+                <div class="status-option" data-status="1" onclick="selectStatus(1)">
+                    <strong>Новый</strong> - заказ только что создан
+                </div>
+                <div class="status-option" data-status="2" onclick="selectStatus(2)">
+                    <strong>Подтвержден</strong> - заказ подтвержден менеджером
+                </div>
+                <div class="status-option" data-status="3" onclick="selectStatus(3)">
+                    <strong>Собирается</strong> - заказ формируется к отправке
+                </div>
+                <div class="status-option" data-status="4" onclick="selectStatus(4)">
+                    <strong>В пути</strong> - заказ доставляется клиенту
+                </div>
+                <div class="status-option" data-status="5" onclick="selectStatus(5)">
+                    <strong>Доставлен</strong> - заказ успешно доставлен
+                </div>
+                <div class="status-option" data-status="6" onclick="selectStatus(6)">
+                    <strong>Отменен</strong> - заказ отменен
+                </div>
+            </div>
+            <button class="checkout-btn" onclick="applyStatusChange()" id="applyStatusBtn" disabled>
+                <i class="fas fa-check"></i> Применить статус
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let tg=window.Telegram.WebApp;tg.expand();tg.ready();
+        let cart=[];let currentCategory='all';let products=[];let isAdmin=false;let currentUserRole='';
+        let adminData={products:[],orders:[],admins:[],stats:{},settings:{},themes:[],promocodes:[],categories:[]};
+        let deliveryOption='pickup';let deliveryPrice=200;let freeDeliveryMin=3000;
+        let currentOrdersPage=1;let ordersPerPage=10;
+        let appliedPromocode=null;
+        let activePattern='dots';
+        let currentOrderId=null;
+        let selectedStatus=null;
+        let selectedCategory=null;
+        let selectedIcon=null;
+        let selectedDiscountType='percentage';
+        let selectedRole='admin';
+        let snowEnabled=false;
+        let snowflakes=[];
+
+        function showToast(message,type='success'){const toast=document.getElementById('toast');const toastMessage=document.getElementById('toastMessage');const toastIcon=document.getElementById('toastIcon');toastMessage.textContent=message;toast.className='toast';toast.classList.add(type);if(type==='success'){toastIcon.className='fas fa-check-circle'}else if(type==='error'){toastIcon.className='fas fa-times-circle'}else{toastIcon.className='fas fa-info-circle'}toast.classList.add('show');setTimeout(()=>{toast.classList.remove('show')},2000)}
+
+        async function loadProducts(){try{const response=await fetch('/api/products');if(!response.ok)throw new Error('Network error');products=await response.json();renderProducts()}catch(error){console.error('Error loading products:',error);showToast('Ошибка загрузки каталога','error');renderProducts([])}}
+
+        async function loadCategories(){try{const response=await fetch('/api/admin/categories');if(response.ok){const categories=await response.json();adminData.categories=categories;renderCategories(categories);renderCategoryDropdowns(categories)}else{await createDefaultCategories()}}catch(error){console.error('Error loading categories:',error);await createDefaultCategories()}}
+
+        async function createDefaultCategories(){const defaultCategories=[{name:'Розы',slug:'roses',icon:'fas fa-heart'},{name:'Тюльпаны',slug:'tulips',icon:'fas fa-sun'},{name:'Орхидеи',slug:'orchids',icon:'fas fa-spa'},{name:'Премиум букеты',slug:'premium',icon:'fas fa-crown'}];for(const category of defaultCategories){try{await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)})}catch(e){console.error('Error creating category:',e)}}await loadCategories()}
+
+        function renderCategories(categories){const container=document.getElementById('categoriesContainer');if(!categories||categories.length===0){container.innerHTML='<div class="loading"><div>Категории не найдены</div></div>';return}container.innerHTML='<button class="category-btn active" onclick="filterByCategory(\'all\')"><i class="fas fa-star"></i>Все товары</button>';categories.forEach(category=>{if(category.is_active){const btn=document.createElement('button');btn.className='category-btn';btn.onclick=()=>filterByCategory(category.slug);btn.innerHTML=`<i class="${category.icon}"></i>${category.name}`;container.appendChild(btn)}})}
+
+        function filterByCategory(category){currentCategory=category;document.querySelectorAll('.category-btn').forEach(btn=>btn.classList.remove('active'));event.target.classList.add('active');renderProducts(category);tg.HapticFeedback.selectionChanged()}
+
+        function renderProducts(category='all'){const grid=document.getElementById('productsGrid');if(products.length===0){grid.innerHTML='<div class="loading"><div>Товары временно недоступны</div></div>';return}grid.innerHTML='';const filteredProducts=category==='all'?products:products.filter(product=>product.category===category);if(filteredProducts.length===0){grid.innerHTML='<div class="loading"><div>В этой категории пока нет товаров</div></div>';return}filteredProducts.forEach(product=>{if(product.is_available){const productCard=document.createElement('div');productCard.className='product-card';productCard.innerHTML=`<div class="product-image"><img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">${product.is_featured?'<div class="product-badge">Хит</div>':''}</div><div class="product-content"><div class="product-title">${product.name}</div><div class="product-description">${product.description}</div>${product.fact?`<div class="product-fact"><i class="fas fa-lightbulb"></i><span class="product-fact-text">${product.fact}</span></div>`:''}<div class="product-footer"><div class="product-price">${product.price.toLocaleString()} ₽</div><button class="add-to-cart" data-id="${product.id}"><i class="fas fa-plus"></i>В корзину</button></div></div>`;grid.appendChild(productCard)}});document.querySelectorAll('.add-to-cart').forEach(button=>{button.addEventListener('click',(e)=>{const productId=parseInt(e.target.closest('.add-to-cart').dataset.id);addToCart(productId)})});document.querySelectorAll('.product-fact').forEach(fact=>{fact.addEventListener('click',function(){const icon=this.querySelector('i');icon.style.color='#fbbf24';icon.style.textShadow='0 0 10px #f59e0b, 0 0 20px #f59e0b';icon.style.transform='scale(1.1)';setTimeout(()=>{icon.style.color='#f59e0b';icon.style.textShadow='none';icon.style.transform='scale(1)'},1000)})})}
+
+        function addToCart(productId){const product=products.find(p=>p.id===productId);if(product){const existingItem=cart.find(item=>item.id===productId);if(existingItem){existingItem.quantity+=1}else{cart.push({...product,quantity:1})}updateCartDisplay();tg.HapticFeedback.impactOccurred('soft');showToast('Товар добавлен в корзину','success')}}
+
+        function updateCartDisplay(){const cartButton=document.getElementById('cartButton');const cartCount=document.getElementById('cartCount');const cartTotalAmount=document.getElementById('cartTotalAmount');const totalItems=cart.reduce((sum,item)=>sum+item.quantity,0);const totalAmount=cart.reduce((sum,item)=>sum+(item.price*item.quantity),0);cartCount.textContent=totalItems;cartTotalAmount.textContent=totalAmount.toLocaleString()+' ₽';if(totalItems>0){cartButton.style.display='flex'}else{cartButton.style.display='none'}renderCartItems();updateOrderSummary()}
+
+        function renderCartItems(){const cartItems=document.getElementById('cartItems');const modalTotal=document.getElementById('modalTotal');const totalAmount=cart.reduce((sum,item)=>sum+(item.price*item.quantity),0);modalTotal.textContent=totalAmount.toLocaleString()+' ₽';if(cart.length===0){cartItems.innerHTML='<div class="empty-cart"><i class="fas fa-shopping-bag"></i><div>Корзина пуста</div></div>';return}cartItems.innerHTML='';cart.forEach((item,index)=>{const cartItem=document.createElement('div');cartItem.className='cart-item';cartItem.innerHTML=`<div class="item-info"><div class="item-name">${item.name}</div><div class="item-price">${item.price.toLocaleString()} ₽</div></div><div class="item-actions"><div class="quantity-controls"><button class="quantity-btn" data-index="${index}" data-action="decrease">-</button><span class="quantity">${item.quantity}</span><button class="quantity-btn" data-index="${index}" data-action="increase">+</button></div><button class="remove-item" data-index="${index}"><i class="fas fa-trash"></i></button></div>`;cartItems.appendChild(cartItem)});document.querySelectorAll('.quantity-btn').forEach(button=>{button.addEventListener('click',(e)=>{const index=parseInt(e.target.closest('.quantity-btn').dataset.index);const action=e.target.closest('.quantity-btn').dataset.action;updateQuantity(index,action)})});document.querySelectorAll('.remove-item').forEach(button=>{button.addEventListener('click',(e)=>{const index=parseInt(e.target.closest('.remove-item').dataset.index);removeFromCart(index)})})}
+
+        function updateQuantity(index,action){if(action==='increase'){cart[index].quantity+=1}else if(action==='decrease'){if(cart[index].quantity>1){cart[index].quantity-=1}else{removeFromCart(index);return}}updateCartDisplay();tg.HapticFeedback.selectionChanged()}
+
+        function removeFromCart(index){const removedItem=cart[index];cart.splice(index,1);updateCartDisplay();tg.HapticFeedback.impactOccurred('light');showToast('Товар удален из корзины','error')}
+
+        function showCartModal(){document.getElementById('cartModal').style.display='flex'}
+
+        function selectDeliveryOption(option){deliveryOption=option;document.querySelectorAll('.delivery-option').forEach(el=>{el.classList.remove('selected')});document.querySelector(`.delivery-option[data-type="${option}"]`).classList.add('selected');const addressField=document.getElementById('addressField');if(option==='delivery'){addressField.style.display='block'}else{addressField.style.display='none'}updateOrderSummary()}
+
+        function updateOrderSummary(){const cartTotal=cart.reduce((sum,item)=>sum+(item.price*item.quantity),0);let finalTotal=cartTotal;let deliveryCost=0;let deliveryText='';if(deliveryOption==='delivery'){deliveryCost=cartTotal>=freeDeliveryMin?0:deliveryPrice;finalTotal=cartTotal+deliveryCost;deliveryText=deliveryCost>0?`${deliveryCost} ₽ (бесплатно от ${freeDeliveryMin} ₽)`:'Бесплатно'}else{deliveryText='Бесплатно'}if(appliedPromocode){finalTotal-=appliedPromocode.discount_amount}const summaryContent=document.getElementById('orderSummaryContent');if(summaryContent){summaryContent.innerHTML=cart.map(item=>`<div class="summary-row"><span>${item.name} × ${item.quantity}</span><span>${(item.price*item.quantity).toLocaleString()} ₽</span></div>`).join('')+`<div class="summary-row"><span>Доставка</span><span>${deliveryText}</span></div>`+(appliedPromocode?`<div class="summary-row"><span>Скидка по промокоду</span><span>-${appliedPromocode.discount_amount} ₽</span></div>`:'')+`<div class="summary-row total"><span>Итого к оплате</span><span>${finalTotal.toLocaleString()} ₽</span></div>`}}
+
+        function validatePhone(phone){const phoneRegex=/^(\+7|8)[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/;return phoneRegex.test(phone.replace(/\s/g,''))}
+
+        async function validatePromocode(){const code=document.getElementById('promoCodeInput').value;const cartTotal=cart.reduce((sum,item)=>sum+(item.price*item.quantity),0);if(!code){showToast('Введите промокод','error');return}try{const response=await fetch('/api/promocodes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'validate',code:code,order_amount:cartTotal})});const result=await response.json();if(result.valid){appliedPromocode=result;document.getElementById('promoCodeMessage').textContent=`✅ Промокод применён! Скидка: ${result.discount_amount}₽`;document.getElementById('promoCodeMessage').style.color='green';updateOrderSummary();showToast('Промокод успешно применён','success')}else{document.getElementById('promoCodeMessage').textContent=`❌ ${result.error}`;document.getElementById('promoCodeMessage').style.color='red';appliedPromocode=null;updateOrderSummary()}}catch(error){console.error('Error validating promocode:',error);showToast('Ошибка проверки промокода','error')}}
+
+        function showOrderModal(){if(cart.length===0){tg.showAlert('Корзина пуста.');return}document.getElementById('cartModal').style.display='none';document.getElementById('orderModal').style.display='flex';updateOrderSummary()}
+
+        function submitOrder(){const phone=document.getElementById('phoneInput').value;const comment=document.getElementById('orderComment').value;const deliveryAddress=deliveryOption==='delivery'?document.getElementById('deliveryAddress').value:'';if(deliveryOption==='delivery'&&!deliveryAddress.trim()){tg.showAlert('Пожалуйста, укажите адрес доставки.');return}if(!validatePhone(phone)){tg.showAlert('Пожалуйста, укажите корректный номер телефона.');return}const cartTotal=cart.reduce((sum,item)=>sum+(item.price*item.quantity),0);let finalTotal=cartTotal;if(deliveryOption==='delivery'){finalTotal+=cartTotal>=freeDeliveryMin?0:deliveryPrice}if(appliedPromocode){finalTotal-=appliedPromocode.discount_amount}const orderData={user:{id:tg.initDataUnsafe.user?.id||'Неизвестно',first_name:tg.initDataUnsafe.user?.first_name||'Неизвестно',username:tg.initDataUnsafe.user?.username||'Неизвестно'},phone:phone,comment:comment,delivery_option:deliveryOption,delivery_address:deliveryAddress,items:cart.map(item=>({id:item.id,name:item.name,price:item.price,quantity:item.quantity,total:item.price*item.quantity})),total:finalTotal,promocode_id:appliedPromocode?.promocode_id||null,discount_amount:appliedPromocode?.discount_amount||0,time:new Date().toLocaleString('ru-RU')};document.getElementById('confirmOrderBtn').disabled=true;document.getElementById('confirmOrderBtn').innerHTML='<i class="fas fa-spinner fa-spin"></i> Отправляем...';sendOrderToAdmin(orderData).then(success=>{if(success){showOrderSuccess()}}).catch(error=>{document.getElementById('confirmOrderBtn').disabled=false;document.getElementById('confirmOrderBtn').innerHTML='<i class="fas fa-paper-plane"></i> Оформить заказ'})}
+
+        function sendOrderToAdmin(orderData){return fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(orderData)}).then(response=>response.json()).then(data=>{if(data.success){return true}else{tg.showAlert('Ошибка при оформлении заказа.');return false}}).catch(error=>{console.error('Error:',error);tg.showAlert('Ошибка при оформлении заказа.');return false})}
+
+        function showOrderSuccess(){document.getElementById('orderForm').style.display='none';document.getElementById('orderSuccess').style.display='block'}
+
+        function closeOrderSuccess(){document.getElementById('orderModal').style.display='none';cart=[];appliedPromocode=null;updateCartDisplay();document.getElementById('orderForm').style.display='block';document.getElementById('orderSuccess').style.display='none';document.getElementById('phoneInput').value='+7';document.getElementById('orderComment').value='';document.getElementById('deliveryAddress').value='';document.getElementById('promoCodeInput').value='';document.getElementById('promoCodeMessage').textContent='';document.getElementById('confirmOrderBtn').disabled=true;document.getElementById('confirmOrderBtn').innerHTML='<i class="fas fa-paper-plane"></i> Оформить заказ';selectDeliveryOption('pickup')}
+
+        function setupEventListeners(){document.getElementById('closeCart').addEventListener('click',()=>{document.getElementById('cartModal').style.display='none'});document.getElementById('closeOrder').addEventListener('click',()=>{document.getElementById('orderModal').style.display='none'});document.getElementById('closeEditProduct').addEventListener('click',()=>{document.getElementById('editProductModal').style.display='none'});document.getElementById('phoneInput').addEventListener('input',function(e){const phone=e.target.value;const isValid=validatePhone(phone);document.getElementById('confirmOrderBtn').disabled=!isValid;if(phone&&!isValid){this.style.borderColor='#ef4444'}else{this.style.borderColor=isValid?'#22c55e':'#e5e7eb'}});document.querySelectorAll('.modal').forEach(modal=>{modal.addEventListener('click',(e)=>{if(e.target===modal){modal.style.display='none'}})});const phoneInput=document.getElementById('phoneInput');phoneInput.addEventListener('input',function(e){let value=e.target.value.replace(/\D/g,'');if(value.startsWith('7')||value.startsWith('8')){value=value.substring(1)}if(value.length>0){value='+7 ('+value;if(value.length>7){value=value.substring(0,7)+') '+value.substring(7)}if(value.length>12){value=value.substring(0,12)+'-'+value.substring(12)}if(value.length>15){value=value.substring(0,15)+'-'+value.substring(15)}}e.target.value=value});document.querySelectorAll('.help-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');const helpSection=this.dataset.help;document.getElementById(helpSection+'Help').classList.add('active')})});document.querySelectorAll('.pattern-option').forEach(option=>{option.addEventListener('click',function(){selectPattern(this.dataset.pattern)})});initDropdowns();initIconSelection()}
+
+        function initDropdowns(){document.querySelectorAll('.dropdown-toggle').forEach(toggle=>{toggle.addEventListener('click',function(e){e.stopPropagation();const menu=this.nextElementSibling;document.querySelectorAll('.dropdown-menu').forEach(m=>{if(m!==menu)m.classList.remove('show')});menu.classList.toggle('show')})});document.addEventListener('click',()=>{document.querySelectorAll('.dropdown-menu').forEach(menu=>menu.classList.remove('show'))});document.querySelectorAll('.dropdown-item').forEach(item=>{item.addEventListener('click',function(){const dropdown=this.closest('.dropdown');const toggle=dropdown.querySelector('.dropdown-toggle');const value=this.dataset.value;toggle.querySelector('span').textContent=this.textContent;if(dropdown.id==='categoryDropdown'){selectedCategory=value}else if(dropdown.id==='discountTypeDropdown'){selectedDiscountType=value;document.getElementById('promoDiscountSuffix').textContent=value==='percentage'?'%':'₽'}else if(dropdown.id==='roleDropdown'){selectedRole=value}dropdown.querySelector('.dropdown-menu').classList.remove('show')})})}
+
+        function initIconSelection(){document.querySelectorAll('.icon-option').forEach(option=>{option.addEventListener('click',function(){document.querySelectorAll('.icon-option').forEach(opt=>opt.classList.remove('selected'));this.classList.add('selected');selectedIcon=this.dataset.icon})})}
+
+        function renderCategoryDropdowns(categories){const dropdowns=['categoryDropdown','editCategoryDropdown'];dropdowns.forEach(dropdownId=>{const dropdown=document.getElementById(dropdownId);if(dropdown){dropdown.innerHTML='';categories.forEach(category=>{const item=document.createElement('div');item.className='dropdown-item';item.dataset.value=category.slug;item.innerHTML=`<i class="${category.icon}"></i> ${category.name}`;dropdown.appendChild(item)})}})}
+
+        async function checkAdminAccess(){try{const telegramId=String(tg.initDataUnsafe.user?.id||'');const response=await fetch('/api/admin',{headers:{'Telegram-Id':telegramId}});const data=await response.json();isAdmin=data.is_admin===true&&data.is_active!==false;currentUserRole=data.role||'';if(isAdmin){document.getElementById('adminButton').style.display='flex';if(currentUserRole==='owner'){document.getElementById('dangerousTab').style.display='flex';document.getElementById('promoFormContainer').style.display='block';document.getElementById('adminFormContainer').style.display='block'}}}catch(error){console.error('Ошибка проверки админ-доступа:',error)}}
+
+        function switchToCustomerView(){document.getElementById('adminPanel').style.display='none';document.getElementById('customerView').style.display='block';document.getElementById('helpView').style.display='none';document.getElementById('adminButton').style.display=isAdmin?'flex':'none';document.getElementById('helpButton').style.display='flex'}
+
+        function switchToAdminView(){if(!isAdmin){showToast('Нет доступа к панели управления','error');return}document.getElementById('customerView').style.display='none';document.getElementById('adminPanel').style.display='block';document.getElementById('helpView').style.display='none';document.getElementById('adminButton').style.display='none';document.getElementById('helpButton').style.display='none';setTimeout(()=>{setupAdminTabs();loadAdminData()},100)}
+
+        function showHelp(){document.getElementById('customerView').style.display='none';document.getElementById('adminPanel').style.display='none';document.getElementById('helpView').style.display='block';document.getElementById('adminButton').style.display='none';document.getElementById('helpButton').style.display='none'}
+
+        function setupAdminTabs(){document.querySelectorAll('.admin-tab').forEach(tab=>{tab.onclick=null});document.querySelectorAll('.admin-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-tab-content').forEach(c=>c.classList.remove('active'));this.classList.add('active');const tabName=this.dataset.tab;const contentId=tabName+'Tab';const contentElement=document.getElementById(contentId);if(contentElement){contentElement.classList.add('active');switch(tabName){case'dashboard':loadDashboard();break;case'products':loadProductsAdmin();break;case'orders':loadOrdersAdmin();break;case'promocodes':loadPromocodes();break;case'admins':loadAdmins();break;case'settings':loadSettings();break}}})});const firstTab=document.querySelector('.admin-tab[data-tab="dashboard"]');if(firstTab){firstTab.click()}}
+
+        function showTab(tabName){document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-tab-content').forEach(c=>c.classList.remove('active'));document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');document.getElementById(tabName+'Tab').classList.add('active');if(tabName==='dashboard')loadDashboard();if(tabName==='products')loadProductsAdmin();if(tabName==='orders')loadOrdersAdmin();if(tabName==='promocodes')loadPromocodes();if(tabName==='admins')loadAdmins();if(tabName==='settings')loadSettings()}
+
+        async function loadAdminData(){await loadDashboard();await loadProductsAdmin();await loadOrdersAdmin();await loadPromocodes();await loadAdmins();await loadSettings();await loadCategories()}
+
+        async function loadDashboard(){try{const response=await fetch('/api/admin/stats');const stats=await response.json();document.getElementById('totalOrders').textContent=stats.total_orders;document.getElementById('completedOrders').textContent=stats.completed_orders;document.getElementById('totalRevenue').textContent=stats.total_revenue.toLocaleString()+' ₽';document.getElementById('potentialRevenue').textContent=stats.potential_revenue.toLocaleString()+' ₽';document.getElementById('totalProducts').textContent=stats.total_products;document.getElementById('activePromocodes').textContent=stats.active_promocodes||0}catch(error){console.error('Error loading dashboard:',error)}}
+
+        async function loadProductsAdmin(){try{const response=await fetch('/api/products?show_all=true');const products=await response.json();adminData.products=products;renderProductsAdmin(products)}catch(error){console.error('Error loading products admin:',error)}}
+
+        function renderProductsAdmin(products){const productsList=document.getElementById('productsList');productsList.innerHTML='';if(products.length===0){productsList.innerHTML='<div class="empty-table-message">Товары не найдены</div>';return}products.forEach((product,index)=>{const row=document.createElement('div');row.className='table-row';row.setAttribute('data-id',product.id);const category=adminData.categories.find(c=>c.slug===product.category);row.innerHTML=`<div>${product.id}</div><div><img src="${product.image_url}" alt="${product.name}" class="table-product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCAyMEMyNSAzMCAyMCAyMCAzMCAxMEM0MCAyMCAzNSAzMCAzMCAyMFoiIGZpbGw9IiNFNUU1RTUiLz4KPC9zdmc+'"></div><div><strong>${product.name}</strong><div style="font-size:11px;color:var(--text-light)">${product.description}</div></div><div>${product.price} ₽</div><div>${category?category.name:product.category}</div><div><span class="product-status ${product.is_available?'status-active':'status-inactive'}">${product.is_available?'Активен':'Неактивен'}</span></div><div class="move-buttons"><button class="move-btn" onclick="moveProductUp(${product.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveProductDown(${product.id})" ${index===products.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div>`;productsList.appendChild(row)})}
+
+        function renderCategoriesAdmin(categories){const categoriesList=document.getElementById('categoriesList');categoriesList.innerHTML='';if(categories.length===0){categoriesList.innerHTML='<div class="empty-table-message">Категории не найдены</div>';return}categories.forEach(category=>{const row=document.createElement('div');row.className='table-row';row.innerHTML=`<div>${category.id}</div><div><i class="${category.icon}"></i> ${category.name}</div><div>${category.slug}</div><div><i class="${category.icon}"></i></div><div class="admin-actions">${currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--text-light);font-size:10px">Нельзя удалить</span>'}</div>`;categoriesList.appendChild(row)})}
+
+        async function moveProductUp(productId){const products=adminData.products;const index=products.findIndex(p=>p.id===productId);if(index>0){[products[index],products[index-1]]=[products[index-1],products[index]];await updateProductsOrder();loadProductsAdmin()}}
+
+        async function moveProductDown(productId){const products=adminData.products;const index=products.findIndex(p=>p.id===productId);if(index<products.length-1){[products[index],products[index+1]]=[products[index+1],products[index]];await updateProductsOrder();loadProductsAdmin()}}
+
+        async function updateProductsOrder(){const productsOrder={};adminData.products.forEach((product,index)=>{productsOrder[product.id]=index+1});try{const response=await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:productsOrder})});const result=await response.json();if(result.success){showToast('Порядок товаров обновлен','success')}}catch(error){console.error('Error updating products order:',error);showToast('Ошибка обновления порядка','error')}}
+
+        async function loadOrdersAdmin(){try{const response=await fetch('/api/order',{headers:{'Is-Admin':'true','User-Id':tg.initDataUnsafe.user?.id||''}});const orders=await response.json();adminData.orders=orders;renderOrdersAdmin(orders)}catch(error){console.error('Error loading orders admin:',error)}}
+
+        function renderOrdersAdmin(orders){const ordersList=document.getElementById('ordersList');const pagination=document.getElementById('ordersPagination');ordersList.innerHTML='';if(orders.length===0){ordersList.innerHTML='<div class="empty-table-message">Заказы не найдены</div>';pagination.innerHTML='';return}const statusNames={1:{name:'Новый',color:'#EF4444',class:'new'},2:{name:'Подтвержден',color:'#F59E0B',class:'confirmed'},3:{name:'Собирается',color:'#8B5CF6',class:'confirmed'},4:{name:'В пути',color:'#3B82F6',class:'confirmed'},5:{name:'Доставлен',color:'#10B981',class:'delivered'},6:{name:'Отменен',color:'#6B7280',class:'cancelled'}};const startIndex=(currentOrdersPage-1)*ordersPerPage;const endIndex=startIndex+ordersPerPage;const paginatedOrders=orders.slice(startIndex,endIndex);paginatedOrders.forEach(order=>{const status=statusNames[order.status_id]||{name:'Неизвестен',color:'#6B7280',class:'new'};const telegramLink=`tg://openmessage?user_id=${order.user_id}`;const phoneLink=`https://t.me/+${order.phone.replace(/\D/g,'')}`;const row=document.createElement('div');row.className='table-row';row.innerHTML=`<div>#${order.id}</div><div><strong>${order.user_name}</strong><div style="font-size:11px;color:var(--text-light)">${order.phone}</div></div><div><strong>${order.final_amount||order.total_amount} ₽</strong></div><div><span class="badge ${status.class}">${status.name}</span></div><div class="admin-actions"><button class="contact-btn" onclick="window.open('${telegramLink}')" title="Написать по ID"><i class="fas fa-user fa-sm"></i></button><button class="contact-btn" onclick="window.open('${phoneLink}')" title="Написать по номеру"><i class="fas fa-phone fa-sm"></i></button><button class="btn btn-primary btn-sm" onclick="changeOrderStatus(${order.id})" title="Изменить статус"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id})" title="Удалить заказ"><i class="fas fa-trash fa-lg"></i></button></div>`;ordersList.appendChild(row)});const totalPages=Math.ceil(orders.length/ordersPerPage);pagination.innerHTML='';for(let i=1;i<=totalPages;i++){const pageBtn=document.createElement('button');pageBtn.className=`page-btn ${i===currentOrdersPage?'active':''}`;pageBtn.textContent=i;pageBtn.onclick=()=>{currentOrdersPage=i;renderOrdersAdmin(adminData.orders)};pagination.appendChild(pageBtn)}}
+
+        async function loadPromocodes(){try{const response=await fetch('/api/promocodes',{headers:{'Telegram-Id':tg.initDataUnsafe.user?.id||''}});const promocodes=await response.json();adminData.promocodes=promocodes;renderPromocodes(promocodes)}catch(error){console.error('Error loading promocodes:',error)}}
+
+        function renderPromocodes(promocodes){const promocodesList=document.getElementById('promocodesList');promocodesList.innerHTML='';if(promocodes.length===0){promocodesList.innerHTML='<div class="empty-table-message">Промокоды не найдены</div>';return}promocodes.forEach(promo=>{const row=document.createElement('div');row.className='table-row';row.innerHTML=`<div><strong>${promo.code}</strong></div><div class="promo-discount">${promo.discount_value}${promo.discount_type==='percentage'?'%':'₽'}</div><div>${promo.used_count||0}/${promo.max_uses||'∞'}</div><div><span class="badge ${promo.is_active?'delivered':'cancelled'}">${promo.is_active?'Активен':'Неактивен'}</span></div><div>${currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deletePromocode(${promo.id})"><i class="fas fa-trash"></i></button>`:'-'}</div>`;promocodesList.appendChild(row)})}
+
+        async function loadAdmins(){try{const response=await fetch('/api/admin/admins');const admins=await response.json();adminData.admins=admins;renderAdmins(admins)}catch(error){console.error('Error loading admins:',error)}}
+
+        function renderAdmins(admins){const adminsList=document.getElementById('adminsList');adminsList.innerHTML='';if(admins.length===0){adminsList.innerHTML='<div class="empty-table-message">Администраторы не найдены</div>';return}admins.forEach(admin=>{const row=document.createElement('div');row.className='table-row';row.innerHTML=`<div>${admin.id}</div><div>${admin.first_name}</div><div>@${admin.username}</div><div><span class="role-badge ${admin.role==='owner'?'role-owner':'role-admin'}">${admin.role==='owner'?'Владелец':'Админ'}</span></div><div>${admin.role!=='owner'&&currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deleteAdmin(${admin.id})"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--text-light);font-size:10px">Нельзя удалить</span>'}</div>`;adminsList.appendChild(row)})}
+
+        async function loadSettings(){try{const response=await fetch('/api/admin/settings');const settings=await response.json();adminData.settings=settings;document.getElementById('shopNameInput').value=settings.shop_name?.value||'🌸 Flower Shop';document.getElementById('shopSubtitleInput').value=settings.shop_subtitle?.value||'Элитные букеты с доставкой по Ярославлю';document.getElementById('shopPhone').value=settings.contacts?.phone||'+7 (999) 123-45-67';document.getElementById('shopAddress').value=settings.contacts?.address||'Ярославль, ул. Цветочная, 15';document.getElementById('shopWorkingHours').value=settings.working_hours?.value||'Ежедневно с 9:00 до 21:00';document.getElementById('deliveryPrice').value=settings.delivery_price?.value||200;document.getElementById('freeDeliveryMin').value=settings.free_delivery_min?.value||3000;deliveryPrice=settings.delivery_price?.value||200;freeDeliveryMin=settings.free_delivery_min?.value||3000;updateShopHeader();const themesResponse=await fetch('/api/admin/themes');const themes=await themesResponse.json();adminData.themes=themes;renderThemes(themes,settings.active_theme?.value||'6');if(settings.header_patterns){activePattern=settings.header_patterns.active||'dots';applyPattern(activePattern)}document.getElementById('snowEffect').checked=settings.snow_effect?.value||false;snowEnabled=settings.snow_effect?.value||false;toggleSnowfall(snowEnabled);}catch(error){console.error('Error loading settings:',error)}}
+
+        function renderThemes(themes,activeThemeId){const themeGrid=document.getElementById('themeGrid');themeGrid.innerHTML='';themes.forEach(theme=>{const themeOption=document.createElement('div');themeOption.className=`theme-option ${theme.id==activeThemeId?'selected':''}`;themeOption.style.background=theme.background_value;themeOption.onclick=()=>selectTheme(theme.id);themeGrid.appendChild(themeOption)})}
+
+        function selectTheme(themeId){fetch('/api/themes',{method:'PUT',headers:{'Content-Type':'application/json','Telegram-Id':String(tg.initDataUnsafe.user?.id||'')},body:JSON.stringify({theme_id:themeId})}).then(response=>response.json()).then(result=>{if(result.success){document.querySelectorAll('.theme-option').forEach(opt=>opt.classList.remove('selected'));event.target.classList.add('selected');applyTheme(themeId);showToast('Тема применена','success')}}).catch(error=>{console.error('Error selecting theme:',error);showToast('Ошибка применения темы','error')})}
+
+        function applyTheme(themeId){const theme=adminData.themes.find(t=>t.id==themeId);if(theme){document.documentElement.style.setProperty('--header-bg',theme.background_value);document.getElementById('shopHeader').style.background=theme.background_value;document.querySelector('.admin-header').style.background=theme.background_value;document.querySelector('.help-header').style.background=theme.background_value;document.body.style.background=theme.background_value}}
+
+        function selectPattern(pattern){activePattern=pattern;document.querySelectorAll('.pattern-option').forEach(opt=>opt.classList.remove('selected'));document.querySelector(`.pattern-option[data-pattern="${pattern}"]`).classList.add('selected');applyPattern(pattern);fetch('/api/themes',{method:'PUT',headers:{'Content-Type':'application/json','Telegram-Id':String(tg.initDataUnsafe.user?.id||'')},body:JSON.stringify({pattern:pattern})}).then(response=>response.json()).then(result=>{if(result.success){showToast('Узор применен','success')}}).catch(error=>{console.error('Error selecting pattern:',error);showToast('Ошибка применения узора','error')})}
+
+        function applyPattern(pattern){const header=document.getElementById('shopHeader');header.className='header '+pattern;}
+
+        function updateShopHeader(){document.getElementById('shopName').textContent=document.getElementById('shopNameInput').value;document.getElementById('shopSubtitle').textContent=document.getElementById('shopSubtitleInput').value;document.getElementById('deliveryInfoText').textContent=`Доставка ${deliveryPrice}₽ • Бесплатно от ${freeDeliveryMin}₽`;document.getElementById('workingHoursText').textContent=document.getElementById('shopWorkingHours').value;document.getElementById('deliveryPriceText').textContent=`${deliveryPrice} ₽`}
+
+        function toggleProductForm(){const content=document.getElementById('productFormContent');const icon=document.getElementById('productFormIcon');content.classList.toggle('expanded');icon.style.transform=content.classList.contains('expanded')?'rotate(180deg)':'rotate(0deg)'}
+
+        function toggleCategoryForm(){const content=document.getElementById('categoryFormContent');const icon=document.getElementById('categoryFormIcon');content.classList.toggle('expanded');icon.style.transform=content.classList.contains('expanded')?'rotate(180deg)':'rotate(0deg)'}
+
+        async function addProduct(){if(!selectedCategory){showToast('Выберите категорию','error');return}const product={name:document.getElementById('productName').value,price:parseInt(document.getElementById('productPrice').value),image_url:document.getElementById('productImage').value,category:selectedCategory,description:document.getElementById('productDescription').value,fact:document.getElementById('productFact').value,is_available:true,is_featured:document.getElementById('productFeatured').checked};if(!product.name||!product.price){showToast('Заполните название и цену','error');return}try{const response=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(product)});const result=await response.json();if(result.success){showToast('Товар успешно добавлен','success');loadProductsAdmin();resetProductForm();loadProducts()}}catch(error){console.error('Error adding product:',error);showToast('Ошибка добавления товара','error')}}
+
+        async function addCategory(){if(!selectedIcon){showToast('Выберите иконку для категории','error');return}const category={name:document.getElementById('categoryName').value,slug:document.getElementById('categorySlug').value,icon:selectedIcon};if(!category.name||!category.slug){showToast('Заполните название и slug категории','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)});const result=await response.json();if(result.success){showToast('Категория успешно создана','success');loadCategories();resetCategoryForm();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error adding category:',error);showToast('Ошибка создания категории','error')}}
+
+        async function addPromocode(){const promoData={code:document.getElementById('promoCode').value,discount_type:selectedDiscountType,discount_value:parseInt(document.getElementById('promoDiscountValue').value),min_order_amount:parseInt(document.getElementById('promoMinOrder').value)||0,max_uses:document.getElementById('promoMaxUses').value?parseInt(document.getElementById('promoMaxUses').value):null,valid_until:document.getElementById('promoValidUntil').value||null};if(!promoData.code||!promoData.discount_value){showToast('Заполните код и значение скидки','error');return}try{const response=await fetch('/api/promocodes',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify(promoData)});const result=await response.json();if(result.success){showToast('Промокод успешно создан','success');loadPromocodes();resetPromoForm()}}catch(error){console.error('Error adding promocode:',error);showToast('Ошибка создания промокода','error')}}
+
+        async function editProduct(productId){const product=adminData.products.find(p=>p.id===productId);if(!product)return;document.getElementById('editProductId').value=product.id;document.getElementById('editProductName').value=product.name;document.getElementById('editProductPrice').value=product.price;document.getElementById('editProductImage').value=product.image_url;selectedCategory=product.category;document.getElementById('editCategoryDropdownToggle').querySelector('span').textContent=adminData.categories.find(c=>c.slug===product.category)?.name||product.category;document.getElementById('editProductDescription').value=product.description||'';document.getElementById('editProductFact').value=product.fact||'';document.getElementById('editProductAvailable').checked=product.is_available;document.getElementById('editProductFeatured').checked=product.is_featured||false;document.getElementById('editProductModal').style.display='flex'}
+
+        async function updateProduct(){const productId=document.getElementById('editProductId').value;const product={name:document.getElementById('editProductName').value,price:parseInt(document.getElementById('editProductPrice').value),image_url:document.getElementById('editProductImage').value,category:selectedCategory,description:document.getElementById('editProductDescription').value,fact:document.getElementById('editProductFact').value,is_available:document.getElementById('editProductAvailable').checked,is_featured:document.getElementById('editProductFeatured').checked};try{const response=await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...product,id:parseInt(productId)})});const result=await response.json();if(result.success){showToast('Товар успешно обновлен','success');document.getElementById('editProductModal').style.display='none';loadProductsAdmin();loadProducts()}}catch(error){console.error('Error updating product:',error);showToast('Ошибка обновления товара','error')}}
+
+        async function deleteProduct(productId){if(!confirm('Удалить этот товар?'))return;try{const response=await fetch(`/api/products/${productId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Товар удален','success');loadProductsAdmin();loadProducts()}}catch(error){console.error('Error deleting product:',error);showToast('Ошибка удаления товара','error')}}
+
+        async function deleteCategory(categoryId){if(!confirm('Удалить эту категорию?'))return;try{const response=await fetch(`/api/admin/category/${categoryId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Категория удалена','success');loadCategories();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error deleting category:',error);showToast('Ошибка удаления категории','error')}}
+
+        async function deletePromocode(promocodeId){if(!confirm('Удалить этот промокод?'))return;try{const response=await fetch(`/api/promocodes/${promocodeId}`,{method:'DELETE',headers:{'Telegram-Id':tg.initDataUnsafe.user?.id||''}});const result=await response.json();if(result.success){showToast('Промокод удален','success');loadPromocodes()}}catch(error){console.error('Error deleting promocode:',error);showToast('Ошибка удаления промокода','error')}}
+
+        function changeOrderStatus(orderId){currentOrderId=orderId;selectedStatus=null;document.querySelectorAll('.status-option').forEach(opt=>opt.classList.remove('selected'));document.getElementById('applyStatusBtn').disabled=true;document.getElementById('statusModal').style.display='flex'}
+
+        function selectStatus(status){selectedStatus=status;document.querySelectorAll('.status-option').forEach(opt=>opt.classList.remove('selected'));document.querySelector(`.status-option[data-status="${status}"]`).classList.add('selected');document.getElementById('applyStatusBtn').disabled=false}
+
+        function applyStatusChange(){if(!selectedStatus||!currentOrderId)return;updateOrderStatus(currentOrderId,selectedStatus);closeStatusModal()}
+
+        function closeStatusModal(){document.getElementById('statusModal').style.display='none'}
+
+        async function updateOrderStatus(orderId,statusId){try{const response=await fetch('/api/order',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:parseInt(orderId),status_id:parseInt(statusId)})});const result=await response.json();if(result.success){showToast('Статус заказа обновлен','success');loadOrdersAdmin()}}catch(error){console.error('Error updating order status:',error);showToast('Ошибка обновления статуса','error')}}
+
+        async function deleteOrder(orderId){if(!confirm('Удалить этот заказ?'))return;try{const response=await fetch(`/api/order/${orderId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Заказ удален','success');loadOrdersAdmin()}}catch(error){console.error('Error deleting order:',error);showToast('Ошибка удаления заказа','error')}}
+
+        async function addAdmin(){const admin={telegram_id:document.getElementById('adminTelegramId').value,username:document.getElementById('adminUsername').value.replace('@',''),first_name:document.getElementById('adminFirstName').value,role:selectedRole};if(!admin.telegram_id||!admin.first_name){showToast('Заполните обязательные поля','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(admin)});const result=await response.json();if(result.success){showToast('Администратор добавлен','success');loadAdmins();resetAdminForm()}}catch(error){console.error('Error adding admin:',error);showToast('Ошибка добавления администратора','error')}}
+
+        async function deleteAdmin(adminId){if(!confirm('Удалить этого администратора?'))return;try{const response=await fetch(`/api/admin/${adminId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Администратор удален','success');loadAdmins()}}catch(error){console.error('Error deleting admin:',error);showToast('Ошибка удаления администратора','error')}}
+
+        function resetProductForm(){document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productImage').value='';document.getElementById('productDescription').value='';document.getElementById('productFact').value='';document.getElementById('productFeatured').checked=false;selectedCategory=null;document.getElementById('categoryDropdownToggle').querySelector('span').textContent='Выберите категорию'}
+
+        function resetCategoryForm(){document.getElementById('categoryName').value='';document.getElementById('categorySlug').value='';selectedIcon=null;document.querySelectorAll('.icon-option').forEach(opt=>opt.classList.remove('selected'))}
+
+        function resetPromoForm(){document.getElementById('promoCode').value='';document.getElementById('promoDiscountValue').value='';document.getElementById('promoMinOrder').value='';document.getElementById('promoMaxUses').value='';document.getElementById('promoValidUntil').value='';selectedDiscountType='percentage';document.getElementById('discountTypeDropdownToggle').querySelector('span').textContent='Тип скидки'}
+
+        function resetAdminForm(){document.getElementById('adminTelegramId').value='';document.getElementById('adminUsername').value='';document.getElementById('adminFirstName').value='';selectedRole='admin';document.getElementById('roleDropdownToggle').querySelector('span').textContent='Выберите роль'}
+
+        function filterProducts(){const searchTerm=document.getElementById('productSearch').value.toLowerCase();const activeFilter=document.querySelector('.filter-btn.active')?.dataset.status||'all';const filteredProducts=adminData.products.filter(product=>{const matchesSearch=product.name.toLowerCase().includes(searchTerm)||product.description.toLowerCase().includes(searchTerm)||product.category.toLowerCase().includes(searchTerm);let matchesFilter=true;if(activeFilter==='active'){matchesFilter=product.is_available}else if(activeFilter==='inactive'){matchesFilter=!product.is_available}return matchesSearch&&matchesFilter});renderProductsAdmin(filteredProducts)}
+
+        function filterOrders(){const searchTerm=document.getElementById('orderSearch').value.toLowerCase();const activeFilter=document.querySelector('.filter-btn.active')?.dataset.status||'all';const filteredOrders=adminData.orders.filter(order=>{const matchesSearch=order.user_name.toLowerCase().includes(searchTerm)||order.phone.includes(searchTerm)||order.id.toString().includes(searchTerm);const matchesFilter=activeFilter==='all'||order.status_id.toString()===activeFilter;return matchesSearch&&matchesFilter});renderOrdersAdmin(filteredOrders)}
+
+        async function saveShopSettings(){try{const settings={shop_name:document.getElementById('shopNameInput').value,shop_subtitle:document.getElementById('shopSubtitleInput').value,phone:document.getElementById('shopPhone').value,address:document.getElementById('shopAddress').value,working_hours:document.getElementById('shopWorkingHours').value,delivery_price:parseInt(document.getElementById('deliveryPrice').value),free_delivery_min:parseInt(document.getElementById('freeDeliveryMin').value),snow_effect:document.getElementById('snowEffect').checked};deliveryPrice=settings.delivery_price;freeDeliveryMin=settings.free_delivery_min;snowEnabled=settings.snow_effect;const updateData=[{key:'shop_name',value:{value:settings.shop_name}},{key:'shop_subtitle',value:{value:settings.shop_subtitle}},{key:'contacts',value:{phone:settings.phone,address:settings.address}},{key:'working_hours',value:{value:settings.working_hours}},{key:'delivery_price',value:{value:settings.delivery_price}},{key:'free_delivery_min',value:{value:settings.free_delivery_min}},{key:'header_patterns',value:{patterns:['dots','lines','flowers'],active:activePattern}},{key:'snow_effect',value:{value:settings.snow_effect}}];let successCount=0;for(const setting of updateData){const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(setting)});if(response.ok){successCount++}}if(successCount>0){showToast('Настройки успешно сохранены','success');updateShopHeader();toggleSnowfall(snowEnabled)}else{showToast('Ошибка сохранения настроек','error')}}catch(error){console.error('Error saving settings:',error);showToast('Ошибка сохранения настроек','error')}}
+
+        function createSnowfall(){const container=document.getElementById('snowContainer');container.innerHTML='';snowflakes=[];for(let i=0;i<50;i++){const snowflake=document.createElement('div');snowflake.className='snowflake';const size=Math.random()*5+2;snowflake.style.width=size+'px';snowflake.style.height=size+'px';snowflake.style.left=Math.random()*100+'%';snowflake.style.opacity=Math.random()*0.6+0.4;snowflake.style.animationDuration=(Math.random()*5+5)+'s';snowflake.style.animationDelay=Math.random()*5+'s';container.appendChild(snowflake);snowflakes.push(snowflake)}}
+
+        function toggleSnowfall(enabled){const container=document.getElementById('snowContainer');if(enabled){container.style.display='block';createSnowfall();}else{container.style.display='none';snowflakes.forEach(flake=>flake.remove());snowflakes=[];}}
+
+        async function dangerousAction(action){let codeInput;let expectedCode;if(action==='reset_orders'){codeInput=document.getElementById('deleteOrdersCode');expectedCode='DELETE_ORDERS'}else if(action==='reset_stats'){codeInput=document.getElementById('resetStatsCode');expectedCode='RESET_STATS'}else if(action==='delete_promocodes'){codeInput=document.getElementById('deletePromocodesCode');expectedCode='DELETE_PROMOCODES'}else if(action==='delete_products'){codeInput=document.getElementById('deleteProductsCode');expectedCode='DELETE_PRODUCTS'}else if(action==='clear_customers'){codeInput=document.getElementById('clearCustomersCode');expectedCode='CLEAR_CUSTOMERS'}if(!codeInput.value||codeInput.value!==expectedCode){showToast('Неверный код подтверждения','error');return}if(!confirm('Вы уверены? Это действие нельзя отменить!'))return;try{const response=await fetch('/api/dangerous',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify({action:action,confirmation_code:codeInput.value})});const result=await response.json();if(result.success){showToast(result.message,'success');codeInput.value='';loadAdminData()}else{showToast(result.error,'error')}}catch(error){console.error('Error performing dangerous action:',error);showToast('Ошибка выполнения операции','error')}}
+
+        document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',function(){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');if(this.closest('#productsTab')){filterProducts()}else{filterOrders()}})})});
+
+        function initApp(){loadProducts();loadCategories();setupEventListeners();checkAdminAccess();updateCartDisplay();selectDeliveryOption('pickup');loadSettings();createSnowfall();}
+
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp)}else{initApp()}
+    </script>
+</body>
+</html>
