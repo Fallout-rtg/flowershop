@@ -22,23 +22,22 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
+            path = self.path
             telegram_id = self.headers.get('Telegram-Id', '').strip()
             
-            self.log_action("themes_GET", telegram_id, f"Path: {self.path}")
+            self.log_action("themes_GET", telegram_id, f"Path: {path}")
             
-            if not self.is_admin(telegram_id):
-                self.send_error_response(403, 'Access denied')
-                return
-            
-            response = supabase.table("shop_themes").select("*").order("id").execute()
-            
-            self.log_action("themes_GET_success", telegram_id, f"Retrieved {len(response.data)} themes")
-            self.send_success_response(response.data)
+            if '/themes' in path:
+                response = supabase.table("shop_themes").select("*").order("id").execute()
+                self.log_action("themes_GET_success", telegram_id, f"Retrieved {len(response.data)} themes")
+                self.send_success_response(response.data)
+            else:
+                self.send_error_response(404, 'Endpoint not found')
                 
         except Exception as e:
             error_msg = f"Failed to fetch themes: {str(e)}"
             self.log_action("themes_GET_error", telegram_id, error_msg)
-            log_error("themes_GET", e, telegram_id, f"Path: {self.path}")
+            log_error("themes_GET", e, telegram_id, f"Path: {path}")
             self.send_error_response(500, error_msg)
     
     def do_PUT(self):
@@ -56,36 +55,59 @@ class Handler(BaseHTTPRequestHandler):
                 return
             
             if 'theme_id' in data:
-                theme_id = data['theme_id']
-                success = self.set_active_theme(theme_id, telegram_id)
+                success = self.set_active_theme(data['theme_id'], telegram_id)
                 if success:
-                    self.send_success_response({'theme_id': theme_id, 'active': True})
+                    self.send_success_response({'theme_id': data['theme_id'], 'active': True})
                 else:
                     self.send_error_response(400, 'Failed to activate theme')
-                    
             elif 'pattern' in data:
-                pattern = data['pattern']
-                success = self.set_active_pattern(pattern, telegram_id)
+                success = self.set_active_pattern(data['pattern'], telegram_id)
                 if success:
-                    self.send_success_response({'pattern': pattern, 'active': True})
+                    self.send_success_response({'pattern': data['pattern'], 'active': True})
                 else:
                     self.send_error_response(400, 'Failed to activate pattern')
-                    
             elif 'effect' in data:
-                effect = data['effect']
-                success = self.set_active_effect(effect, telegram_id)
+                success = self.set_active_effect(data['effect'], telegram_id)
                 if success:
-                    self.send_success_response({'effect': effect, 'active': True})
+                    self.send_success_response({'effect': data['effect'], 'active': True})
                 else:
                     self.send_error_response(400, 'Failed to activate effect')
-                    
             else:
-                self.send_error_response(400, 'Invalid request')
+                self.send_error_response(400, 'Invalid request data')
                 
         except Exception as e:
             error_msg = f"Failed to update theme settings: {str(e)}"
             self.log_action("themes_PUT_error", telegram_id, error_msg)
             log_error("themes_PUT", e, telegram_id, f"Update data: {data}")
+            self.send_error_response(500, error_msg)
+    
+    def do_POST(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            
+            telegram_id = self.headers.get('Telegram-Id', '').strip()
+            
+            self.log_action("themes_POST", telegram_id, f"Data: {data}")
+            
+            if not self.is_admin(telegram_id):
+                self.send_error_response(403, 'Access denied')
+                return
+            
+            if 'theme_data' in data:
+                success = self.create_theme(data['theme_data'], telegram_id)
+                if success:
+                    self.send_success_response({'message': 'Theme created successfully'})
+                else:
+                    self.send_error_response(400, 'Failed to create theme')
+            else:
+                self.send_error_response(400, 'Missing theme_data')
+                
+        except Exception as e:
+            error_msg = f"Failed to create theme: {str(e)}"
+            self.log_action("themes_POST_error", telegram_id, error_msg)
+            log_error("themes_POST", e, telegram_id, f"Data: {data}")
             self.send_error_response(500, error_msg)
     
     def is_admin(self, telegram_id):
@@ -96,11 +118,14 @@ class Handler(BaseHTTPRequestHandler):
             
             response = supabase.table("admins").select("role,is_active").eq("telegram_id", telegram_id).execute()
             
-            is_admin = (response.data and 
-                       response.data[0].get('is_active', False) and 
-                       response.data[0].get('role') in ['admin', 'owner'])
+            if not response.data:
+                self.log_action("admin_check_failed", telegram_id, "No admin record found")
+                return False
             
-            self.log_action("admin_check", telegram_id, f"Admin status: {is_admin}, Role: {response.data[0].get('role') if response.data else 'None'}")
+            admin = response.data[0]
+            is_admin = admin.get('is_active', False) and admin.get('role') in ['admin', 'owner']
+            
+            self.log_action("admin_check", telegram_id, f"Admin status: {is_admin}, Role: {admin.get('role')}, Active: {admin.get('is_active')}")
             return is_admin
             
         except Exception as e:
@@ -119,10 +144,10 @@ class Handler(BaseHTTPRequestHandler):
                 return False
             
             theme = theme_response.data[0]
-            self.log_action("set_active_theme_found", telegram_id, f"Theme found: {theme['name']}")
+            self.log_action("set_active_theme_found", telegram_id, f"Theme found: {theme['name']} - {theme['background_value']}")
             
             deactivate_result = supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
-            self.log_action("set_active_theme_deactivated", telegram_id, f"Deactivated {len(deactivate_result.data)} themes")
+            self.log_action("set_active_theme_deactivated", telegram_id, f"Deactivated other themes")
             
             activate_result = supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
             self.log_action("set_active_theme_activated", telegram_id, f"Activated theme {theme_id}")
@@ -160,7 +185,7 @@ class Handler(BaseHTTPRequestHandler):
             
             patterns_data = {
                 "active": pattern,
-                "patterns": ["dots", "lines", "flowers", "none"]
+                "patterns": valid_patterns
             }
             
             if existing.data:
@@ -192,13 +217,15 @@ class Handler(BaseHTTPRequestHandler):
             
             existing = supabase.table("shop_settings").select("*").eq("key", "active_effect").execute()
             
+            effect_data = {"value": effect}
+            
             if existing.data:
-                update_result = supabase.table("shop_settings").update({"value": {"value": effect}}).eq("key", "active_effect").execute()
+                update_result = supabase.table("shop_settings").update({"value": effect_data}).eq("key", "active_effect").execute()
                 self.log_action("set_active_effect_updated", telegram_id, f"Updated effect to {effect}")
             else:
                 insert_result = supabase.table("shop_settings").insert({
                     "key": "active_effect", 
-                    "value": {"value": effect}
+                    "value": effect_data
                 }).execute()
                 self.log_action("set_active_effect_created", telegram_id, f"Created effect setting: {effect}")
             
@@ -209,6 +236,30 @@ class Handler(BaseHTTPRequestHandler):
             self.log_action("set_active_effect_error", telegram_id, f"Error: {str(e)}")
             log_error("set_active_effect", e, telegram_id, f"Effect: {effect}")
             return False
+
+    def create_theme(self, theme_data, telegram_id):
+        try:
+            self.log_action("create_theme_start", telegram_id, f"Theme data: {theme_data}")
+            
+            required_fields = ['name', 'background_value']
+            for field in required_fields:
+                if field not in theme_data:
+                    self.log_action("create_theme_failed", telegram_id, f"Missing required field: {field}")
+                    return False
+            
+            response = supabase.table("shop_themes").insert(theme_data).execute()
+            
+            if response.data:
+                self.log_action("create_theme_success", telegram_id, f"Theme created with ID: {response.data[0]['id']}")
+                return True
+            else:
+                self.log_action("create_theme_failed", telegram_id, "No data returned from insert")
+                return False
+                
+        except Exception as e:
+            self.log_action("create_theme_error", telegram_id, f"Error: {str(e)}")
+            log_error("create_theme", e, telegram_id, f"Theme data: {theme_data}")
+            return False
     
     def log_action(self, action, user_id, details):
         try:
@@ -218,7 +269,7 @@ class Handler(BaseHTTPRequestHandler):
                 'module': 'themes',
                 'action': action,
                 'user_id': user_id,
-                'details': details
+                'details': str(details)
             }
             print(f"THEME_ACTION: {json.dumps(log_data, ensure_ascii=False)}")
         except Exception as e:
