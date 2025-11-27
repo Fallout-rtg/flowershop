@@ -211,10 +211,13 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'admin' in self.path:
                 response = supabase.table("admins").delete().eq("id", resource_id).execute()
+                response_data = {'success': True}
             elif 'category' in self.path:
                 response = supabase.table("categories").delete().eq("id", resource_id).execute()
+                response_data = {'success': True}
             elif 'order' in self.path:
                 response = supabase.table("orders").delete().eq("id", resource_id).execute()
+                response_data = {'success': True}
             else:
                 raise ValueError("Unknown resource")
             
@@ -223,7 +226,6 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
-            response_data = {'success': True}
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
