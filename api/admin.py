@@ -169,7 +169,31 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
             
-            if 'theme_id' in data:
+            path_parts = self.path.split('/')
+            
+            if 'category' in path_parts:
+                category_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+                
+                if not category_id.isdigit():
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response = {'success': False, 'error': 'Invalid category ID'}
+                    self.wfile.write(json.dumps(response).encode('utf-8'))
+                    return
+                
+                response = supabase.table("categories").update(data).eq("id", int(category_id)).execute()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                response_data = {'success': True, 'category': response.data[0] if response.data else None}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                
+            elif 'theme_id' in data:
                 theme_id = data['theme_id']
                 supabase.table("shop_themes").update({"is_active": False}).neq("id", 0).execute()
                 supabase.table("shop_themes").update({"is_active": True}).eq("id", theme_id).execute()
