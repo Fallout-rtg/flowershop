@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 import os
 import sys
+from datetime import datetime
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -29,10 +30,15 @@ class Handler(BaseHTTPRequestHandler):
             action = data.get('action')
             confirmation_code = data.get('confirmation_code')
             
-            admin_response = supabase.table("admins").select("role").eq("telegram_id", telegram_id).eq("is_active", True).execute()
+            self.log_action("dangerous_request_start", telegram_id, f"Action: {action}")
+            
+            admin_response = supabase.table("admins").select("role,id,first_name").eq("telegram_id", telegram_id).eq("is_active", True).execute()
             is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
             
+            self.log_action("admin_check", telegram_id, f"Is owner: {is_owner}, Role: {admin_response.data[0].get('role') if admin_response.data else 'No data'}")
+            
             if not is_owner:
+                self.log_action("access_denied", telegram_id, "User is not owner")
                 self.send_response(403)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -44,6 +50,7 @@ class Handler(BaseHTTPRequestHandler):
             code_response = supabase.table("confirmation_codes").select("*").eq("code", confirmation_code).eq("is_active", True).execute()
             
             if not code_response.data:
+                self.log_action("invalid_code", telegram_id, f"Code: {confirmation_code}")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -52,29 +59,48 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response).encode('utf-8'))
                 return
             
+            self.log_action("code_validated", telegram_id, f"Action: {action}, Code: {confirmation_code}")
+            
             if action == 'reset_orders':
+                self.log_action("deleting_orders", telegram_id, "Starting orders deletion")
                 result = supabase.table("orders").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': f'All orders deleted ({len(result.data) if result.data else 0} records)'}
+                deleted_count = len(result.data) if result.data else 0
+                self.log_action("orders_deleted", telegram_id, f"Deleted {deleted_count} orders")
+                response_data = {'success': True, 'message': f'All orders deleted ({deleted_count} records)'}
                 
             elif action == 'reset_stats':
+                self.log_action("resetting_stats", telegram_id, "Starting stats reset")
                 update_result = supabase.table("orders").update({"profit": 0}).neq("id", 0).execute()
                 delete_result = supabase.table("customer_stats").delete().neq("id", 0).execute()
+                self.log_action("stats_reset", telegram_id, "Statistics reset completed")
                 response_data = {'success': True, 'message': 'All statistics reset successfully'}
                 
             elif action == 'delete_promocodes':
+                self.log_action("deleting_promocodes", telegram_id, "Starting promocodes deletion")
                 result = supabase.table("promocodes").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': f'All promocodes deleted ({len(result.data) if result.data else 0} records)'}
+                deleted_count = len(result.data) if result.data else 0
+                self.log_action("promocodes_deleted", telegram_id, f"Deleted {deleted_count} promocodes")
+                response_data = {'success': True, 'message': f'All promocodes deleted ({deleted_count} records)'}
                 
             elif action == 'delete_products':
+                self.log_action("deleting_products", telegram_id, "Starting products deletion")
                 result = supabase.table("products").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': f'All products deleted ({len(result.data) if result.data else 0} records)'}
+                deleted_count = len(result.data) if result.data else 0
+                self.log_action("products_deleted", telegram_id, f"Deleted {deleted_count} products")
+                response_data = {'success': True, 'message': f'All products deleted ({deleted_count} records)'}
                 
             elif action == 'clear_customers':
+                self.log_action("clearing_customers", telegram_id, "Starting customers clearance")
                 result = supabase.table("customers").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': f'All customers deleted ({len(result.data) if result.data else 0} records)'}
+                deleted_count = len(result.data) if result.data else 0
+                self.log_action("customers_cleared", telegram_id, f"Cleared {deleted_count} customers")
+                response_data = {'success': True, 'message': f'All customers deleted ({deleted_count} records)'}
                 
             else:
+                self.log_action("unknown_action", telegram_id, f"Unknown action: {action}")
                 response_data = {'success': False, 'error': 'Unknown action'}
+            
+            self.log_action("dangerous_action_completed", telegram_id, f"Action: {action}, Success: {response_data.get('success', False)}")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -83,6 +109,8 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
+            error_msg = f"Dangerous action failed: {str(e)}"
+            self.log_action("dangerous_action_error", telegram_id, error_msg)
             log_error("dangerous_operations", e, self.headers.get('Telegram-Id', ''), f"Action: {action}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -90,3 +118,17 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
+    
+    def log_action(self, action, user_id, details):
+        try:
+            timestamp = datetime.now().isoformat()
+            log_data = {
+                'timestamp': timestamp,
+                'module': 'dangerous',
+                'action': action,
+                'user_id': user_id,
+                'details': str(details)
+            }
+            print(f"DANGEROUS_ACTION: {json.dumps(log_data, ensure_ascii=False)}")
+        except Exception as e:
+            print(f"Failed to log dangerous action: {e}")
