@@ -96,6 +96,22 @@ class Handler(BaseHTTPRequestHandler):
                 self.log_action("customers_cleared", telegram_id, f"Cleared {deleted_count} customers")
                 response_data = {'success': True, 'message': f'All customers deleted ({deleted_count} records)'}
                 
+            elif action == 'reset_shop':
+                self.log_action("resetting_shop", telegram_id, "Starting full shop reset")
+                
+                orders_result = supabase.table("orders").delete().neq("id", 0).execute()
+                products_result = supabase.table("products").delete().neq("id", 0).execute()
+                promocodes_result = supabase.table("promocodes").delete().neq("id", 0).execute()
+                customers_result = supabase.table("customers").delete().neq("id", 0).execute()
+                
+                deleted_orders = len(orders_result.data) if orders_result.data else 0
+                deleted_products = len(products_result.data) if products_result.data else 0
+                deleted_promocodes = len(promocodes_result.data) if promocodes_result.data else 0
+                deleted_customers = len(customers_result.data) if customers_result.data else 0
+                
+                self.log_action("shop_reset", telegram_id, f"Reset completed: {deleted_orders} orders, {deleted_products} products, {deleted_promocodes} promocodes, {deleted_customers} customers")
+                response_data = {'success': True, 'message': f'Shop completely reset: {deleted_orders} orders, {deleted_products} products, {deleted_promocodes} promocodes, {deleted_customers} customers deleted'}
+                
             else:
                 self.log_action("unknown_action", telegram_id, f"Unknown action: {action}")
                 response_data = {'success': False, 'error': 'Unknown action'}
