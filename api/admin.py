@@ -58,7 +58,7 @@ class Handler(BaseHTTPRequestHandler):
                 response = supabase.table("shop_settings").select("*").execute()
                 data = {item['key']: item['value'] for item in response.data}
             else:
-                response = supabase.table("admins").select("*").eq("telegram_id", telegram_id).eq("is_active", True).execute()
+                response = supabase.table("admins").select("role,is_active,first_name,username").eq("telegram_id", telegram_id).eq("is_active", True).execute()
                 is_admin = len(response.data) > 0
                 
                 if is_admin:
