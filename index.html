@@ -990,87 +990,40 @@
 
                 <div class="admin-tab-content" id="dangerousTab">
                     <div class="dangerous-section">
-                        <div class="dangerous-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Удаление всех заказов
-                        </div>
-                        <div class="dangerous-description">
-                            Это действие полностью удалит все заказы из системы. Восстановление данных будет невозможно.
-                        </div>
-                        <input type="text" class="dangerous-input" id="deleteOrdersCode" placeholder="Введите код подтверждения DELETE_ORDERS">
-                        <button class="dangerous-btn" onclick="dangerousAction('reset_orders')">
-                            <i class="fas fa-trash"></i> Удалить все заказы
-                        </button>
+                        <div class="dangerous-title"><i class="fas fa-exclamation-triangle"></i>Удаление всех заказов</div>
+                        <div class="dangerous-description">Полностью удалит все заказы из системы. Восстановление невозможно.</div>
+                        <input type="text" class="dangerous-input" id="deleteOrdersCode" placeholder="Введите код DELETE_ORDERS">
+                        <button class="dangerous-btn" onclick="dangerousAction('reset_orders')"><i class="fas fa-trash"></i> Удалить все заказы</button>
                     </div>
-
                     <div class="dangerous-section">
-                        <div class="dangerous-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Сброс статистики
-                        </div>
-                        <div class="dangerous-description">
-                            Обнулит всю статистику выручки и прибыли. Заказы останутся, но их финансовые показатели будут сброшены.
-                        </div>
-                        <input type="text" class="dangerous-input" id="resetStatsCode" placeholder="Введите код подтверждения RESET_STATS">
-                        <button class="dangerous-btn" onclick="dangerousAction('reset_stats')">
-                            <i class="fas fa-chart-line"></i> Сбросить статистику
-                        </button>
+                        <div class="dangerous-title"><i class="fas fa-exclamation-triangle"></i>Сброс статистики</div>
+                        <div class="dangerous-description">Обнулит всю статистику выручки и прибыли. Заказы останутся.</div>
+                        <input type="text" class="dangerous-input" id="resetStatsCode" placeholder="Введите код RESET_STATS">
+                        <button class="dangerous-btn" onclick="dangerousAction('reset_stats')"><i class="fas fa-chart-line"></i> Сбросить статистику</button>
                     </div>
-
                     <div class="dangerous-section">
-                        <div class="dangerous-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Удаление всех промокодов
-                        </div>
-                        <div class="dangerous-description">
-                            Полностью удалит все промокоды из системы. Действие необратимо.
-                        </div>
-                        <input type="text" class="dangerous-input" id="deletePromocodesCode" placeholder="Введите код подтверждения DELETE_PROMOCODES">
-                        <button class="dangerous-btn" onclick="dangerousAction('delete_promocodes')">
-                            <i class="fas fa-tags"></i> Удалить все промокоды
-                        </button>
+                        <div class="dangerous-title"><i class="fas fa-exclamation-triangle"></i>Удаление всех промокодов</div>
+                        <div class="dangerous-description">Полностью удалит все промокоды из системы.</div>
+                        <input type="text" class="dangerous-input" id="deletePromocodesCode" placeholder="Введите код DELETE_PROMOCODES">
+                        <button class="dangerous-btn" onclick="dangerousAction('delete_promocodes')"><i class="fas fa-tags"></i> Удалить все промокоды</button>
                     </div>
-
                     <div class="dangerous-section">
-                        <div class="dangerous-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Удаление всех товаров
-                        </div>
-                        <div class="dangerous-description">
-                            Полностью удалит все товары из каталога. Действие необратимо.
-                        </div>
-                        <input type="text" class="dangerous-input" id="deleteProductsCode" placeholder="Введите код подтверждения DELETE_PRODUCTS">
-                        <button class="dangerous-btn" onclick="dangerousAction('delete_products')">
-                            <i class="fas fa-boxes"></i> Удалить все товары
-                        </button>
+                        <div class="dangerous-title"><i class="fas fa-exclamation-triangle"></i>Удаление всех товаров</div>
+                        <div class="dangerous-description">Полностью удалит все товары из каталога.</div>
+                        <input type="text" class="dangerous-input" id="deleteProductsCode" placeholder="Введите код DELETE_PRODUCTS">
+                        <button class="dangerous-btn" onclick="dangerousAction('delete_products')"><i class="fas fa-boxes"></i> Удалить все товары</button>
                     </div>
-
                     <div class="dangerous-section">
-                        <div class="dangerous-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Очистка базы клиентов
-                        </div>
-                        <div class="dangerous-description">
-                            Удалит всех клиентов из системы. Статистика заказов сохранится.
-                        </div>
-                        <input type="text" class="dangerous-input" id="clearCustomersCode" placeholder="Введите код подтверждения CLEAR_CUSTOMERS">
-                        <button class="dangerous-btn" onclick="dangerousAction('clear_customers')">
-                            <i class="fas fa-users"></i> Очистить базу клиентов
-                        </button>
+                        <div class="dangerous-title"><i class="fas fa-exclamation-triangle"></i>Очистка базы клиентов</div>
+                        <div class="dangerous-description">Удалит всех клиентов из системы.</div>
+                        <input type="text" class="dangerous-input" id="clearCustomersCode" placeholder="Введите код CLEAR_CUSTOMERS">
+                        <button class="dangerous-btn" onclick="dangerousAction('clear_customers')"><i class="fas fa-users"></i> Очистить базу клиентов</button>
                     </div>
-
                     <div class="dangerous-section">
-                        <div class="dangerous-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Полный сброс магазина
-                        </div>
-                        <div class="dangerous-description">
-                            Полностью очистит всю базу данных магазина. Все данные будут удалены без возможности восстановления.
-                        </div>
-                        <input type="text" class="dangerous-input" id="resetShopCode" placeholder="Введите код подтверждения RESET_SHOP">
-                        <button class="dangerous-btn" onclick="dangerousAction('reset_shop')">
-                            <i class="fas fa-bomb"></i> Полный сброс магазина
-                        </button>
+                        <div class="dangerous-title"><i class="fas fa-exclamation-triangle"></i>Полный сброс магазина</div>
+                        <div class="dangerous-description">Полностью очистит всю базу данных магазина.</div>
+                        <input type="text" class="dangerous-input" id="resetShopCode" placeholder="Введите код RESET_SHOP">
+                        <button class="dangerous-btn" onclick="dangerousAction('reset_shop')"><i class="fas fa-bomb"></i> Полный сброс магазина</button>
                     </div>
                 </div>
             </div>
@@ -1497,7 +1450,7 @@
 
         async function checkAdminAccess(){try{const telegramId=String(tg.initDataUnsafe.user?.id||'');const response=await fetch('/api/admin',{headers:{'Telegram-Id':telegramId}});const data=await response.json();isAdmin=data.is_admin===true&&data.is_active!==false;currentUserRole=data.role||'';if(isAdmin){document.getElementById('adminButton').style.display='flex';updateOwnerElements();}}catch(error){console.error('Ошибка проверки админ-доступа:',error)}}
 
-        function updateOwnerElements(){if(currentUserRole==='owner'){document.getElementById('dangerousTab').style.display='flex';document.getElementById('promoFormContainer').style.display='block';document.getElementById('adminFormContainer').style.display='block';}else{document.getElementById('dangerousTab').style.display='none';document.getElementById('promoFormContainer').style.display='none';document.getElementById('adminFormContainer').style.display='none';}}
+        function updateOwnerElements(){if(currentUserRole==='owner'){document.getElementById('dangerousTab').style.display='block';document.getElementById('promoFormContainer').style.display='block';document.getElementById('adminFormContainer').style.display='block';}else{document.getElementById('dangerousTab').style.display='none';document.getElementById('promoFormContainer').style.display='none';document.getElementById('adminFormContainer').style.display='none';}}
 
         function switchToCustomerView(){document.getElementById('adminPanel').style.display='none';document.getElementById('customerView').style.display='block';document.getElementById('helpView').style.display='none';document.getElementById('adminButton').style.display=isAdmin?'flex':'none';document.getElementById('helpButton').style.display='flex'}
 
