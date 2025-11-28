@@ -17,7 +17,7 @@
             --shadow-lg:0 10px 25px rgba(0,0,0,0.12);--shadow-sm:0 1px 4px rgba(0,0,0,0.06);
             --border:1px solid #e5e7eb;--radius:16px;--radius-sm:10px;--radius-lg:20px;
             --header-bg:linear-gradient(135deg,#6b7280 0%,#374151 100%);
-            --price-color:#6b7280;--button-bg:linear-gradient(135deg,#6b7280 0%,#374151 100%);
+            --price-color:#000000;--button-bg:linear-gradient(135deg,#6b7280 0%,#374151 100%);
             --fact-border:#6b7280;--fact-icon:#f59e0b;
         }
         body{
@@ -32,19 +32,25 @@
         .raindrop{position:absolute;background:linear-gradient(to bottom, rgba(59,130,246,0.8), rgba(147,197,253,0.5));width:2px;height:15px;animation:rainFall linear infinite}
         .confetti{position:absolute;width:10px;height:10px;opacity:0.7;animation:confettiFall linear infinite}
         .night-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1}
-        .light-beam{position:absolute;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);pointer-events:none;z-index:2;mix-blend-mode:screen;animation:pulse 2s infinite alternate}
+        .light-spot{position:absolute;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);pointer-events:none;z-index:2;mix-blend-mode:screen;animation:pulse 3s infinite alternate;opacity:0}
         .fact-light{position:relative;overflow:hidden}
-        .fact-light::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.1) 0%, transparent 50%);opacity:0;transition:opacity 0.3s;pointer-events:none}
-        .fact-light:hover::before{opacity:1}
+        .fact-light:hover::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.2) 0%, transparent 50%);pointer-events:none}
+        .fact-light:hover .fact-icon{color:#fbbf24;text-shadow:0 0 10px #f59e0b,0 0 20px #f59e0b;transform:scale(1.1)}
+        .fact-icon{transition:all 0.3s ease}
         @keyframes fall{0%{transform:translateY(-10px) rotate(0deg)}100%{transform:translateY(100vh) rotate(360deg)}}
         @keyframes rainFall{0%{transform:translateY(-10px) translateX(0)}100%{transform:translateY(100vh) translateX(10px)}}
         @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg)}50%{transform:translateY(50vh) rotate(180deg)}100%{transform:translateY(100vh) rotate(360deg)}}
-        @keyframes pulse{0%{opacity:0.3}100%{opacity:0.7}}
+        @keyframes pulse{0%{opacity:0.2}100%{opacity:0.5}}
+        @keyframes spotAppear{0%{opacity:0;transform:scale(0)}50%{opacity:0.5;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
         
         .header{background:var(--header-bg);color:white;padding:40px 20px 30px;text-align:center;position:relative;overflow:hidden}
-        .header.dots::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        .header.dots::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>')}
         .header.lines::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="white" stroke-width="2" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23lines)"/></svg>')}
         .header.flowers::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,5 C10,5 7.5,7.5 7.5,10 C7.5,12.5 10,15 12.5,15 C15,15 17.5,12.5 17.5,10 C17.5,7.5 15,5 12.5,5 Z" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        .header.hearts::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="hearts" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,6 C10,6 7.5,8.5 7.5,11 C7.5,13.5 10,16 12.5,16 C15,16 17.5,13.5 17.5,11 C17.5,8.5 15,6 12.5,6 Z" fill="white" opacity="0.1" transform="rotate(45 12.5 11)"/></pattern></defs><rect width="100" height="100" fill="url(%23hearts)"/></svg>')}
+        .header.stars::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><polygon points="10,2 12,8 18,8 13,12 15,18 10,14 5,18 7,12 2,8 8,8" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>')}
+        .header.waves::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="waves" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M0,15 Q15,5 30,15 T60,15 T90,15 T120,15" stroke="white" stroke-width="2" fill="none" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23waves)"/></svg>')}
+        .header.geometric::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="geometric" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="10" height="10" fill="white" opacity="0.1"/><rect x="10" y="10" width="10" height="10" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23geometric)"/></svg>')}
         .header-content{position:relative;z-index:2}
         .header h1{font-size:28px;font-weight:800;margin-bottom:6px;text-shadow:0 2px 4px rgba(0,0,0,0.2)}
         .header p{font-size:14px;opacity:0.95;font-weight:500;margin-bottom:12px}
@@ -135,7 +141,7 @@
         
         .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
         .stat-card{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);text-align:center;border-left:3px solid var(--primary)}
-        .stat-value{font-size:20px;font-weight:800;color:var(--primary);margin-bottom:4px}
+        .stat-value{font-size:20px;font-weight:800;color:#000000;margin-bottom:4px}
         .stat-label{color:var(--text-light);font-size:11px;font-weight:600}
         
         .product-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
@@ -227,6 +233,10 @@
         .pattern-option.dots{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="5" fill="%236b7280" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>')}
         .pattern-option.lines{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="%236b7280" stroke-width="2" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23lines)"/></svg>')}
         .pattern-option.flowers{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="flowers" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,5 C10,5 7.5,7.5 7.5,10 C7.5,12.5 10,15 12.5,15 C15,15 17.5,12.5 17.5,10 C7.5,7.5 15,5 12.5,5 Z" fill="%236b7280" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23flowers)"/></svg>')}
+        .pattern-option.hearts{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="hearts" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M12.5,6 C10,6 7.5,8.5 7.5,11 C7.5,13.5 10,16 12.5,16 C15,16 17.5,13.5 17.5,11 C17.5,8.5 15,6 12.5,6 Z" fill="%236b7280" opacity="0.1" transform="rotate(45 12.5 11)"/></pattern></defs><rect width="100" height="100" fill="url(%23hearts)"/></svg>')}
+        .pattern-option.stars{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><polygon points="10,2 12,8 18,8 13,12 15,18 10,14 5,18 7,12 2,8 8,8" fill="%236b7280" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>')}
+        .pattern-option.waves{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="waves" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M0,15 Q15,5 30,15 T60,15 T90,15 T120,15" stroke="%236b7280" stroke-width="2" fill="none" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23waves)"/></svg>')}
+        .pattern-option.geometric{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="geometric" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="10" height="10" fill="%236b7280" opacity="0.1"/><rect x="10" y="10" width="10" height="10" fill="%236b7280" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23geometric)"/></svg>')}
         
         .help-section{display:none}
         .help-section.active{display:block}
@@ -321,6 +331,25 @@
 
         .edit-category-form{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;border:var(--border)}
         .edit-category-form .form-title{margin-bottom:16px}
+        
+        .collapsible-section{margin-bottom:16px}
+        .collapsible-header{background:white;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);border:var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+        .collapsible-header h3{font-size:16px;font-weight:700;color:var(--text);margin:0}
+        .collapsible-header i{transition:transform 0.3s ease}
+        .collapsible-content{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+        .collapsible-section.expanded .collapsible-content{max-height:2000px}
+        .collapsible-section.expanded .collapsible-header i{transform:rotate(180deg)}
+        
+        .confirmation-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:4000;justify-content:center;align-items:center;padding:16px;backdrop-filter:blur(5px)}
+        .confirmation-content{background:white;border-radius:var(--radius-lg);padding:20px;max-width:320px;width:100%;box-shadow:var(--shadow-lg);text-align:center}
+        .confirmation-icon{font-size:48px;color:#ef4444;margin-bottom:16px}
+        .confirmation-title{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)}
+        .confirmation-message{color:var(--text-light);margin-bottom:20px;line-height:1.4}
+        .confirmation-actions{display:flex;gap:12px;justify-content:center}
+        .confirmation-btn{flex:1;padding:12px 16px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;min-height:44px}
+        .confirmation-btn.cancel{background:#6b7280;color:white}
+        .confirmation-btn.confirm{background:#ef4444;color:white}
+        .confirmation-btn:hover{transform:translateY(-1px)}
     </style>
 </head>
 <body>
@@ -576,76 +605,66 @@
                         </div>
                     </div>
 
-                    <div class="edit-category-form" id="editCategoryForm" style="display:none">
-                        <div class="form-title">
-                            <i class="fas fa-edit"></i>
-                            ✏️ Редактировать категорию
+                    <div class="collapsible-section" id="productsSection">
+                        <div class="collapsible-header" onclick="toggleSection('productsSection')">
+                            <h3><i class="fas fa-shopping-bag"></i> Товары</h3>
+                            <i class="fas fa-chevron-down"></i>
                         </div>
-                        <input type="hidden" id="editCategoryId">
-                        <div class="form-row">
-                            <input type="text" id="editCategoryName" placeholder="Название категории" class="form-input">
-                            <input type="text" id="editCategorySlug" placeholder="Slug (англ.)" class="form-input">
-                        </div>
-                        <div class="form-full">
-                            <label class="form-label">Выберите иконку:</label>
-                            <div class="icon-scroll-container">
-                                <div class="icon-grid" id="editIconGrid">
+                        <div class="collapsible-content">
+                            <div class="search-box">
+                                <input type="text" id="productSearch" placeholder="🔍 Поиск по названию, описанию или категории..." class="search-input" onkeyup="filterProducts()">
+                                <div class="filter-buttons">
+                                    <button class="filter-btn active" data-status="all">Все товары</button>
+                                    <button class="filter-btn" data-status="active">Активные</button>
+                                    <button class="filter-btn" data-status="inactive">Неактивные</button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-actions">
-                            <button class="btn btn-primary" onclick="updateCategory()">
-                                <i class="fas fa-save"></i> Сохранить изменения
-                            </button>
-                            <button class="btn btn-secondary" onclick="cancelEditCategory()">
-                                <i class="fas fa-times"></i> Отмена
-                            </button>
+
+                            <div class="admin-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr class="table-header">
+                                            <th>ID</th>
+                                            <th>Изобр.</th>
+                                            <th>Название</th>
+                                            <th>Цена</th>
+                                            <th>Категория</th>
+                                            <th>Статус</th>
+                                            <th>Порядок</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsList">
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="search-box">
-                        <input type="text" id="productSearch" placeholder="🔍 Поиск по названию, описанию или категории..." class="search-input" onkeyup="filterProducts()">
-                        <div class="filter-buttons">
-                            <button class="filter-btn active" data-status="all">Все товары</button>
-                            <button class="filter-btn" data-status="active">Активные</button>
-                            <button class="filter-btn" data-status="inactive">Неактивные</button>
+                    <div class="collapsible-section" id="categoriesSection">
+                        <div class="collapsible-header" onclick="toggleSection('categoriesSection')">
+                            <h3><i class="fas fa-folder"></i> Категории</h3>
+                            <i class="fas fa-chevron-down"></i>
                         </div>
-                    </div>
-
-                    <div class="admin-table-container">
-                        <table class="admin-table">
-                            <thead>
-                                <tr class="table-header">
-                                    <th>ID</th>
-                                    <th>Изобр.</th>
-                                    <th>Название</th>
-                                    <th>Цена</th>
-                                    <th>Категория</th>
-                                    <th>Статус</th>
-                                    <th>Порядок</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productsList">
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="admin-table-container">
-                        <table class="admin-table">
-                            <thead>
-                                <tr class="table-header">
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Slug</th>
-                                    <th>Иконка</th>
-                                    <th>Статус</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="categoriesList">
-                            </tbody>
-                        </table>
+                        <div class="collapsible-content">
+                            <div class="admin-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr class="table-header">
+                                            <th>ID</th>
+                                            <th>Название</th>
+                                            <th>Slug</th>
+                                            <th>Иконка</th>
+                                            <th>Статус</th>
+                                            <th>Порядок</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categoriesList">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -833,6 +852,10 @@
                                 <div class="pattern-option dots" data-pattern="dots">Горошек</div>
                                 <div class="pattern-option lines" data-pattern="lines">Полоски</div>
                                 <div class="pattern-option flowers" data-pattern="flowers">Цветочки</div>
+                                <div class="pattern-option hearts" data-pattern="hearts">Сердечки</div>
+                                <div class="pattern-option stars" data-pattern="stars">Звезды</div>
+                                <div class="pattern-option waves" data-pattern="waves">Волны</div>
+                                <div class="pattern-option geometric" data-pattern="geometric">Геометрия</div>
                             </div>
                         </div>
 
@@ -1302,6 +1325,54 @@
         </div>
     </div>
 
+    <div class="modal" id="editCategoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-edit"></i> Редактировать категорию</div>
+                <button class="close-modal" id="closeEditCategory">×</button>
+            </div>
+            <div id="editCategoryForm">
+                <input type="hidden" id="editCategoryId">
+                <div class="form-group">
+                    <label class="form-label">Название категории</label>
+                    <input type="text" class="form-input" id="editCategoryName">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Slug (англ.)</label>
+                    <input type="text" class="form-input" id="editCategorySlug">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Иконка</label>
+                    <div class="icon-scroll-container">
+                        <div class="icon-grid" id="editIconGrid">
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="editCategoryActive" checked>
+                    <label class="checkbox-label">Категория активна</label>
+                </div>
+                <button class="checkout-btn" onclick="updateCategory()">
+                    <i class="fas fa-save"></i> Сохранить изменения
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <div class="confirmation-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="confirmation-title">Подтверждение удаления</div>
+            <div class="confirmation-message" id="confirmationMessage">Вы уверены, что хотите удалить этот элемент?</div>
+            <div class="confirmation-actions">
+                <button class="confirmation-btn cancel" onclick="closeConfirmationModal()">Отмена</button>
+                <button class="confirmation-btn confirm" id="confirmDeleteBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+
     <div class="status-modal" id="statusModal">
         <div class="status-modal-content">
             <div class="modal-header">
@@ -1355,7 +1426,10 @@
         let snowflakes=[];
         let raindrops=[];
         let confettiPieces=[];
-        let lightBeams=[];
+        let lightSpots=[];
+        let currentDeleteCallback=null;
+        let currentDeleteId=null;
+        let currentDeleteType=null;
 
         function showToast(message,type='success'){const toast=document.getElementById('toast');const toastMessage=document.getElementById('toastMessage');const toastIcon=document.getElementById('toastIcon');toastMessage.textContent=message;toast.className='toast';toast.classList.add(type);if(type==='success'){toastIcon.className='fas fa-check-circle'}else if(type==='error'){toastIcon.className='fas fa-times-circle'}else{toastIcon.className='fas fa-info-circle'}toast.classList.add('show');setTimeout(()=>{toast.classList.remove('show')},2000)}
 
@@ -1369,9 +1443,9 @@
 
         function filterByCategory(category){currentCategory=category;document.querySelectorAll('.category-btn').forEach(btn=>btn.classList.remove('active'));event.target.classList.add('active');renderProducts(category);tg.HapticFeedback.selectionChanged()}
 
-        function renderProducts(category='all'){const grid=document.getElementById('productsGrid');if(products.length===0){grid.innerHTML='<div class="loading"><div>Товары временно недоступны</div></div>';return}grid.innerHTML='';const filteredProducts=category==='all'?products:products.filter(product=>product.category===category&&product.is_available);if(filteredProducts.length===0){grid.innerHTML='<div class="loading"><div>В этой категории пока нет товаров</div></div>';return}filteredProducts.forEach(product=>{const productCard=document.createElement('div');productCard.className='product-card fact-light';productCard.innerHTML=`<div class="product-image"><img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">${product.is_featured?'<div class="product-badge">Хит</div>':''}</div><div class="product-content"><div class="product-title">${product.name}</div><div class="product-description">${product.description}</div>${product.fact?`<div class="product-fact"><i class="fas fa-lightbulb"></i><span class="product-fact-text">${product.fact}</span></div>`:''}<div class="product-footer"><div class="product-price">${product.price.toLocaleString()} ₽</div><button class="add-to-cart" data-id="${product.id}"><i class="fas fa-plus"></i>В корзину</button></div></div>`;grid.appendChild(productCard)});document.querySelectorAll('.add-to-cart').forEach(button=>{button.addEventListener('click',(e)=>{const productId=parseInt(e.target.closest('.add-to-cart').dataset.id);addToCart(productId)})});document.querySelectorAll('.product-fact').forEach(fact=>{fact.addEventListener('click',function(){const icon=this.querySelector('i');icon.style.color='#fbbf24';icon.style.textShadow='0 0 10px var(--fact-icon), 0 0 20px var(--fact-icon)';icon.style.transform='scale(1.1)';setTimeout(()=>{icon.style.color='var(--fact-icon)';icon.style.textShadow='none';icon.style.transform='scale(1)'},1000)})});setupNightEffect()}
+        function renderProducts(category='all'){const grid=document.getElementById('productsGrid');if(products.length===0){grid.innerHTML='<div class="loading"><div>Товары временно недоступны</div></div>';return}grid.innerHTML='';const filteredProducts=category==='all'?products:products.filter(product=>product.category===category&&product.is_available);if(filteredProducts.length===0){grid.innerHTML='<div class="loading"><div>В этой категории пока нет товаров</div></div>';return}filteredProducts.forEach(product=>{const productCard=document.createElement('div');productCard.className='product-card fact-light';productCard.innerHTML=`<div class="product-image"><img src="${product.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzIyNSAyMDAgMjUwIDE1MCAyMDAgMTAwQzE1MCAxNTAgMTc1IDIwMCAyMDAgMTUwWiIgZmlsbD0iI0U1RTVFNSIvPgo8L3N2Zz4K'">${product.is_featured?'<div class="product-badge">Хит</div>':''}</div><div class="product-content"><div class="product-title">${product.name}</div><div class="product-description">${product.description}</div>${product.fact?`<div class="product-fact"><i class="fas fa-lightbulb fact-icon"></i><span class="product-fact-text">${product.fact}</span></div>`:''}<div class="product-footer"><div class="product-price">${product.price.toLocaleString()} ₽</div><button class="add-to-cart" data-id="${product.id}"><i class="fas fa-plus"></i>В корзину</button></div></div>`;grid.appendChild(productCard)});document.querySelectorAll('.add-to-cart').forEach(button=>{button.addEventListener('click',(e)=>{const productId=parseInt(e.target.closest('.add-to-cart').dataset.id);addToCart(productId)})});setupNightEffect()}
 
-        function setupNightEffect(){if(!nightEnabled)return;document.querySelectorAll('.fact-light').forEach(element=>{element.addEventListener('mousemove',function(e){const rect=this.getBoundingClientRect();const x=e.clientX-rect.left;const y=e.clientY-rect.top;this.style.setProperty('--mouse-x',x+'px');this.style.setProperty('--mouse-y',y+'px')})})}
+        function setupNightEffect(){if(!nightEnabled)return;document.querySelectorAll('.fact-light').forEach(element=>{element.addEventListener('touchstart',function(e){const touch=e.touches[0];const rect=this.getBoundingClientRect();const x=touch.clientX-rect.left;const y=touch.clientY-rect.top;this.style.setProperty('--mouse-x',x+'px');this.style.setProperty('--mouse-y',y+'px')});element.addEventListener('mousemove',function(e){const rect=this.getBoundingClientRect();const x=e.clientX-rect.left;const y=e.clientY-rect.top;this.style.setProperty('--mouse-x',x+'px');this.style.setProperty('--mouse-y',y+'px')})})}
 
         function addToCart(productId){const product=products.find(p=>p.id===productId);if(product){const existingItem=cart.find(item=>item.id===productId);if(existingItem){existingItem.quantity+=1}else{cart.push({...product,quantity:1})}updateCartDisplay();tg.HapticFeedback.impactOccurred('soft');showToast('Товар добавлен в корзину','success')}}
 
@@ -1403,7 +1477,13 @@
 
         function closeOrderSuccess(){document.getElementById('orderModal').style.display='none';cart=[];appliedPromocode=null;updateCartDisplay();document.getElementById('orderForm').style.display='block';document.getElementById('orderSuccess').style.display='none';document.getElementById('phoneInput').value='+7';document.getElementById('orderComment').value='';document.getElementById('deliveryAddress').value='';document.getElementById('promoCodeInput').value='';document.getElementById('promoCodeMessage').textContent='';document.getElementById('confirmOrderBtn').disabled=true;document.getElementById('confirmOrderBtn').innerHTML='<i class="fas fa-paper-plane"></i> Оформить заказ';selectDeliveryOption('pickup')}
 
-        function setupEventListeners(){document.getElementById('closeCart').addEventListener('click',()=>{document.getElementById('cartModal').style.display='none'});document.getElementById('closeOrder').addEventListener('click',()=>{document.getElementById('orderModal').style.display='none'});document.getElementById('closeEditProduct').addEventListener('click',()=>{document.getElementById('editProductModal').style.display='none'});document.getElementById('phoneInput').addEventListener('input',function(e){const phone=e.target.value;const isValid=validatePhone(phone);document.getElementById('confirmOrderBtn').disabled=!isValid;if(phone&&!isValid){this.style.borderColor='#ef4444'}else{this.style.borderColor=isValid?'#22c55e':'#e5e7eb'}});document.querySelectorAll('.modal').forEach(modal=>{modal.addEventListener('click',(e)=>{if(e.target===modal){modal.style.display='none'}})});const phoneInput=document.getElementById('phoneInput');phoneInput.addEventListener('input',function(e){let value=e.target.value.replace(/\D/g,'');if(value.startsWith('7')||value.startsWith('8')){value=value.substring(1)}if(value.length>0){value='+7 ('+value;if(value.length>7){value=value.substring(0,7)+') '+value.substring(7)}if(value.length>12){value=value.substring(0,12)+'-'+value.substring(12)}if(value.length>15){value=value.substring(0,15)+'-'+value.substring(15)}}e.target.value=value});document.querySelectorAll('.help-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');const helpSection=this.dataset.help;document.getElementById(helpSection+'Help').classList.add('active')})});document.querySelectorAll('.pattern-option').forEach(option=>{option.addEventListener('click',function(){selectPattern(this.dataset.pattern)})});initDropdowns();initIconSelection()}
+        function setupEventListeners(){document.getElementById('closeCart').addEventListener('click',()=>{document.getElementById('cartModal').style.display='none'});document.getElementById('closeOrder').addEventListener('click',()=>{document.getElementById('orderModal').style.display='none'});document.getElementById('closeEditProduct').addEventListener('click',()=>{document.getElementById('editProductModal').style.display='none'});document.getElementById('closeEditCategory').addEventListener('click',()=>{document.getElementById('editCategoryModal').style.display='none'});document.getElementById('phoneInput').addEventListener('input',function(e){const phone=e.target.value;const isValid=validatePhone(phone);document.getElementById('confirmOrderBtn').disabled=!isValid;if(phone&&!isValid){this.style.borderColor='#ef4444'}else{this.style.borderColor=isValid?'#22c55e':'#e5e7eb'}});document.querySelectorAll('.modal').forEach(modal=>{modal.addEventListener('click',(e)=>{if(e.target===modal){modal.style.display='none'}})});const phoneInput=document.getElementById('phoneInput');phoneInput.addEventListener('input',function(e){let value=e.target.value.replace(/\D/g,'');if(value.startsWith('7')||value.startsWith('8')){value=value.substring(1)}if(value.length>0){value='+7 ('+value;if(value.length>7){value=value.substring(0,7)+') '+value.substring(7)}if(value.length>12){value=value.substring(0,12)+'-'+value.substring(12)}if(value.length>15){value=value.substring(0,15)+'-'+value.substring(15)}}e.target.value=value});document.querySelectorAll('.help-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');const helpSection=this.dataset.help;document.getElementById(helpSection+'Help').classList.add('active')})});document.querySelectorAll('.pattern-option').forEach(option=>{option.addEventListener('click',function(){selectPattern(this.dataset.pattern)})});initDropdowns();initIconSelection();setupConfirmationModal()}
+
+        function setupConfirmationModal(){document.getElementById('confirmDeleteBtn').addEventListener('click',function(){if(currentDeleteCallback){currentDeleteCallback(currentDeleteId,currentDeleteType)}closeConfirmationModal()})}
+
+        function showConfirmationModal(message,type,id,callback){document.getElementById('confirmationMessage').textContent=message;currentDeleteCallback=callback;currentDeleteId=id;currentDeleteType=type;document.getElementById('confirmationModal').style.display='flex'}
+
+        function closeConfirmationModal(){document.getElementById('confirmationModal').style.display='none';currentDeleteCallback=null;currentDeleteId=null;currentDeleteType=null}
 
         function initDropdowns(){document.querySelectorAll('.dropdown-toggle').forEach(toggle=>{toggle.addEventListener('click',function(e){e.stopPropagation();const menu=this.nextElementSibling;document.querySelectorAll('.dropdown-menu').forEach(m=>{if(m!==menu)m.classList.remove('show')});menu.classList.toggle('show')})});document.addEventListener('click',()=>{document.querySelectorAll('.dropdown-menu').forEach(menu=>menu.classList.remove('show'))});document.querySelectorAll('.dropdown-item').forEach(item=>{item.addEventListener('click',function(){const dropdown=this.closest('.dropdown');const toggle=dropdown.querySelector('.dropdown-toggle');const value=this.dataset.value;toggle.querySelector('span').textContent=this.textContent;if(dropdown.id==='categoryDropdown'){selectedCategory=value}else if(dropdown.id==='discountTypeDropdown'){selectedDiscountType=value;document.getElementById('promoDiscountSuffix').textContent=value==='percentage'?'%':'₽'}else if(dropdown.id==='roleDropdown'){selectedRole=value}dropdown.querySelector('.dropdown-menu').classList.remove('show')})})}
 
@@ -1431,27 +1511,37 @@
 
         async function loadProductsAdmin(){try{const response=await fetch('/api/products?show_all=true');const products=await response.json();adminData.products=products;renderProductsAdmin(products)}catch(error){console.error('Error loading products admin:',error)}}
 
-        function renderProductsAdmin(products){const productsList=document.getElementById('productsList');productsList.innerHTML='';if(products.length===0){productsList.innerHTML='<tr><td colspan="8" class="empty-table-message">Товары не найдены</td></tr>';return}products.forEach((product,index)=>{const row=document.createElement('tr');row.className='table-row';if(!product.is_available){row.style.background='#fef2f2'}row.setAttribute('data-id',product.id);const category=adminData.categories.find(c=>c.slug===product.category);row.innerHTML=`<td>${product.id}</td><td><img src="${product.image_url}" alt="${product.name}" class="table-product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCAyMEMyNSAzMCAyMCAyMCAzMCAxMEM0MCAyMCAzNSAzMCAzMCAyMFoiIGZpbGw9IiNFNUU1RTUiLz4KPC9zdmc+'"></td><td><strong>${product.name}</strong><div style="font-size:11px;color:var(--text-light)">${product.description}</div></td><td>${product.price} ₽</td><td>${category?category.name:product.category}</td><td><span class="product-status ${product.is_available?'status-active':'status-inactive'}">${product.is_available?'Активен':'Неактивен'}</span></td><td><div class="move-buttons"><button class="move-btn" onclick="moveProductUp(${product.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveProductDown(${product.id})" ${index===products.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div></td>`;productsList.appendChild(row)})}
+        function renderProductsAdmin(products){const productsList=document.getElementById('productsList');productsList.innerHTML='';if(products.length===0){productsList.innerHTML='<tr><td colspan="8" class="empty-table-message">Товары не найдены</td></tr>';return}products.forEach((product,index)=>{const row=document.createElement('tr');row.className='table-row';if(!product.is_available){row.style.background='#fef2f2'}row.setAttribute('data-id',product.id);const category=adminData.categories.find(c=>c.slug===product.category);row.innerHTML=`<td>${product.id}</td><td><img src="${product.image_url}" alt="${product.name}" class="table-product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCAyMEMyNSAzMCAyMCAyMCAzMCAxMEM0MCAyMCAzNSAzMCAzMCAyMFoiIGZpbGw9IiNFNUU1RTUiLz4KPC9zdmc+'"></td><td><strong>${product.name}</strong><div style="font-size:11px;color:var(--text-light)">${product.description}</div></td><td>${product.price} ₽</td><td>${category?category.name:product.category}</td><td><span class="product-status ${product.is_available?'status-active':'status-inactive'}">${product.is_available?'Активен':'Неактивен'}</span></td><td><div class="move-buttons"><button class="move-btn" onclick="moveProductUp(${product.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveProductDown(${product.id})" ${index===products.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('product',${product.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div></td>`;productsList.appendChild(row)})}
 
-        function renderCategoriesAdmin(categories){const categoriesList=document.getElementById('categoriesList');categoriesList.innerHTML='';if(categories.length===0){categoriesList.innerHTML='<tr><td colspan="6" class="empty-table-message">Категории не найдены</td></tr>';return}categories.forEach(category=>{const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td>${category.id}</td><td><i class="${category.icon}"></i> ${category.name}</td><td>${category.slug}</td><td><i class="${category.icon}"></i></td><td><span class="product-status ${category.is_active?'status-active':'status-inactive'}">${category.is_active?'Активна':'Неактивна'}</span></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editCategory(${category.id})"><i class="fas fa-edit"></i> Редактировать</button><button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})"><i class="fas fa-trash"></i> Удалить</button></div></td>`;categoriesList.appendChild(row)})}
+        function renderCategoriesAdmin(categories){const categoriesList=document.getElementById('categoriesList');categoriesList.innerHTML='';if(categories.length===0){categoriesList.innerHTML='<tr><td colspan="7" class="empty-table-message">Категории не найдены</td></tr>';return}categories.forEach((category,index)=>{const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td>${category.id}</td><td><i class="${category.icon}"></i> ${category.name}</td><td>${category.slug}</td><td><i class="${category.icon}"></i></td><td><span class="product-status ${category.is_active?'status-active':'status-inactive'}">${category.is_active?'Активна':'Неактивна'}</span></td><td><div class="move-buttons"><button class="move-btn" onclick="moveCategoryUp(${category.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveCategoryDown(${category.id})" ${index===categories.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editCategory(${category.id})"><i class="fas fa-edit"></i> Редактировать</button><button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('category',${category.id})"><i class="fas fa-trash"></i> Удалить</button></div></td>`;categoriesList.appendChild(row)})}
+
+        function showDeleteConfirmation(type,id){let message='';let entityName='';switch(type){case'product':message='Вы уверены, что хотите удалить этот товар?';entityName='товар';break;case'category':message='Вы уверены, что хотите удалить эту категорию? Товары в этой категории станут без категории.';entityName='категорию';break;case'order':message='Вы уверены, что хотите удалить этот заказ?';entityName='заказ';break;case'promocode':message='Вы уверены, что хотите удалить этот промокод?';entityName='промокод';break;case'admin':message='Вы уверены, что хотите удалить этого администратора?';entityName='администратора';break}showConfirmationModal(message,type,id,deleteEntity)}
+
+        function deleteEntity(id,type){switch(type){case'product':deleteProduct(id);break;case'category':deleteCategory(id);break;case'order':deleteOrder(id);break;case'promocode':deletePromocode(id);break;case'admin':deleteAdmin(id);break}}
 
         async function moveProductUp(productId){const products=adminData.products;const index=products.findIndex(p=>p.id===productId);if(index>0){[products[index],products[index-1]]=[products[index-1],products[index]];await updateProductsOrder();loadProductsAdmin()}}
 
         async function moveProductDown(productId){const products=adminData.products;const index=products.findIndex(p=>p.id===productId);if(index<products.length-1){[products[index],products[index+1]]=[products[index+1],products[index]];await updateProductsOrder();loadProductsAdmin()}}
 
+        async function moveCategoryUp(categoryId){const categories=adminData.categories;const index=categories.findIndex(c=>c.id===categoryId);if(index>0){[categories[index],categories[index-1]]=[categories[index-1],categories[index]];await updateCategoriesOrder();loadCategories()}}
+
+        async function moveCategoryDown(categoryId){const categories=adminData.categories;const index=categories.findIndex(c=>c.id===categoryId);if(index<categories.length-1){[categories[index],categories[index+1]]=[categories[index+1],categories[index]];await updateCategoriesOrder();loadCategories()}}
+
         async function updateProductsOrder(){const productsOrder={};adminData.products.forEach((product,index)=>{productsOrder[product.id]=index+1});try{const response=await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:productsOrder})});const result=await response.json();if(result.success){showToast('Порядок товаров обновлен','success')}}catch(error){console.error('Error updating products order:',error);showToast('Ошибка обновления порядка','error')}}
+
+        async function updateCategoriesOrder(){const categoriesOrder={};adminData.categories.forEach((category,index)=>{categoriesOrder[category.id]=index+1});try{const response=await fetch('/api/admin/categories/reorder',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:categoriesOrder})});const result=await response.json();if(result.success){showToast('Порядок категорий обновлен','success')}}catch(error){console.error('Error updating categories order:',error);showToast('Ошибка обновления порядка','error')}}
 
         async function loadOrdersAdmin(){try{const response=await fetch('/api/order',{headers:{'Is-Admin':'true','User-Id':tg.initDataUnsafe.user?.id||''}});const orders=await response.json();adminData.orders=orders;renderOrdersAdmin(orders)}catch(error){console.error('Error loading orders admin:',error)}}
 
-        function renderOrdersAdmin(orders){const ordersList=document.getElementById('ordersList');const pagination=document.getElementById('ordersPagination');ordersList.innerHTML='';if(orders.length===0){ordersList.innerHTML='<tr><td colspan="5" class="empty-table-message">Заказы не найдены</td></tr>';pagination.innerHTML='';return}const statusNames={1:{name:'Новый',color:'#EF4444',class:'new'},2:{name:'Подтвержден',color:'#F59E0B',class:'confirmed'},3:{name:'Собирается',color:'#8B5CF6',class:'confirmed'},4:{name:'В пути',color:'#3B82F6',class:'confirmed'},5:{name:'Доставлен',color:'#10B981',class:'delivered'},6:{name:'Отменен',color:'#6B7280',class:'cancelled'}};const startIndex=(currentOrdersPage-1)*ordersPerPage;const endIndex=startIndex+ordersPerPage;const paginatedOrders=orders.slice(startIndex,endIndex);paginatedOrders.forEach(order=>{const status=statusNames[order.status_id]||{name:'Неизвестен',color:'#6B7280',class:'new'};const telegramLink=`tg://openmessage?user_id=${order.user_id}`;const phoneLink=`https://t.me/+${order.phone.replace(/\D/g,'')}`;const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td>#${order.id}</td><td><strong>${order.user_name}</strong><div style="font-size:11px;color:var(--text-light)">${order.phone}</div></td><td><strong>${order.final_amount||order.total_amount} ₽</strong></td><td><span class="badge ${status.class}">${status.name}</span></td><td><div class="admin-actions"><button class="contact-btn" onclick="window.open('${telegramLink}')" title="Написать по ID"><i class="fas fa-user fa-sm"></i></button><button class="contact-btn" onclick="window.open('${phoneLink}')" title="Написать по номеру"><i class="fas fa-phone fa-sm"></i></button><button class="btn btn-primary btn-sm" onclick="changeOrderStatus(${order.id})" title="Изменить статус"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id})" title="Удалить заказ"><i class="fas fa-trash fa-lg"></i></button></div></td>`;ordersList.appendChild(row)});const totalPages=Math.ceil(orders.length/ordersPerPage);pagination.innerHTML='';for(let i=1;i<=totalPages;i++){const pageBtn=document.createElement('button');pageBtn.className=`page-btn ${i===currentOrdersPage?'active':''}`;pageBtn.textContent=i;pageBtn.onclick=()=>{currentOrdersPage=i;renderOrdersAdmin(adminData.orders)};pagination.appendChild(pageBtn)}}
+        function renderOrdersAdmin(orders){const ordersList=document.getElementById('ordersList');const pagination=document.getElementById('ordersPagination');ordersList.innerHTML='';if(orders.length===0){ordersList.innerHTML='<tr><td colspan="5" class="empty-table-message">Заказы не найдены</td></tr>';pagination.innerHTML='';return}const statusNames={1:{name:'Новый',color:'#EF4444',class:'new'},2:{name:'Подтвержден',color:'#F59E0B',class:'confirmed'},3:{name:'Собирается',color:'#8B5CF6',class:'confirmed'},4:{name:'В пути',color:'#3B82F6',class:'confirmed'},5:{name:'Доставлен',color:'#10B981',class:'delivered'},6:{name:'Отменен',color:'#6B7280',class:'cancelled'}};const startIndex=(currentOrdersPage-1)*ordersPerPage;const endIndex=startIndex+ordersPerPage;const paginatedOrders=orders.slice(startIndex,endIndex);paginatedOrders.forEach(order=>{const status=statusNames[order.status_id]||{name:'Неизвестен',color:'#6B7280',class:'new'};const telegramLink=`tg://openmessage?user_id=${order.user_id}`;const phoneLink=`https://t.me/+${order.phone.replace(/\D/g,'')}`;const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td>#${order.id}</td><td><strong>${order.user_name}</strong><div style="font-size:11px;color:var(--text-light)">${order.phone}</div></td><td><strong>${order.final_amount||order.total_amount} ₽</strong></td><td><span class="badge ${status.class}">${status.name}</span></td><td><div class="admin-actions"><button class="contact-btn" onclick="window.open('${telegramLink}')" title="Написать по ID"><i class="fas fa-user fa-sm"></i></button><button class="contact-btn" onclick="window.open('${phoneLink}')" title="Написать по номеру"><i class="fas fa-phone fa-sm"></i></button><button class="btn btn-primary btn-sm" onclick="changeOrderStatus(${order.id})" title="Изменить статус"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('order',${order.id})" title="Удалить заказ"><i class="fas fa-trash fa-lg"></i></button></div></td>`;ordersList.appendChild(row)});const totalPages=Math.ceil(orders.length/ordersPerPage);pagination.innerHTML='';for(let i=1;i<=totalPages;i++){const pageBtn=document.createElement('button');pageBtn.className=`page-btn ${i===currentOrdersPage?'active':''}`;pageBtn.textContent=i;pageBtn.onclick=()=>{currentOrdersPage=i;renderOrdersAdmin(adminData.orders)};pagination.appendChild(pageBtn)}}
 
         async function loadPromocodes(){try{const response=await fetch('/api/promocodes',{headers:{'Telegram-Id':tg.initDataUnsafe.user?.id||''}});const promocodes=await response.json();adminData.promocodes=promocodes;renderPromocodes(promocodes)}catch(error){console.error('Error loading promocodes:',error)}}
 
-        function renderPromocodes(promocodes){const promocodesList=document.getElementById('promocodesList');promocodesList.innerHTML='';if(promocodes.length===0){promocodesList.innerHTML='<tr><td colspan="5" class="empty-table-message">Промокоды не найдены</td></tr>';return}promocodes.forEach(promo=>{const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td><strong>${promo.code}</strong></td><td><div class="promo-discount">${promo.discount_value}${promo.discount_type==='percentage'?'%':'₽'}</div></td><td>${promo.used_count||0}/${promo.max_uses||'∞'}</td><td><span class="badge ${promo.is_active?'delivered':'cancelled'}">${promo.is_active?'Активен':'Неактивен'}</span></td><td>${currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deletePromocode(${promo.id})"><i class="fas fa-trash"></i></button>`:'-'}</td>`;promocodesList.appendChild(row)})}
+        function renderPromocodes(promocodes){const promocodesList=document.getElementById('promocodesList');promocodesList.innerHTML='';if(promocodes.length===0){promocodesList.innerHTML='<tr><td colspan="5" class="empty-table-message">Промокоды не найдены</td></tr>';return}promocodes.forEach(promo=>{const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td><strong>${promo.code}</strong></td><td><div class="promo-discount">${promo.discount_value}${promo.discount_type==='percentage'?'%':'₽'}</div></td><td>${promo.used_count||0}/${promo.max_uses||'∞'}</td><td><span class="badge ${promo.is_active?'delivered':'cancelled'}">${promo.is_active?'Активен':'Неактивен'}</span></td><td>${currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('promocode',${promo.id})"><i class="fas fa-trash"></i></button>`:'-'}</td>`;promocodesList.appendChild(row)})}
 
         async function loadAdmins(){try{const response=await fetch('/api/admin/admins');const admins=await response.json();adminData.admins=admins;renderAdmins(admins)}catch(error){console.error('Error loading admins:',error)}}
 
-        function renderAdmins(admins){const adminsList=document.getElementById('adminsList');adminsList.innerHTML='';if(admins.length===0){adminsList.innerHTML='<tr><td colspan="5" class="empty-table-message">Администраторы не найдены</td></tr>';return}admins.forEach(admin=>{const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td>${admin.id}</td><td>${admin.first_name}</td><td>@${admin.username}</td><td><span class="role-badge ${admin.role==='owner'?'role-owner':'role-admin'}">${admin.role==='owner'?'Владелец':'Админ'}</span></td><td>${admin.role!=='owner'&&currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="deleteAdmin(${admin.id})"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--text-light);font-size:10px">Нельзя удалить</span>'}</td>`;adminsList.appendChild(row)})}
+        function renderAdmins(admins){const adminsList=document.getElementById('adminsList');adminsList.innerHTML='';if(admins.length===0){adminsList.innerHTML='<tr><td colspan="5" class="empty-table-message">Администраторы не найдены</td></tr>';return}admins.forEach(admin=>{const row=document.createElement('tr');row.className='table-row';row.innerHTML=`<td>${admin.id}</td><td>${admin.first_name}</td><td>@${admin.username}</td><td><span class="role-badge ${admin.role==='owner'?'role-owner':'role-admin'}">${admin.role==='owner'?'Владелец':'Админ'}</span></td><td>${admin.role!=='owner'&&currentUserRole==='owner'?`<button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('admin',${admin.id})"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--text-light);font-size:10px">Нельзя удалить</span>'}</td>`;adminsList.appendChild(row)})}
 
         async function loadSettings(){try{const response=await fetch('/api/admin/settings');const settings=await response.json();adminData.settings=settings;document.getElementById('shopNameInput').value=settings.shop_name?.value||'🌸 Flower Shop';document.getElementById('shopSubtitleInput').value=settings.shop_subtitle?.value||'Элитные букеты с доставкой по Ярославлю';document.getElementById('shopPhone').value=settings.contacts?.phone||'+7 (999) 123-45-67';document.getElementById('shopAddress').value=settings.contacts?.address||'Ярославль, ул. Цветочная, 15';document.getElementById('shopWorkingHours').value=settings.working_hours?.value||'Ежедневно с 9:00 до 21:00';document.getElementById('deliveryPrice').value=settings.delivery_price?.value||200;document.getElementById('freeDeliveryMin').value=settings.free_delivery_min?.value||3000;deliveryPrice=settings.delivery_price?.value||200;freeDeliveryMin=settings.free_delivery_min?.value||3000;updateShopHeader();const themesResponse=await fetch('/api/admin/themes');const themes=await themesResponse.json();adminData.themes=themes;renderThemes(themes,settings.active_theme?.value||'4');if(settings.header_patterns){activePattern=settings.header_patterns.active||'dots';applyPattern(activePattern);document.querySelectorAll('.pattern-option').forEach(opt=>opt.classList.remove('selected'));const selectedPattern=document.querySelector(`.pattern-option[data-pattern="${activePattern}"]`);if(selectedPattern){selectedPattern.classList.add('selected');}}document.getElementById('snowEffect').checked=settings.snow_effect?.value||false;snowEnabled=settings.snow_effect?.value||false;toggleSnowfall(snowEnabled);document.getElementById('rainEffect').checked=settings.rain_effect?.value||false;rainEnabled=settings.rain_effect?.value||false;toggleRainfall(rainEnabled);document.getElementById('confettiEffect').checked=settings.confetti_effect?.value||false;confettiEnabled=settings.confetti_effect?.value||false;toggleConfetti(confettiEnabled);document.getElementById('nightEffect').checked=settings.night_effect?.value||false;nightEnabled=settings.night_effect?.value||false;toggleNightMode(nightEnabled);}catch(error){console.error('Error loading settings:',error)}}
 
@@ -1459,7 +1549,7 @@
 
         function selectTheme(themeId){fetch('/api/themes',{method:'PUT',headers:{'Content-Type':'application/json','Telegram-Id':String(tg.initDataUnsafe.user?.id||'')},body:JSON.stringify({theme_id:themeId})}).then(response=>response.json()).then(result=>{if(result.success){document.querySelectorAll('.theme-option').forEach(opt=>opt.classList.remove('selected'));const selectedTheme=document.querySelector(`.theme-option[data-theme-id="${themeId}"]`);if(selectedTheme){selectedTheme.classList.add('selected');}applyTheme(themeId);showToast('Тема применена','success')}}).catch(error=>{console.error('Error selecting theme:',error);showToast('Ошибка применения темы','error')})}
 
-        function applyTheme(themeId){const theme=adminData.themes.find(t=>t.id==themeId);if(theme){const root=document.documentElement;const bgColor=theme.background_value;root.style.setProperty('--header-bg',bgColor);root.style.setProperty('--primary','#6b7280');root.style.setProperty('--primary-dark','#374151');root.style.setProperty('--primary-light','#d1d5db');root.style.setProperty('--secondary','#9ca3af');root.style.setProperty('--accent','#6b7280');root.style.setProperty('--accent-dark','#374151');root.style.setProperty('--price-color','#6b7280');root.style.setProperty('--button-bg','linear-gradient(135deg,#6b7280 0%,#374151 100%)');root.style.setProperty('--fact-border','#6b7280');root.style.setProperty('--fact-icon','#f59e0b');document.body.style.background=bgColor;document.getElementById('shopHeader').style.background=bgColor;document.querySelector('.admin-header').style.background=bgColor;document.querySelector('.help-header').style.background=bgColor;fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'active_theme',value:{value:themeId}})});}}
+        function applyTheme(themeId){const theme=adminData.themes.find(t=>t.id==themeId);if(theme){const root=document.documentElement;const bgColor=theme.background_value;root.style.setProperty('--header-bg',bgColor);root.style.setProperty('--primary','#6b7280');root.style.setProperty('--primary-dark','#374151');root.style.setProperty('--primary-light','#d1d5db');root.style.setProperty('--secondary','#9ca3af');root.style.setProperty('--accent','#6b7280');root.style.setProperty('--accent-dark','#374151');root.style.setProperty('--price-color','#000000');root.style.setProperty('--button-bg','linear-gradient(135deg,#6b7280 0%,#374151 100%)');root.style.setProperty('--fact-border','#6b7280');root.style.setProperty('--fact-icon','#f59e0b');document.body.style.background=bgColor;document.getElementById('shopHeader').style.background=bgColor;document.querySelector('.admin-header').style.background=bgColor;document.querySelector('.help-header').style.background=bgColor;fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'active_theme',value:{value:themeId}})});}}
 
         function selectPattern(pattern){activePattern=pattern;document.querySelectorAll('.pattern-option').forEach(opt=>opt.classList.remove('selected'));document.querySelector(`.pattern-option[data-pattern="${pattern}"]`).classList.add('selected');applyPattern(pattern);fetch('/api/themes',{method:'PUT',headers:{'Content-Type':'application/json','Telegram-Id':String(tg.initDataUnsafe.user?.id||'')},body:JSON.stringify({pattern:pattern})}).then(response=>response.json()).then(result=>{if(result.success){showToast('Узор применен','success')}}).catch(error=>{console.error('Error selecting pattern:',error);showToast('Ошибка применения узора','error')})}
 
@@ -1475,17 +1565,17 @@
 
         function toggleAdminForm(){const content=document.getElementById('adminFormContent');const icon=document.getElementById('adminFormIcon');content.classList.toggle('expanded');icon.style.transform=content.classList.contains('expanded')?'rotate(180deg)':'rotate(0deg)'}
 
+        function toggleSection(sectionId){const section=document.getElementById(sectionId);section.classList.toggle('expanded')}
+
         async function addProduct(){if(!selectedCategory){showToast('Выберите категорию','error');return}const product={name:document.getElementById('productName').value,price:parseInt(document.getElementById('productPrice').value),image_url:document.getElementById('productImage').value,category:selectedCategory,description:document.getElementById('productDescription').value,fact:document.getElementById('productFact').value,is_available:true,is_featured:document.getElementById('productFeatured').checked};if(!product.name||!product.price){showToast('Заполните название и цену','error');return}try{const response=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(product)});const result=await response.json();if(result.success){showToast('Товар успешно добавлен','success');loadProductsAdmin();resetProductForm();loadProducts()}}catch(error){console.error('Error adding product:',error);showToast('Ошибка добавления товара','error')}}
 
         async function addCategory(){if(!selectedIcon){showToast('Выберите иконку для категории','error');return}const category={name:document.getElementById('categoryName').value,slug:document.getElementById('categorySlug').value,icon:selectedIcon};if(!category.name||!category.slug){showToast('Заполните название и slug категории','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)});const result=await response.json();if(result.success){showToast('Категория успешно создана','success');loadCategories();resetCategoryForm();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error adding category:',error);showToast('Ошибка создания категории','error')}}
 
-        async function editCategory(categoryId){const category=adminData.categories.find(c=>c.id===categoryId);if(!category)return;document.getElementById('editCategoryId').value=category.id;document.getElementById('editCategoryName').value=category.name;document.getElementById('editCategorySlug').value=category.slug;selectedIcon=category.icon;document.getElementById('editCategoryForm').style.display='block';document.getElementById('categoryForm').style.display='none';renderEditIconGrid();}
+        async function editCategory(categoryId){const category=adminData.categories.find(c=>c.id===categoryId);if(!category)return;document.getElementById('editCategoryId').value=category.id;document.getElementById('editCategoryName').value=category.name;document.getElementById('editCategorySlug').value=category.slug;document.getElementById('editCategoryActive').checked=category.is_active;selectedIcon=category.icon;renderEditIconGrid();document.getElementById('editCategoryModal').style.display='flex'}
 
         function renderEditIconGrid(){const editIconGrid=document.getElementById('editIconGrid');editIconGrid.innerHTML='';const icons=['fas fa-heart','fas fa-star','fas fa-sun','fas fa-moon','fas fa-leaf','fas fa-spa','fas fa-seedling','fas fa-feather','fas fa-cloud','fas fa-fire','fas fa-tint','fas fa-snowflake','fas fa-tree','fas fa-mountain','fas fa-umbrella','fas fa-gem'];icons.forEach(icon=>{const option=document.createElement('div');option.className=`icon-option ${icon===selectedIcon?'selected':''}`;option.dataset.icon=icon;option.innerHTML=`<i class="${icon}"></i><div>${icon.split('fa-')[1]}</div>`;option.addEventListener('click',function(){document.querySelectorAll('.icon-option').forEach(opt=>opt.classList.remove('selected'));this.classList.add('selected');selectedIcon=this.dataset.icon;});editIconGrid.appendChild(option);});}
 
-        async function updateCategory(){const categoryId=document.getElementById('editCategoryId').value;const category={name:document.getElementById('editCategoryName').value,slug:document.getElementById('editCategorySlug').value,icon:selectedIcon};try{const response=await fetch('/api/admin/category/'+categoryId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)});const result=await response.json();if(result.success){showToast('Категория успешно обновлена','success');document.getElementById('editCategoryForm').style.display='none';document.getElementById('categoryForm').style.display='block';loadCategories();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error updating category:',error);showToast('Ошибка обновления категории','error')}}
-
-        function cancelEditCategory(){document.getElementById('editCategoryForm').style.display='none';document.getElementById('categoryForm').style.display='block';}
+        async function updateCategory(){const categoryId=document.getElementById('editCategoryId').value;const category={name:document.getElementById('editCategoryName').value,slug:document.getElementById('editCategorySlug').value,icon:selectedIcon,is_active:document.getElementById('editCategoryActive').checked};try{const response=await fetch('/api/admin/category/'+categoryId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(category)});const result=await response.json();if(result.success){showToast('Категория успешно обновлена','success');document.getElementById('editCategoryModal').style.display='none';loadCategories();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error updating category:',error);showToast('Ошибка обновления категории','error')}}
 
         async function addPromocode(){const promoData={code:document.getElementById('promoCode').value,discount_type:selectedDiscountType,discount_value:parseInt(document.getElementById('promoDiscountValue').value),min_order_amount:parseInt(document.getElementById('promoMinOrder').value)||0,max_uses:document.getElementById('promoMaxUses').value?parseInt(document.getElementById('promoMaxUses').value):null,valid_until:document.getElementById('promoValidUntil').value||null};if(!promoData.code||!promoData.discount_value){showToast('Заполните код и значение скидки','error');return}try{const response=await fetch('/api/promocodes',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify(promoData)});const result=await response.json();if(result.success){showToast('Промокод успешно создан','success');loadPromocodes();resetPromoForm()}}catch(error){console.error('Error adding promocode:',error);showToast('Ошибка создания промокода','error')}}
 
@@ -1493,11 +1583,11 @@
 
         async function updateProduct(){const productId=document.getElementById('editProductId').value;const product={name:document.getElementById('editProductName').value,price:parseInt(document.getElementById('editProductPrice').value),image_url:document.getElementById('editProductImage').value,category:selectedCategory,description:document.getElementById('editProductDescription').value,fact:document.getElementById('editProductFact').value,is_available:document.getElementById('editProductAvailable').checked,is_featured:document.getElementById('editProductFeatured').checked};try{const response=await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...product,id:parseInt(productId)})});const result=await response.json();if(result.success){showToast('Товар успешно обновлен','success');document.getElementById('editProductModal').style.display='none';loadProductsAdmin();loadProducts()}}catch(error){console.error('Error updating product:',error);showToast('Ошибка обновления товара','error')}}
 
-        async function deleteProduct(productId){if(!confirm('Удалить этот товар?'))return;try{const response=await fetch(`/api/products/${productId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Товар удален','success');loadProductsAdmin();loadProducts()}}catch(error){console.error('Error deleting product:',error);showToast('Ошибка удаления товара','error')}}
+        async function deleteProduct(productId){try{const response=await fetch(`/api/products/${productId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Товар удален','success');loadProductsAdmin();loadProducts()}}catch(error){console.error('Error deleting product:',error);showToast('Ошибка удаления товара','error')}}
 
-        async function deleteCategory(categoryId){if(!confirm('Удалить эту категорию? Товары в этой категории станут без категории.'))return;try{const response=await fetch(`/api/admin/category/${categoryId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Категория удалена','success');loadCategories();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error deleting category:',error);showToast('Ошибка удаления категории','error')}}
+        async function deleteCategory(categoryId){try{const response=await fetch(`/api/admin/category/${categoryId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Категория удалена','success');loadCategories();renderCategoriesAdmin(adminData.categories)}}catch(error){console.error('Error deleting category:',error);showToast('Ошибка удаления категории','error')}}
 
-        async function deletePromocode(promocodeId){if(!confirm('Удалить этот промокод?'))return;try{const response=await fetch(`/api/promocodes/${promocodeId}`,{method:'DELETE',headers:{'Telegram-Id':tg.initDataUnsafe.user?.id||''}});const result=await response.json();if(result.success){showToast('Промокод удален','success');loadPromocodes()}}catch(error){console.error('Error deleting promocode:',error);showToast('Ошибка удаления промокода','error')}}
+        async function deletePromocode(promocodeId){try{const response=await fetch(`/api/promocodes/${promocodeId}`,{method:'DELETE',headers:{'Telegram-Id':tg.initDataUnsafe.user?.id||''}});const result=await response.json();if(result.success){showToast('Промокод удален','success');loadPromocodes()}}catch(error){console.error('Error deleting promocode:',error);showToast('Ошибка удаления промокода','error')}}
 
         function changeOrderStatus(orderId){currentOrderId=orderId;selectedStatus=null;document.querySelectorAll('.status-option').forEach(opt=>opt.classList.remove('selected'));document.getElementById('applyStatusBtn').disabled=true;document.getElementById('statusModal').style.display='flex'}
 
@@ -1509,11 +1599,11 @@
 
         async function updateOrderStatus(orderId,statusId){try{const response=await fetch('/api/order',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:parseInt(orderId),status_id:parseInt(statusId)})});const result=await response.json();if(result.success){showToast('Статус заказа обновлен','success');loadOrdersAdmin()}}catch(error){console.error('Error updating order status:',error);showToast('Ошибка обновления статуса','error')}}
 
-        async function deleteOrder(orderId){if(!confirm('Удалить этот заказ?'))return;try{const response=await fetch(`/api/order/${orderId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Заказ удален','success');loadOrdersAdmin()}}catch(error){console.error('Error deleting order:',error);showToast('Ошибка удаления заказа','error')}}
+        async function deleteOrder(orderId){try{const response=await fetch(`/api/order/${orderId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Заказ удален','success');loadOrdersAdmin()}}catch(error){console.error('Error deleting order:',error);showToast('Ошибка удаления заказа','error')}}
 
         async function addAdmin(){const admin={telegram_id:document.getElementById('adminTelegramId').value,username:document.getElementById('adminUsername').value.replace('@',''),first_name:document.getElementById('adminFirstName').value,role:selectedRole};if(!admin.telegram_id||!admin.first_name){showToast('Заполните обязательные поля','error');return}try{const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(admin)});const result=await response.json();if(result.success){showToast('Администратор добавлен','success');loadAdmins();resetAdminForm()}}catch(error){console.error('Error adding admin:',error);showToast('Ошибка добавления администратора','error')}}
 
-        async function deleteAdmin(adminId){if(!confirm('Удалить этого администратора?'))return;try{const response=await fetch(`/api/admin/${adminId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Администратор удален','success');loadAdmins()}}catch(error){console.error('Error deleting admin:',error);showToast('Ошибка удаления администратора','error')}}
+        async function deleteAdmin(adminId){try{const response=await fetch(`/api/admin/${adminId}`,{method:'DELETE'});const result=await response.json();if(result.success){showToast('Администратор удален','success');loadAdmins()}}catch(error){console.error('Error deleting admin:',error);showToast('Ошибка удаления администратора','error')}}
 
         function resetProductForm(){document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productImage').value='';document.getElementById('productDescription').value='';document.getElementById('productFact').value='';document.getElementById('productFeatured').checked=false;selectedCategory=null;document.getElementById('categoryDropdownToggle').querySelector('span').textContent='Выберите категорию'}
 
@@ -1527,7 +1617,7 @@
 
         function filterOrders(){const searchTerm=document.getElementById('orderSearch').value.toLowerCase();const activeFilter=document.querySelector('.filter-btn.active')?.dataset.status||'all';const filteredOrders=adminData.orders.filter(order=>{const matchesSearch=order.user_name.toLowerCase().includes(searchTerm)||order.phone.includes(searchTerm)||order.id.toString().includes(searchTerm);const matchesFilter=activeFilter==='all'||order.status_id.toString()===activeFilter;return matchesSearch&&matchesFilter});renderOrdersAdmin(filteredOrders)}
 
-        async function saveShopSettings(){try{const settings={shop_name:document.getElementById('shopNameInput').value,shop_subtitle:document.getElementById('shopSubtitleInput').value,phone:document.getElementById('shopPhone').value,address:document.getElementById('shopAddress').value,working_hours:document.getElementById('shopWorkingHours').value,delivery_price:parseInt(document.getElementById('deliveryPrice').value),free_delivery_min:parseInt(document.getElementById('freeDeliveryMin').value),snow_effect:document.getElementById('snowEffect').checked,rain_effect:document.getElementById('rainEffect').checked,confetti_effect:document.getElementById('confettiEffect').checked,night_effect:document.getElementById('nightEffect').checked};deliveryPrice=settings.delivery_price;freeDeliveryMin=settings.free_delivery_min;snowEnabled=settings.snow_effect;rainEnabled=settings.rain_effect;confettiEnabled=settings.confetti_effect;nightEnabled=settings.night_effect;const updateData=[{key:'shop_name',value:{value:settings.shop_name}},{key:'shop_subtitle',value:{value:settings.shop_subtitle}},{key:'contacts',value:{phone:settings.phone,address:settings.address}},{key:'working_hours',value:{value:settings.working_hours}},{key:'delivery_price',value:{value:settings.delivery_price}},{key:'free_delivery_min',value:{value:settings.free_delivery_min}},{key:'header_patterns',value:{patterns:['dots','lines','flowers'],active:activePattern}},{key:'snow_effect',value:{value:settings.snow_effect}},{key:'rain_effect',value:{value:settings.rain_effect}},{key:'confetti_effect',value:{value:settings.confetti_effect}},{key:'night_effect',value:{value:settings.night_effect}}];let successCount=0;for(const setting of updateData){const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(setting)});if(response.ok){successCount++}}if(successCount>0){showToast('Настройки успешно сохранены','success');updateShopHeader();toggleSnowfall(snowEnabled);toggleRainfall(rainEnabled);toggleConfetti(confettiEnabled);toggleNightMode(nightEnabled);}else{showToast('Ошибка сохранения настроек','error')}}catch(error){console.error('Error saving settings:',error);showToast('Ошибка сохранения настроек','error')}}
+        async function saveShopSettings(){try{const settings={shop_name:document.getElementById('shopNameInput').value,shop_subtitle:document.getElementById('shopSubtitleInput').value,phone:document.getElementById('shopPhone').value,address:document.getElementById('shopAddress').value,working_hours:document.getElementById('shopWorkingHours').value,delivery_price:parseInt(document.getElementById('deliveryPrice').value),free_delivery_min:parseInt(document.getElementById('freeDeliveryMin').value),snow_effect:document.getElementById('snowEffect').checked,rain_effect:document.getElementById('rainEffect').checked,confetti_effect:document.getElementById('confettiEffect').checked,night_effect:document.getElementById('nightEffect').checked};deliveryPrice=settings.delivery_price;freeDeliveryMin=settings.free_delivery_min;snowEnabled=settings.snow_effect;rainEnabled=settings.rain_effect;confettiEnabled=settings.confetti_effect;nightEnabled=settings.night_effect;const updateData=[{key:'shop_name',value:{value:settings.shop_name}},{key:'shop_subtitle',value:{value:settings.shop_subtitle}},{key:'contacts',value:{phone:settings.phone,address:settings.address}},{key:'working_hours',value:{value:settings.working_hours}},{key:'delivery_price',value:{value:settings.delivery_price}},{key:'free_delivery_min',value:{value:settings.free_delivery_min}},{key:'header_patterns',value:{patterns:['dots','lines','flowers','hearts','stars','waves','geometric'],active:activePattern}},{key:'snow_effect',value:{value:settings.snow_effect}},{key:'rain_effect',value:{value:settings.rain_effect}},{key:'confetti_effect',value:{value:settings.confetti_effect}},{key:'night_effect',value:{value:settings.night_effect}}];let successCount=0;for(const setting of updateData){const response=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(setting)});if(response.ok){successCount++}}if(successCount>0){showToast('Настройки успешно сохранены','success');updateShopHeader();toggleSnowfall(snowEnabled);toggleRainfall(rainEnabled);toggleConfetti(confettiEnabled);toggleNightMode(nightEnabled);}else{showToast('Ошибка сохранения настроек','error')}}catch(error){console.error('Error saving settings:',error);showToast('Ошибка сохранения настроек','error')}}
 
         function createSnowfall(){const container=document.getElementById('snowContainer');container.innerHTML='';snowflakes=[];for(let i=0;i<50;i++){const snowflake=document.createElement('div');snowflake.className='snowflake';const size=Math.random()*5+2;snowflake.style.width=size+'px';snowflake.style.height=size+'px';snowflake.style.left=Math.random()*100+'%';snowflake.style.opacity=Math.random()*0.6+0.4;snowflake.style.animationDuration=(Math.random()*5+5)+'s';snowflake.style.animationDelay=Math.random()*5+'s';container.appendChild(snowflake);snowflakes.push(snowflake)}}
 
@@ -1541,9 +1631,11 @@
 
         function toggleConfetti(enabled){const container=document.getElementById('confettiContainer');if(enabled){container.style.display='block';createConfetti();}else{container.style.display='none';confettiPieces.forEach(piece=>piece.remove());confettiPieces=[];}}
 
-        function createNightMode(){const container=document.getElementById('nightContainer');container.innerHTML='';const overlay=document.createElement('div');overlay.className='night-overlay';container.appendChild(overlay);lightBeams=[];}
+        function createNightMode(){const container=document.getElementById('nightContainer');container.innerHTML='';const overlay=document.createElement('div');overlay.className='night-overlay';container.appendChild(overlay);lightSpots=[];setInterval(()=>{if(!nightEnabled)return;createRandomSpot(container)},3000)}
 
-        function toggleNightMode(enabled){const container=document.getElementById('nightContainer');if(enabled){container.style.display='block';createNightMode();setupNightEffect();}else{container.style.display='none';lightBeams.forEach(beam=>beam.remove());lightBeams=[];}}
+        function createRandomSpot(container){const spot=document.createElement('div');spot.className='light-spot';spot.style.left=Math.random()*100+'%';spot.style.top=Math.random()*100+'%';spot.style.animation='spotAppear 3s ease-out';container.appendChild(spot);lightSpots.push(spot);setTimeout(()=>{if(spot.parentNode){spot.remove();lightSpots=lightSpots.filter(s=>s!==spot)}},3000)}
+
+        function toggleNightMode(enabled){const container=document.getElementById('nightContainer');if(enabled){container.style.display='block';createNightMode();setupNightEffect();}else{container.style.display='none';lightSpots.forEach(spot=>spot.remove());lightSpots=[];}}
 
         async function dangerousAction(action){let codeInput;let expectedCode;if(action==='reset_orders'){codeInput=document.getElementById('deleteOrdersCode');expectedCode='DELETE_ORDERS'}else if(action==='reset_stats'){codeInput=document.getElementById('resetStatsCode');expectedCode='RESET_STATS'}else if(action==='delete_promocodes'){codeInput=document.getElementById('deletePromocodesCode');expectedCode='DELETE_PROMOCODES'}else if(action==='delete_products'){codeInput=document.getElementById('deleteProductsCode');expectedCode='DELETE_PRODUCTS'}else if(action==='clear_customers'){codeInput=document.getElementById('clearCustomersCode');expectedCode='CLEAR_CUSTOMERS'}else if(action==='reset_shop'){codeInput=document.getElementById('resetShopCode');expectedCode='RESET_SHOP'}if(!codeInput.value||codeInput.value!==expectedCode){showToast('Неверный код подтверждения','error');return}if(!confirm('Вы уверены? Это действие нельзя отменить!'))return;try{const response=await fetch('/api/dangerous',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify({action:action,confirmation_code:codeInput.value})});const result=await response.json();if(result.success){showToast(result.message,'success');codeInput.value='';loadAdminData()}else{showToast(result.error,'error')}}catch(error){console.error('Error performing dangerous action:',error);showToast('Ошибка выполнения операции','error')}}
 
