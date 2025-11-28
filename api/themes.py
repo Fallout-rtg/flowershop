@@ -141,7 +141,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self.log_action("set_active_pattern_start", telegram_id, f"Pattern: {pattern}")
             
-            valid_patterns = ["dots", "lines", "flowers", "none"]
+            valid_patterns = ["dots", "lines", "flowers", "hearts", "stars", "waves", "geometric"]
             if pattern not in valid_patterns:
                 self.log_action("set_active_pattern_invalid", telegram_id, f"Invalid pattern: {pattern}")
                 return False
