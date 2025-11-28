@@ -22,6 +22,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             show_all = self.headers.get('Show-All', 'false') == 'true'
+            print(f"📦 Products GET - Show all: {show_all}")
             
             if show_all:
                 response = supabase.table("products").select("*").order("sort_order").execute()
@@ -29,6 +30,7 @@ class Handler(BaseHTTPRequestHandler):
                 response = supabase.table("products").select("*").eq("is_available", True).order("sort_order").execute()
             
             products = response.data
+            print(f"📦 Found {len(products)} products")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -38,6 +40,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(products).encode('utf-8'))
             
         except Exception as e:
+            print(f"❌ Products GET error: {e}")
             log_error("products_GET", e, "", "Failed to fetch products")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -66,6 +69,7 @@ class Handler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             product_data = json.loads(post_data)
+            print(f"📦 Products POST - Adding product: {product_data.get('name')}")
             
             required_fields = ['name', 'price', 'category']
             for field in required_fields:
@@ -89,6 +93,7 @@ class Handler(BaseHTTPRequestHandler):
             product_data['sort_order'] = max_order + 1
             
             response = supabase.table("products").insert(product_data).execute()
+            print(f"📦 Product inserted: {response.data[0]['id'] if response.data else 'No data'}")
             
             if not response.data:
                 raise Exception("No data returned from insert operation")
@@ -102,6 +107,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
+            print(f"❌ Products POST error: {e}")
             log_error("products_POST", e, "", f"Product data: {product_data}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -115,9 +121,11 @@ class Handler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
+            print(f"📦 Products PUT - Data: {data}")
             
             if 'reorder' in data:
                 products_order = data['reorder']
+                print(f"📦 Reordering products: {products_order}")
                 for product_id, sort_order in products_order.items():
                     supabase.table("products").update({"sort_order": sort_order}).eq("id", int(product_id)).execute()
                 
@@ -135,6 +143,7 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("Product ID is required")
                 
                 update_data = {k: v for k, v in product_data.items() if k != 'id'}
+                print(f"📦 Updating product {product_id} with: {update_data}")
                 response = supabase.table("products").update(update_data).eq("id", product_id).execute()
                 
                 self.send_response(200)
@@ -146,6 +155,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
+            print(f"❌ Products PUT error: {e}")
             log_error("products_PUT", e, "", f"Update data: {data}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -158,6 +168,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             path_parts = self.path.split('/')
             product_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+            print(f"📦 Products DELETE - Hiding product {product_id}")
             
             if not product_id.isdigit():
                 self.send_response(400)
@@ -169,6 +180,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             
             response = supabase.table("products").update({"is_available": False}).eq("id", int(product_id)).execute()
+            print(f"📦 Product hidden: {response.data}")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -179,6 +191,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
+            print(f"❌ Products DELETE error: {e}")
             log_error("products_DELETE", e, "", f"Product ID: {product_id}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
