@@ -155,34 +155,34 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
     def do_DELETE(self):
-        try:
-            path_parts = self.path.split('/')
-            product_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
-            
-            if not product_id.isdigit():
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response = {'success': False, 'error': 'Invalid product ID'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
-                return
-            
-            response = supabase.table("products").update({"is_available": False}).eq("id", int(product_id)).execute()
-            
-            self.send_response(200)
+    try:
+        path_parts = self.path.split('/')
+        product_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+        
+        if not product_id.isdigit():
+            self.send_response(400)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            
-            response_data = {'success': True}
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            
-        except Exception as e:
-            log_error("products_DELETE", e, "", f"Product ID: {product_id}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'success': False, 'error': str(e)}
+            response = {'success': False, 'error': 'Invalid product ID'}
             self.wfile.write(json.dumps(response).encode('utf-8'))
+            return
+        
+        response = supabase.table("products").update({"is_available": False}).eq("id", int(product_id)).execute()
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        response_data = {'success': True}
+        self.wfile.write(json.dumps(response_data).encode('utf-8'))
+        
+    except Exception as e:
+        log_error("products_DELETE", e, "", f"Product ID: {product_id}")
+        self.send_response(500)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        response = {'success': False, 'error': str(e)}
+        self.wfile.write(json.dumps(response).encode('utf-8'))
