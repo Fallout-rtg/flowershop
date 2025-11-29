@@ -38,7 +38,7 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Telegram ID: {telegram_id}")
             
             if not action or not confirmation_code:
-                print("❌ Missing action or confirmation code")
+                print("❌ Пропущено действие или код подтверждения")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -51,7 +51,7 @@ class Handler(BaseHTTPRequestHandler):
             is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
             
             if not is_owner:
-                print("❌ Access denied - user is not owner")
+                print("❌ Доступ запрещен - пользователь не является владельцем")
                 self.send_response(403)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -69,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
                     print(f"Available code: '{code['code']}' (active: {code['is_active']})")
             
             if not code_response.data:
-                print("❌ Invalid confirmation code")
+                print("❌ Неверный код подтверждения")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
