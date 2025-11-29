@@ -359,6 +359,16 @@
         .form-input { width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:12px; font-size:14px; transition:all 0.2s ease; background:white; min-height:48px; font-weight:500 }}
         .product-no-category{border-left:3px solid #6b7280;opacity:0.8}
         .admin-tab-content{display:none}.admin-tab-content.active{display:block}
+        .dangerous-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:4000;padding:16px;backdrop-filter:blur(5px)}
+        .dangerous-modal-content{background:white;border-radius:var(--radius-lg);padding:20px;max-width:320px;width:100%;box-shadow:var(--shadow-lg);text-align:center}
+        .dangerous-modal-icon{font-size:48px;color:#ef4444;margin-bottom:16px}
+        .dangerous-modal-title{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)}
+        .dangerous-modal-message{color:var(--text-light);margin-bottom:20px;line-height:1.4}
+        .dangerous-modal-actions{display:flex;gap:12px;justify-content:center}
+        .dangerous-modal-btn{flex:1;padding:12px 16px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;min-height:44px}
+        .dangerous-modal-btn.cancel{background:#6b7280;color:white}
+        .dangerous-modal-btn.confirm{background:#ef4444;color:white}
+        .dangerous-modal-btn:hover{transform:translateY(-1px)}
     </style>
 </head>
 <body>
@@ -1413,10 +1423,13 @@
             </button>
         </div>
     </div>
+    <div class="dangerous-modal" id="dangerousActionModal"><div class="dangerous-modal-content"><div class="dangerous-modal-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="dangerous-modal-title" id="dangerousModalTitle">Подтверждение действия</div><div class="dangerous-modal-message" id="dangerousModalMessage">Вы уверены, что хотите выполнить это действие? Это действие нельзя отменить!</div><div class="dangerous-modal-actions"><button class="dangerous-modal-btn cancel" onclick="closeDangerousModal()">Отмена</button><button class="dangerous-modal-btn confirm" id="confirmDangerousAction">Подтвердить</button></div></div></div>
 
     <script>
         let tg=window.Telegram.WebApp;tg.expand();tg.ready();
         let cart=[];let currentCategory='all';let products=[];let isAdmin=false;let currentUserRole='';
+        let currentDangerousAction=null;
+        let currentDangerousCode=null;
         let adminData={products:[],orders:[],admins:[],stats:{},settings:{},themes:[],promocodes:[],categories:[]};
         let deliveryOption='pickup';let deliveryPrice=200;let freeDeliveryMin=3000;
         let currentOrdersPage=1;let ordersPerPage=10;
@@ -1650,7 +1663,13 @@
 
         function toggleNightMode(enabled){const container=document.getElementById('nightContainer');if(enabled){container.style.display='block';createNightMode();setupNightEffect();}else{container.style.display='none';lightSpots.forEach(spot=>spot.remove());lightSpots=[];}}
 
-        async function dangerousAction(action){let codeInput;let expectedCode;if(action==='reset_orders'){codeInput=document.getElementById('deleteOrdersCode');expectedCode='DELETE_ORDERS'}else if(action==='reset_stats'){codeInput=document.getElementById('resetStatsCode');expectedCode='RESET_STATS'}else if(action==='delete_promocodes'){codeInput=document.getElementById('deletePromocodesCode');expectedCode='DELETE_PROMOCODES'}else if(action==='delete_products'){codeInput=document.getElementById('deleteProductsCode');expectedCode='DELETE_PRODUCTS'}else if(action==='clear_customers'){codeInput=document.getElementById('clearCustomersCode');expectedCode='CLEAR_CUSTOMERS'}else if(action==='reset_shop'){codeInput=document.getElementById('resetShopCode');expectedCode='RESET_SHOP'}if(!codeInput.value||codeInput.value!==expectedCode){showToast('Неверный код подтверждения','error');return}if(!confirm('Вы уверены? Это действие нельзя отменить!'))return;try{const response=await fetch('/api/dangerous',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify({action:action,confirmation_code:codeInput.value})});const result=await response.json();if(result.success){showToast(result.message,'success');codeInput.value='';loadAdminData()}else{showToast(result.error,'error')}}catch(error){console.error('Error performing dangerous action:',error);showToast('Ошибка выполнения операции','error')}}
+        function showDangerousConfirmation(action,code){currentDangerousAction=action;currentDangerousCode=code;const actionTitles={'reset_orders':'Удаление всех заказов','reset_stats':'Сброс статистики','delete_promocodes':'Удаление всех промокодов','delete_products':'Удаление всех товаров','clear_customers':'Очистка базы клиентов','reset_shop':'Полный сброс магазина'};const actionMessages={'reset_orders':'Это действие полностью удалит все заказов из системы. Восстановление данных будет невозможно.','reset_stats':'Обнулит всю статистику выручки и прибыли. Заказы останутся, но их финансовые показатели будут сброшены.','delete_promocodes':'Полностью удалит все промокоды из системы. Действие необратимо.','delete_products':'Полностью удалит все товары из каталога. Действие необратимо.','clear_customers':'Удалит всех клиентов из системы. Статистика заказов сохранится.','reset_shop':'Полностью очистит всю базу данных магазина. Все данные будут удалены без возможности восстановления.'};document.getElementById('dangerousModalTitle').textContent=actionTitles[action]||'Подтверждение действия';document.getElementById('dangerousModalMessage').textContent=actionMessages[action]||'Вы уверены, что хотите выполнить это действие? Это действие нельзя отменить!';document.getElementById('dangerousActionModal').style.display='flex';document.getElementById('confirmDangerousAction').onclick=executeDangerousAction;}
+        
+        function closeDangerousModal(){document.getElementById('dangerousActionModal').style.display='none';currentDangerousAction=null;currentDangerousCode=null;}
+        
+        async function executeDangerousAction(){if(!currentDangerousAction||!currentDangerousCode)return;closeDangerousModal();try{const response=await fetch('/api/dangerous',{method:'POST',headers:{'Content-Type':'application/json','Telegram-Id':tg.initDataUnsafe.user?.id||''},body:JSON.stringify({action:currentDangerousAction,confirmation_code:currentDangerousCode})});const result=await response.json();if(result.success){showToast(result.message,'success');document.getElementById('deleteOrdersCode').value='';document.getElementById('resetStatsCode').value='';document.getElementById('deletePromocodesCode').value='';document.getElementById('deleteProductsCode').value='';document.getElementById('clearCustomersCode').value='';document.getElementById('resetShopCode').value='';loadAdminData();}else{showToast(result.error,'error')}}catch(error){console.error('Error performing dangerous action:',error);showToast('Ошибка выполнения операции','error')}}
+        
+        async function dangerousAction(action){let codeInput;let expectedCode;if(action==='reset_orders'){codeInput=document.getElementById('deleteOrdersCode');expectedCode='DELETE_ORDERS'}else if(action==='reset_stats'){codeInput=document.getElementById('resetStatsCode');expectedCode='RESET_STATS'}else if(action==='delete_promocodes'){codeInput=document.getElementById('deletePromocodesCode');expectedCode='DELETE_PROMOCODES'}else if(action==='delete_products'){codeInput=document.getElementById('deleteProductsCode');expectedCode='DELETE_PRODUCTS'}else if(action==='clear_customers'){codeInput=document.getElementById('clearCustomersCode');expectedCode='CLEAR_CUSTOMERS'}else if(action==='reset_shop'){codeInput=document.getElementById('resetShopCode');expectedCode='RESET_SHOP'}if(!codeInput.value||codeInput.value!==expectedCode){showToast('Неверный код подтверждения','error');return}showDangerousConfirmation(action,codeInput.value);}
 
         document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',function(){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');if(this.closest('#productsTab')){filterProducts()}else{filterOrders()}})})});
 
