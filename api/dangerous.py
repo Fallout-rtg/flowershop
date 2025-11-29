@@ -30,15 +30,9 @@ class Handler(BaseHTTPRequestHandler):
             action = data.get('action')
             confirmation_code = data.get('confirmation_code')
             
-            print(f"=== DANGEROUS ACTION DEBUG ===")
-            print(f"Raw POST data: {post_data}")
-            print(f"Parsed data: {data}")
-            print(f"Action: {action}")
-            print(f"Confirmation code: {confirmation_code}")
-            print(f"Telegram ID: {telegram_id}")
+            print(f"DANGEROUS ACTION: telegram_id={telegram_id}, action={action}, code={confirmation_code}")
             
             if not action or not confirmation_code:
-                print("❌ Пропущено действие или код подтверждения")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -51,7 +45,6 @@ class Handler(BaseHTTPRequestHandler):
             is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
             
             if not is_owner:
-                print("❌ Доступ запрещен - пользователь не является владельцем")
                 self.send_response(403)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -61,15 +54,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
             
             code_response = supabase.table("confirmation_codes").select("*").eq("code", confirmation_code).eq("is_active", True).execute()
-            print(f"Code validation - Looking for: '{confirmation_code}'")
-            print(f"Found {len(code_response.data)} codes")
-            
-            if code_response.data:
-                for code in code_response.data:
-                    print(f"Available code: '{code['code']}' (active: {code['is_active']})")
             
             if not code_response.data:
-                print("❌ Неверный код подтверждения")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -118,9 +104,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"❌ Error: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            print(f"Error in dangerous action: {str(e)}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
