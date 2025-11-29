@@ -32,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
                 response = supabase.table("products").select("*").eq("is_available", True).order("sort_order").execute()
             
             products = response.data
-            
+
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -70,7 +70,7 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             product_data = json.loads(post_data)
             
-            required_fields = ['name', 'price', 'category']
+            required_fields = ['name', 'price']
             for field in required_fields:
                 if field not in product_data or not product_data[field]:
                     self.send_response(400)
@@ -80,6 +80,9 @@ class Handler(BaseHTTPRequestHandler):
                     response = {'success': False, 'error': f'Missing required field: {field}'}
                     self.wfile.write(json.dumps(response).encode('utf-8'))
                     return
+            
+            if 'category' not in product_data:
+                product_data['category'] = ''
             
             if 'is_available' not in product_data:
                 product_data['is_available'] = True
