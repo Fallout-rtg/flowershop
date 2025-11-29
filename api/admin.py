@@ -52,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
                     'active_promocodes': active_promocodes
                 }
             elif '/themes' in path:
-                response = supabase.table("shop_themes").select("*").order("id").execute()
+                response = supabase.table("shop_themes").select("*").execute()
                 data = response.data
             elif '/settings' in path:
                 response = supabase.table("shop_settings").select("*").execute()
