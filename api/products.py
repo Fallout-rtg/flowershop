@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 import os
 import sys
+from urllib.parse import urlparse, parse_qs
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -21,7 +22,9 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
-            show_all = self.headers.get('Show-All', 'false') == 'true'
+            parsed_path = urlparse(self.path)
+            query_params = parse_qs(parsed_path.query)
+            show_all = query_params.get('show_all', ['false'])[0].lower() == 'true'
             
             if show_all:
                 response = supabase.table("products").select("*").order("sort_order").execute()
@@ -115,11 +118,9 @@ class Handler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
-            print(f"📦 Products PUT - Data: {data}")
             
             if 'reorder' in data:
                 products_order = data['reorder']
-                print(f"📦 Reordering products: {products_order}")
                 for product_id, sort_order in products_order.items():
                     supabase.table("products").update({"sort_order": sort_order}).eq("id", int(product_id)).execute()
                 
@@ -137,9 +138,7 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("Product ID is required")
                 
                 update_data = {k: v for k, v in product_data.items() if k != 'id'}
-                print(f"📦 Updating product {product_id} with: {update_data}")
                 response = supabase.table("products").update(update_data).eq("id", product_id).execute()
-                print(f"📦 Update response: {response.data}")
                 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
@@ -150,7 +149,6 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
-            print(f"❌ Products PUT error: {e}")
             log_error("products_PUT", e, "", f"Update data: {data}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -191,4 +189,3 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
-            
