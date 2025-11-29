@@ -30,9 +30,22 @@ class Handler(BaseHTTPRequestHandler):
             action = data.get('action')
             confirmation_code = data.get('confirmation_code')
             
-            print(f"⚠️ Raw data: {data}")
-            print(f"⚠️ Action: {action}, Code: {confirmation_code}")
-            print(f"⚠️ Dangerous action requested: {action} by {telegram_id}")
+            print(f"=== DANGEROUS ACTION DEBUG ===")
+            print(f"Raw POST data: {post_data}")
+            print(f"Parsed data: {data}")
+            print(f"Action: {action}")
+            print(f"Confirmation code: {confirmation_code}")
+            print(f"Telegram ID: {telegram_id}")
+            
+            if not action or not confirmation_code:
+                print("❌ Missing action or confirmation code")
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'success': False, 'error': 'Missing action or confirmation code'}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                return
             
             admin_response = supabase.table("admins").select("role,id,first_name").eq("telegram_id", telegram_id).eq("is_active", True).execute()
             is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
@@ -48,7 +61,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
             
             code_response = supabase.table("confirmation_codes").select("*").eq("code", confirmation_code).eq("is_active", True).execute()
-            print(f"⚠️ Code validation - Found: {len(code_response.data)} codes for '{confirmation_code}'")
+            print(f"Code validation - Looking for: '{confirmation_code}'")
+            print(f"Found {len(code_response.data)} codes")
+            
+            if code_response.data:
+                for code in code_response.data:
+                    print(f"Available code: '{code['code']}' (active: {code['is_active']})")
             
             if not code_response.data:
                 print("❌ Invalid confirmation code")
@@ -101,7 +119,8 @@ class Handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             print(f"❌ Error: {str(e)}")
-            log_error("dangerous_operations", e, self.headers.get('Telegram-Id', ''), f"Action: {action}")
+            import traceback
+            traceback.print_exc()
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
