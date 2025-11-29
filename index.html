@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -358,6 +358,7 @@
         
         .form-input { width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:12px; font-size:14px; transition:all 0.2s ease; background:white; min-height:48px; font-weight:500 }}
         .product-no-category{border-left:3px solid #6b7280;opacity:0.8}
+        .admin-tab[data-tab="dangerous"]{display:flex !important}
     </style>
 </head>
 <body>
@@ -1501,14 +1502,14 @@
 
         function renderCategoryDropdowns(e){var t=['categoryDropdown','editCategoryDropdown'];t.forEach(function(t){var n=document.getElementById(t);if(n){n.innerHTML='';var i=document.createElement('div');i.className='dropdown-item';i.dataset.value='';i.innerHTML='<i class="fas fa-times"></i> Без категории';n.appendChild(i);e.forEach(function(e){var t=document.createElement('div');t.className='dropdown-item';t.dataset.value=e.slug;t.innerHTML='<i class="'+e.icon+'"></i> '+e.name;n.appendChild(t)})}})}
         
-        async function checkAdminAccess(){try{const telegramId=String(tg.initDataUnsafe.user?.id||'');console.log('Checking admin access for:',telegramId);const response=await fetch('/api/admin',{headers:{'Telegram-Id':telegramId}});const data=await response.json();console.log('Admin check response:',data);isAdmin=data.is_admin===true&&data.is_active!==false;currentUserRole=data.role||'';if(isAdmin){document.getElementById('adminButton').style.display='flex';updateOwnerElements();console.log('Admin access granted, role:',currentUserRole,'isAdmin:',isAdmin);}else{console.log('Admin access denied')}}catch(error){console.error('Ошибка проверки админ-доступа:',error)}} 
+        async function checkAdminAccess(){try{const e=String(tg.initDataUnsafe.user?.id||"");console.log("Checking admin access for:",e);const t=await fetch("/api/admin",{headers:{"Telegram-Id":e}});const n=await t.json();console.log("Admin check response:",n);isAdmin=n.is_admin===true&&n.is_active!==false;currentUserRole=n.role||"";if(isAdmin){document.getElementById("adminButton").style.display="flex";updateOwnerElements();console.log("Admin access granted, role:",currentUserRole,"isAdmin:",isAdmin)}else{console.log("Admin access denied")}}catch(e){console.error("Ошибка проверки админ-доступа:",e)}}
         
-        function updateOwnerElements(){console.log('Updating owner elements, current role:',currentUserRole);if(currentUserRole==='owner'){document.getElementById('dangerousTab').style.display='flex';document.getElementById('promoFormContainer').style.display='block';document.getElementById('adminFormContainer').style.display='block';console.log('Owner elements enabled - dangerous tab should be visible');}else{document.getElementById('dangerousTab').style.display='none';document.getElementById('promoFormContainer').style.display='none';document.getElementById('adminFormContainer').style.display='none';console.log('Owner elements disabled');}}
+        function updateOwnerElements(){console.log("Updating owner elements, current role:",currentUserRole);var e=document.getElementById("dangerousTab");var t=document.getElementById("promoFormContainer");var n=document.getElementById("adminFormContainer");if(currentUserRole==="owner"){e.style.display="flex";t.style.display="block";n.style.display="block";console.log("Owner elements enabled - dangerous tab should be visible")}else{e.style.display="none";t.style.display="none";n.style.display="none";console.log("Owner elements disabled")}}
         
         function switchToCustomerView(){document.getElementById('adminPanel').style.display='none';document.getElementById('customerView').style.display='block';document.getElementById('helpView').style.display='none';document.getElementById('adminButton').style.display=isAdmin?'flex':'none';document.getElementById('helpButton').style.display='flex'}
 
-        function switchToAdminView(){if(!isAdmin){showToast('Нет доступа к панели управления','error');return}document.getElementById('customerView').style.display='none';document.getElementById('adminPanel').style.display='block';document.getElementById('helpView').style.display='none';document.getElementById('adminButton').style.display='none';document.getElementById('helpButton').style.display='none';updateOwnerElements();setTimeout(()=>{setupAdminTabs();loadAdminData()},100)}
-
+        function switchToAdminView(){if(!isAdmin){showToast("Нет доступа к панели управления","error");return}document.getElementById("customerView").style.display="none";document.getElementById("adminPanel").style.display="block";document.getElementById("helpView").style.display="none";document.getElementById("adminButton").style.display="none";document.getElementById("helpButton").style.display="none";updateOwnerElements();setTimeout(function(){setupAdminTabs();loadAdminData()},100)}
+        
         function showHelp(){document.getElementById('customerView').style.display='none';document.getElementById('adminPanel').style.display='none';document.getElementById('helpView').style.display='block';document.getElementById('adminButton').style.display='none';document.getElementById('helpButton').style.display='none'}
 
         function setupAdminTabs(){document.querySelectorAll('.admin-tab').forEach(tab=>{tab.onclick=null});document.querySelectorAll('.admin-tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-tab-content').forEach(c=>c.classList.remove('active'));this.classList.add('active');const tabName=this.dataset.tab;const contentId=tabName+'Tab';const contentElement=document.getElementById(contentId);if(contentElement){contentElement.classList.add('active');switch(tabName){case'dashboard':loadDashboard();break;case'products':loadProductsAdmin();break;case'orders':loadOrdersAdmin();break;case'promocodes':loadPromocodes();break;case'admins':loadAdmins();break;case'settings':loadSettings();break;case'dangerous':break}}})});const firstTab=document.querySelector('.admin-tab[data-tab="dashboard"]');if(firstTab){firstTab.click()}}
