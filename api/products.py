@@ -173,7 +173,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response).encode('utf-8'))
                 return
             
-            response = supabase.table("products").update({"is_available": False}).eq("id", int(product_id)).execute()
+            response = supabase.table("products").delete().eq("id", int(product_id)).execute()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -191,3 +191,4 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
+            
