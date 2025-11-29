@@ -24,9 +24,9 @@ class Handler(BaseHTTPRequestHandler):
             show_all = self.headers.get('Show-All', 'false') == 'true'
             
             if show_all:
-                response = supabase.table("products").select("*").order("sort_order").execute()
+                response = supabase.table("products").select("*").eq("is_deleted", False).order("sort_order").execute()
             else:
-                response = supabase.table("products").select("*").eq("is_available", True).order("sort_order").execute()
+                response = supabase.table("products").select("*").eq("is_available", True).eq("is_deleted", False).order("sort_order").execute()
             
             products = response.data
             
@@ -54,6 +54,7 @@ class Handler(BaseHTTPRequestHandler):
                     "description": "Роскошные красные розы в элегантной упаковке",
                     "fact": "Красные розы символизируют глубокую любовь и страсть. В Древнем Риме они были символом Венеры - богини любви.",
                     "is_available": True,
+                    "is_deleted": False,
                     "is_featured": True,
                     "sort_order": 1
                 }
@@ -80,6 +81,9 @@ class Handler(BaseHTTPRequestHandler):
             
             if 'is_available' not in product_data:
                 product_data['is_available'] = True
+            
+            if 'is_deleted' not in product_data:
+                product_data['is_deleted'] = False
             
             if 'is_featured' not in product_data:
                 product_data['is_featured'] = False
@@ -191,4 +195,3 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
-            
