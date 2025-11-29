@@ -52,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
                     'active_promocodes': active_promocodes
                 }
             elif '/themes' in path:
-                response = supabase.table("shop_themes").select("*").execute()
+                response = supabase.table("shop_themes").select("*").order("id").execute()
                 data = response.data
             elif '/settings' in path:
                 response = supabase.table("shop_settings").select("*").execute()
@@ -118,6 +118,10 @@ class Handler(BaseHTTPRequestHandler):
                     'is_active': data.get('is_active', True)
                 }
                 
+                max_order_response = supabase.table("categories").select("sort_order").order("sort_order", desc=True).limit(1).execute()
+                max_order = max_order_response.data[0]['sort_order'] if max_order_response.data else 0
+                category_data['sort_order'] = max_order + 1
+                
                 response = supabase.table("categories").insert(category_data).execute()
                 
                 self.send_response(200)
@@ -171,7 +175,19 @@ class Handler(BaseHTTPRequestHandler):
             
             path_parts = self.path.split('/')
             
-            if 'category' in path_parts:
+            if 'categories/reorder' in self.path:
+                categories_order = data.get('reorder', {})
+                for category_id, sort_order in categories_order.items():
+                    supabase.table("categories").update({"sort_order": sort_order}).eq("id", int(category_id)).execute()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response_data = {'success': True}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                
+            elif 'category' in path_parts:
                 category_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
                 
                 if not category_id.isdigit():
