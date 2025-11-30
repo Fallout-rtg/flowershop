@@ -60,6 +60,9 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 response = supabase.table("admins").select("role,is_active,first_name,username").eq("telegram_id", telegram_id).eq("is_active", True).execute()
                 is_admin = len(response.data) > 0
+            elif '/confirmation-codes' in path:
+                response = supabase.table("confirmation_codes").select("*").execute()
+                data = response.data
                 
                 if is_admin:
                     admin_data = response.data[0]
