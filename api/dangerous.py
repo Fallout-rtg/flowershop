@@ -33,57 +33,57 @@ class Handler(BaseHTTPRequestHandler):
             print(f"DANGEROUS ACTION: telegram_id={telegram_id}, action={action}, code={confirmation_code}")
             
             if not action or not confirmation_code:
+                response_data = {'success': False, 'error': 'Missing action or confirmation code'}
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                response = {'success': False, 'error': 'Missing action or confirmation code'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
             admin_response = supabase.table("admins").select("role,id,first_name").eq("telegram_id", telegram_id).eq("is_active", True).execute()
             is_owner = admin_response.data and admin_response.data[0].get('role') == 'owner'
             
             if not is_owner:
+                response_data = {'success': False, 'error': 'Access denied. Only owners can perform dangerous actions.'}
                 self.send_response(403)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                response = {'success': False, 'error': 'Access denied. Only owners can perform dangerous actions.'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
             code_response = supabase.table("confirmation_codes").select("*").eq("code", confirmation_code).eq("is_active", True).execute()
             
             if not code_response.data:
+                response_data = {'success': False, 'error': 'Invalid confirmation code'}
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                response = {'success': False, 'error': 'Invalid confirmation code'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
             if action == 'reset_orders':
                 result = supabase.table("orders").delete().neq("id", 0).execute()
                 deleted_count = len(result.data) if result.data else 0
-                response_data = {'success': True, 'message': f'All orders deleted ({deleted_count} records)'}
+                response_data = {'success': True, 'message': f'Все заказы удалены ({deleted_count} записей)'}
             elif action == 'reset_stats':
                 update_result = supabase.table("orders").update({"profit": 0}).neq("id", 0).execute()
                 delete_result = supabase.table("customer_stats").delete().neq("id", 0).execute()
-                response_data = {'success': True, 'message': 'All statistics reset successfully'}
+                response_data = {'success': True, 'message': 'Вся статистика сброшена'}
             elif action == 'delete_promocodes':
                 result = supabase.table("promocodes").delete().neq("id", 0).execute()
                 deleted_count = len(result.data) if result.data else 0
-                response_data = {'success': True, 'message': f'All promocodes deleted ({deleted_count} records)'}
+                response_data = {'success': True, 'message': f'Все промокоды удалены ({deleted_count} записей)'}
             elif action == 'delete_products':
                 result = supabase.table("products").delete().neq("id", 0).execute()
                 deleted_count = len(result.data) if result.data else 0
-                response_data = {'success': True, 'message': f'All products deleted ({deleted_count} records)'}
+                response_data = {'success': True, 'message': f'Все товары удалены ({deleted_count} записей)'}
             elif action == 'clear_customers':
                 result = supabase.table("customers").delete().neq("id", 0).execute()
                 deleted_count = len(result.data) if result.data else 0
-                response_data = {'success': True, 'message': f'All customers deleted ({deleted_count} records)'}
+                response_data = {'success': True, 'message': f'Все клиенты удалены ({deleted_count} записей)'}
             elif action == 'reset_shop':
                 orders_result = supabase.table("orders").delete().neq("id", 0).execute()
                 products_result = supabase.table("products").delete().neq("id", 0).execute()
@@ -93,9 +93,9 @@ class Handler(BaseHTTPRequestHandler):
                 deleted_products = len(products_result.data) if products_result.data else 0
                 deleted_promocodes = len(promocodes_result.data) if promocodes_result.data else 0
                 deleted_customers = len(customers_result.data) if customers_result.data else 0
-                response_data = {'success': True, 'message': f'Shop completely reset: {deleted_orders} orders, {deleted_products} products, {deleted_promocodes} promocodes, {deleted_customers} customers deleted'}
+                response_data = {'success': True, 'message': f'Магазин полностью сброшен: {deleted_orders} заказов, {deleted_products} товаров, {deleted_promocodes} промокодов, {deleted_customers} клиентов удалено'}
             else:
-                response_data = {'success': False, 'error': 'Unknown action'}
+                response_data = {'success': False, 'error': 'Неизвестное действие'}
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -105,9 +105,9 @@ class Handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             print(f"Error in dangerous action: {str(e)}")
+            response_data = {'success': False, 'error': str(e)}
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
