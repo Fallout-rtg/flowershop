@@ -25,6 +25,7 @@ class Handler(BaseHTTPRequestHandler):
             path = self.path
             telegram_id = self.headers.get('Telegram-Id', '').strip()
             
+            # Начало блока, где была указана ошибка
             if '/categories' in path:
                 response = supabase.table("categories").select("*").order("sort_order").execute()
                 data = response.data
