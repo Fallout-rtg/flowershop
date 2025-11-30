@@ -1339,7 +1339,19 @@
             </button>
         </div>
     </div>
-    <div class="dangerous-modal" id="dangerousActionModal"><div class="dangerous-modal-content"><div class="dangerous-modal-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="dangerous-modal-title" id="dangerousModalTitle">Подтверждение действия</div><div class="dangerous-modal-message" id="dangerousModalMessage">Вы уверены, что хотите выполнить это действие? Это действие нельзя отменить!</div><div class="dangerous-modal-actions"><button class="dangerous-modal-btn cancel" onclick="closeDangerousModal()">Отмена</button><button class="dangerous-modal-btn confirm" id="confirmDangerousAction">Подтвердить</button></div></div></div>
+    <div class="dangerous-modal" id="dangerousActionModal">
+    <div class="dangerous-modal-content">
+        <div class="dangerous-modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="dangerous-modal-title" id="dangerousModalTitle">Подтверждение действия</div>
+        <div class="dangerous-modal-message" id="dangerousModalMessage">Вы уверены, что хотите выполнить это действие? Это действие нельзя отменить!</div>
+        <div class="dangerous-modal-actions">
+            <button class="dangerous-modal-btn cancel" onclick="closeDangerousModal()">Отмена</button>
+            <button class="dangerous-modal-btn confirm" id="confirmDangerousAction">Подтвердить</button>
+        </div>
+    </div>
+</div>
 
     <script>
         let tg=window.Telegram.WebApp;tg.expand();tg.ready();let cart=[];let currentCategory='all';let products=[];let isAdmin=false;let currentUserRole='';let currentDangerousAction=null;let currentConfirmationCode=null;let adminData={products:[],orders:[],admins:[],stats:{},settings:{},themes:[],promocodes:[],categories:[]};let deliveryOption='pickup';let deliveryPrice=200;let freeDeliveryMin=3000;let currentOrdersPage=1;let ordersPerPage=10;let appliedPromocode=null;let activePattern='dots';let currentOrderId=null;let selectedStatus=null;let selectedCategory=null;let selectedIcon=null;let selectedDiscountType='percentage';let selectedRole='admin';let snowEnabled=false;let rainEnabled=false;let confettiEnabled=false;let nightEnabled=false;let snowflakes=[];let raindrops=[];let confettiPieces=[];let lightSpots=[];let currentDeleteCallback=null;let currentDeleteId=null;let currentDeleteType=null;let currentProductFilter='all';let currentProductSearch='';
