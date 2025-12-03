@@ -1555,7 +1555,7 @@
         
         document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',function(){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');if(this.closest('#productsTab')){filterProducts()}else{filterOrders()}})})});
 
-        function initApp(){loadProducts();loadCategories();loadOrdersAdmin();loadPromocodes();loadAdmins();loadSettings();setupEventListeners();setupHelpTabs();setupConfirmationModal();initDropdowns();initIconSelection();checkAdminAccess();updateCartDisplay();selectDeliveryOption('pickup');createSnowfall();createRainfall();createConfetti();createNightMode();document.getElementById("adminPanel").style.display="none";document.getElementById("helpView").style.display="none";document.getElementById("customerView").style.display="block";document.getElementById("adminButton").style.display=isAdmin?"flex":"none";document.getElementById("helpButton").style.display="flex"}
+        function initApp(){loadProducts();loadCategories();setupEventListeners();setupHelpTabs();checkAdminAccess();updateCartDisplay();selectDeliveryOption('pickup');loadSettings();createSnowfall();createRainfall();createConfetti();createNightMode();document.getElementById("adminPanel").style.display="none";document.getElementById("helpView").style.display="none";document.getElementById("customerView").style.display="block";document.getElementById("adminButton").style.display=isAdmin?"flex":"none";document.getElementById("helpButton").style.display="flex"}
         
         if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp)}else{initApp()}
     </script>
