@@ -666,23 +666,7 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="collapsible-content">
-                            <div class="admin-table-container">
-                                <table class="admin-table">
-                                    <thead>
-                                        <tr class="table-header">
-                                            <th>ID</th>
-                                            <th>Название</th>
-                                            <th>Slug</th>
-                                            <th>Иконка</th>
-                                            <th>Статус</th>
-                                            <th>Порядок</th>
-                                            <th>Действия</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="categoriesList">
-                                    </tbody>
-                                </table>
-                            </div>
+                            <div class="search-box"><input type="text" id="categorySearch" placeholder="🔍 Поиск категории..." class="search-input" onkeyup="filterCategories()"><div class="filter-buttons"><button class="filter-btn active" data-status="all" onclick="filterCategories('all')">Все</button><button class="filter-btn" data-status="active" onclick="filterCategories('active')">Активные</button><button class="filter-btn" data-status="inactive" onclick="filterCategories('inactive')">Неактивные</button></div></div><div class="admin-table-container"><table class="admin-table"><thead><tr class="table-header"><th>ID</th><th>Название</th><th>Slug</th><th>Иконка</th><th>Статус</th><th>Порядок</th><th>Действия</th></tr></thead><tbody id="categoriesList"></tbody></table></div>
                         </div>
                     </div>
                 </div>
@@ -730,16 +714,7 @@
                             <div class="promo-row">
                                 <input type="text" id="promoCode" placeholder="Код промокода" class="form-input">
                                 <div class="dropdown">
-                                    <div class="dropdown-toggle" id="discountTypeDropdownToggle">
-                                        <span>Тип скидки</span>
-                                        <i class="fas fa-chevron-down"></i>
-                                    </div>
-                                    <div class="dropdown-menu" id="discountTypeDropdown">
-                                        <div class="dropdown-item" data-value="percentage">Процентная</div>
-                                        <div class="dropdown-item" data-value="fixed">Фиксированная</div>
-                                    </div>
-                                </div>
-                            </div>
+                                    <div class="dropdown" id="discountTypeDropdown"><div class="dropdown-toggle" id="discountTypeDropdownToggle"><span>Тип скидки</span><i class="fas fa-chevron-down"></i></div><div class="dropdown-menu"><div class="dropdown-item" data-value="percentage">Процентная</div><div class="dropdown-item" data-value="fixed">Фиксированная</div></div></div>
                             <div class="promo-row">
                                 <div class="promo-field">
                                     <input type="number" id="promoDiscountValue" placeholder="Значение" class="form-input">
@@ -793,16 +768,7 @@
                             <div class="form-row">
                                 <input type="text" id="adminFirstName" placeholder="Имя администратора" class="form-input">
                                 <div class="dropdown">
-                                    <div class="dropdown-toggle" id="roleDropdownToggle">
-                                        <span>Выберите роль</span>
-                                        <i class="fas fa-chevron-down"></i>
-                                    </div>
-                                    <div class="dropdown-menu" id="roleDropdown">
-                                        <div class="dropdown-item" data-value="admin">Администратор</div>
-                                        <div class="dropdown-item" data-value="owner">Владелец</div>
-                                    </div>
-                                </div>
-                            </div>
+                                    <div class="dropdown" id="roleDropdown"><div class="dropdown-toggle" id="roleDropdownToggle"><span>Выберите роль</span><i class="fas fa-chevron-down"></i></div><div class="dropdown-menu"><div class="dropdown-item" data-value="admin">Администратор</div><div class="dropdown-item" data-value="owner">Владелец</div></div></div>
                             <div class="form-actions">
                                 <button class="btn btn-primary" onclick="addAdmin()">
                                     <i class="fas fa-user-plus"></i> Добавить администратора
@@ -1440,8 +1406,10 @@
         
         function renderProductsAdmin(products){const productsList=document.getElementById('productsList');productsList.innerHTML='';if(products.length===0){productsList.innerHTML='<tr><td colspan="8" class="empty-table-message">Товары не найдены</td></tr>';return}products.forEach((product,index)=>{const row=document.createElement('tr');row.className='table-row';if(!product.is_available){row.classList.add('product-inactive')}row.setAttribute('data-id',product.id);const category=adminData.categories.find(c=>c.slug===product.category);row.innerHTML=`<td>${product.id}</td><td><img src="${product.image_url}" alt="${product.name}" class="table-product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCAyMEMyNSAzMCAyMCAyMCAzMCAxMEM0MCAyMCAzNSAzMCAzMCAyMFoiIGZpbGw9IiNFNUU1RTUiLz4KPC9zdmc+'"></td><td><strong>${product.name}</strong><div style="font-size:11px;color:var(--text-light)">${product.description}</div></td><td>${product.price} ₽</td><td>${category?category.name:product.category}</td><td><span class="product-status ${product.is_available?'status-active':'status-inactive'}">${product.is_available?'Активен':'Неактивен'}</span></td><td><div class="move-buttons"><button class="move-btn" onclick="moveProductUp(${product.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveProductDown(${product.id})" ${index===products.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('product',${product.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div></td>`;productsList.appendChild(row)})}
             
-        function renderCategoriesAdmin(categories){const categoriesList=document.getElementById('categoriesList');categoriesList.innerHTML='';if(categories.length===0){categoriesList.innerHTML='<tr><td colspan="7" class="empty-table-message">Категории не найдены</td></tr>';return}categories.forEach((category,index)=>{const row=document.createElement('tr');row.className='table-row';if(!category.is_active){row.classList.add('category-inactive')}row.innerHTML=`<td>${category.id}</td><td><i class="${category.icon}"></i> ${category.name}</td><td>${category.slug}</td><td><i class="${category.icon}"></i></td><td><span class="product-status ${category.is_active?'status-active':'status-inactive'}">${category.is_active?'Активна':'Неактивна'}</span></td><td><div class="move-buttons"><button class="move-btn" onclick="moveCategoryUp(${category.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveCategoryDown(${category.id})" ${index===categories.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editCategory(${category.id})"><i class="fas fa-edit"></i> Редактировать</button><button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('category',${category.id})"><i class="fas fa-trash"></i> Удалить</button></div></td>`;categoriesList.appendChild(row)})}
+        function renderCategoriesAdmin(categories){const categoriesList=document.getElementById('categoriesList');categoriesList.innerHTML='';if(categories.length===0){categoriesList.innerHTML='<tr><td colspan="7" class="empty-table-message">Категории не найдены</td></tr>';return}categories.forEach((category,index)=>{const row=document.createElement('tr');row.className='table-row';if(!category.is_active){row.classList.add('category-inactive')}row.innerHTML=`<td>${category.id}</td><td><i class="${category.icon}"></i> ${category.name}</td><td>${category.slug}</td><td><i class="${category.icon}"></i></td><td><span class="product-status ${category.is_active?'status-active':'status-inactive'}">${category.is_active?'Активна':'Неактивна'}</span></td><td><div class="move-buttons"><button class="move-btn" onclick="moveCategoryUp(${category.id})" ${index===0?'disabled':''}><i class="fas fa-chevron-up"></i></button><button class="move-btn" onclick="moveCategoryDown(${category.id})" ${index===categories.length-1?'disabled':''}><i class="fas fa-chevron-down"></i></button></div></td><td><div class="admin-actions"><button class="btn btn-primary btn-sm" onclick="editCategory(${category.id})" title="Редактировать"><i class="fas fa-edit fa-lg"></i></button><button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('category',${category.id})" title="Удалить"><i class="fas fa-trash fa-lg"></i></button></div></td>`;categoriesList.appendChild(row)})}
 
+        function filterCategories(status){if(status){document.querySelectorAll('#categoriesSection .filter-btn').forEach(btn=>btn.classList.remove('active'));if(event && event.target) event.target.classList.add('active');}const searchTerm=document.getElementById('categorySearch').value.toLowerCase();const activeFilter=document.querySelector('#categoriesSection .filter-btn.active')?.dataset.status||'all';let filtered=adminData.categories;if(activeFilter==='active'){filtered=filtered.filter(c=>c.is_active)}else if(activeFilter==='inactive'){filtered=filtered.filter(c=>!c.is_active)}if(searchTerm){filtered=filtered.filter(c=>c.name.toLowerCase().includes(searchTerm)||c.slug.toLowerCase().includes(searchTerm))}renderCategoriesAdmin(filtered)}
+        
         function showDeleteConfirmation(type,id){let message='';let entityName='';switch(type){case'product':message='Вы уверены, что хотите удалить этот товар?';entityName='товар';break;case'category':message='Вы уверены, что хотите удалить эту категорию? Товары в этой категории станут без категории.';entityName='категорию';break;case'order':message='Вы уверены, что хотите удалить этот заказ?';entityName='заказ';break;case'promocode':message='Вы уверены, что хотите удалить этот промокод?';entityName='промокод';break;case'admin':message='Вы уверены, что хотите удалить этого администратора?';entityName='администратора';break}showConfirmationModal(message,type,id,deleteEntity)}
 
         function deleteEntity(id,type){switch(type){case'product':deleteProduct(id);break;case'category':deleteCategory(id);break;case'order':deleteOrder(id);break;case'promocode':deletePromocode(id);break;case'admin':deleteAdmin(id);break}}
