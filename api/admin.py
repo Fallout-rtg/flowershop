@@ -204,6 +204,12 @@ class Handler(BaseHTTPRequestHandler):
             elif 'order' in self.path:
                 response = supabase.table("orders").delete().eq("id", resource_id).execute()
                 response_data = {'success': True}
+            elif 'promocodes' in self.path:
+                response = supabase.table("promocodes").delete().eq("id", resource_id).execute()
+                response_data = {'success': True}
+            elif 'products' in self.path:
+                response = supabase.table("products").delete().eq("id", resource_id).execute()
+                response_data = {'success': True}
             else:
                 raise ValueError("Unknown resource")
             self.send_response(200)
