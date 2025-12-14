@@ -249,34 +249,57 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
     def do_DELETE(self):
+        resource_id = None
         try:
-            path_parts = self.path.split('/')
-            resource_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
-            
-            if 'admin' in self.path:
-                response = supabase.table("admins").delete().eq("id", resource_id).execute()
-                response_data = {'success': True}
-            elif 'category' in self.path:
-                response = supabase.table("categories").delete().eq("id", resource_id).execute()
-                response_data = {'success': True}
-            elif 'order' in self.path:
-                response = supabase.table("orders").delete().eq("id", resource_id).execute()
-                response_data = {'success': True}
+            # 1. Проверка доступа
+            if not check_admin_token(self.headers):
+                self.send_response(403)
+                response_data = {'success': False, 'error': "Доступ запрещен. Неверный или отсутствует токен администратора."}
             else:
-                raise ValueError("Unknown resource")
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            
+                # 2. Парсинг пути
+                path_parts = self.path.split('/')
+                resource_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+                
+                table_name = ''
+                if '/admin/category/' in self.path:
+                    table_name = 'categories'
+                elif '/admin/product/' in self.path:
+                    table_name = 'products'
+                elif '/admin/order/' in self.path:
+                    table_name = 'orders'
+                else:
+                    self.send_response(404)
+                    response_data = {'success': False, 'error': "Неизвестный или неподдерживаемый ресурс для удаления."}
+                    table_name = None # Защита от дальнейших действий
+                
+                if table_name:
+                    # 3. Выполнение удаления в Supabase
+                    data, count = supabase.table(table_name).delete().eq("id", resource_id).execute()
+                    
+                    # 4. Проверка результата
+                    if count > 0:
+                        self.send_response(200)
+                        response_data = {'success': True, 'message': f"Ресурс {resource_id} успешно удален."}
+                    else:
+                        self.send_response(404)
+                        response_data = {'success': False, 'error': f"Ресурс с ID {resource_id} не найден."}
+
         except Exception as e:
-            log_error("admin_DELETE", e, self.headers.get('Telegram-Id', ''), f"Resource ID: {resource_id}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            error_message = str(e)
+            
+            # 5. Обработка ошибки внешнего ключа (FK)
+            # В Supabase/PostgreSQL ошибка FK часто содержит слова 'foreign key constraint'
+            if "foreign key constraint" in error_message or "IntegrityError" in error_message:
+                self.send_response(400) # 400 Bad Request
+                response_data = {'success': False, 'error': "Невозможно удалить ресурс. Сначала удалите или измените связанные с ним записи (например, товары, привязанные к этой категории)."}
+            else:
+                # 6. Обработка общей ошибки сервера
+                log_error("admin_DELETE", e, self.headers.get('Telegram-Id', ''), f"Resource ID: {resource_id}")
+                self.send_response(500)
+                response_data = {'success': False, 'error': f"Ошибка сервера: {e}"}
+
+        # 7. Финализация ответа
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps(response_data).encode('utf-8'))
