@@ -25,7 +25,6 @@ class Handler(BaseHTTPRequestHandler):
             path = self.path
             telegram_id = self.headers.get('Telegram-Id', '').strip()
             
-            # Начало блока, где была указана ошибка
             if '/categories' in path:
                 response = supabase.table("categories").select("*").order("sort_order").execute()
                 data = response.data
@@ -253,14 +252,14 @@ class Handler(BaseHTTPRequestHandler):
             path_parts = self.path.split('/')
             resource_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
             
-            if 'admin' in self.path:
-                response = supabase.table("admins").delete().eq("id", resource_id).execute()
+            if '/category/' in self.path:
+                response = supabase.table("categories").delete().eq("id", int(resource_id)).execute()
                 response_data = {'success': True}
-            elif 'category' in self.path:
-                response = supabase.table("categories").delete().eq("id", resource_id).execute()
+            elif '/admin/' in self.path and '/category/' not in self.path:
+                response = supabase.table("admins").delete().eq("id", int(resource_id)).execute()
                 response_data = {'success': True}
-            elif 'order' in self.path:
-                response = supabase.table("orders").delete().eq("id", resource_id).execute()
+            elif '/order/' in self.path:
+                response = supabase.table("orders").delete().eq("id", int(resource_id)).execute()
                 response_data = {'success': True}
             else:
                 raise ValueError("Unknown resource")
