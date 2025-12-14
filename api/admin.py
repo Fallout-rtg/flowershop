@@ -250,6 +250,8 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_DELETE(self):
         resource_id = None
+        response_data = {}
+        
         try:
             # 1. Проверка доступа
             if not check_admin_token(self.headers):
@@ -257,23 +259,26 @@ class Handler(BaseHTTPRequestHandler):
                 response_data = {'success': False, 'error': "Доступ запрещен. Неверный или отсутствует токен администратора."}
             else:
                 # 2. Парсинг пути
-                path_parts = self.path.split('/')
-                resource_id = path_parts[-1] if path_parts[-1] else path_parts[-2]
+                path_parts = [p for p in self.path.split('/') if p]
+                if not path_parts or len(path_parts) < 3:
+                    raise ValueError("Неверный формат пути URL.")
+                    
+                # path_parts будет ['api', 'admin', 'category', '30']
+                resource_id = path_parts[-1]
+                resource_type = path_parts[-2] # 'category', 'product', 'order'
                 
-                table_name = ''
-                if '/admin/category/' in self.path:
-                    table_name = 'categories'
-                elif '/admin/product/' in self.path:
-                    table_name = 'products'
-                elif '/admin/order/' in self.path:
-                    table_name = 'orders'
-                else:
+                table_name = {
+                    'category': 'categories',
+                    'product': 'products',
+                    'order': 'orders'
+                }.get(resource_type)
+
+                if not table_name:
                     self.send_response(404)
                     response_data = {'success': False, 'error': "Неизвестный или неподдерживаемый ресурс для удаления."}
-                    table_name = None # Защита от дальнейших действий
-                
-                if table_name:
+                else:
                     # 3. Выполнение удаления в Supabase
+                    # Supabase клиент может выбросить исключение при ошибке FK
                     data, count = supabase.table(table_name).delete().eq("id", resource_id).execute()
                     
                     # 4. Проверка результата
@@ -288,18 +293,25 @@ class Handler(BaseHTTPRequestHandler):
             error_message = str(e)
             
             # 5. Обработка ошибки внешнего ключа (FK)
-            # В Supabase/PostgreSQL ошибка FK часто содержит слова 'foreign key constraint'
-            if "foreign key constraint" in error_message or "IntegrityError" in error_message:
+            # Часто содержит ключевые слова из PostgreSQL или клиента Supabase
+            if "foreign key constraint" in error_message or "violates foreign key" in error_message or "IntegrityError" in error_message:
                 self.send_response(400) # 400 Bad Request
-                response_data = {'success': False, 'error': "Невозможно удалить ресурс. Сначала удалите или измените связанные с ним записи (например, товары, привязанные к этой категории)."}
+                response_data = {'success': False, 'error': "Невозможно удалить категорию. Сначала удалите или перенесите все привязанные к ней товары."}
             else:
                 # 6. Обработка общей ошибки сервера
-                log_error("admin_DELETE", e, self.headers.get('Telegram-Id', ''), f"Resource ID: {resource_id}")
+                log_error("admin_DELETE", e, self.headers.get('Telegram-Id', ''), f"Resource ID: {resource_id}, Path: {self.path}")
                 self.send_response(500)
-                response_data = {'success': False, 'error': f"Ошибка сервера: {e}"}
+                response_data = {'success': False, 'error': f"Внутренняя ошибка сервера: {e}"}
 
         # 7. Финализация ответа
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(json.dumps(response_data).encode('utf-8'))
+
+# Добавьте этот код в ваш файл, если он не был там:
+if __name__ == '__main__':
+    from http.server import HTTPServer
+    server = HTTPServer(('0.0.0.0', 8080), Handler)
+    print("Starting server on http://0.0.0.0:8080")
+    server.serve_forever()
