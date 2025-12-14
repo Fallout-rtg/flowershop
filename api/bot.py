@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 import os
 import requests
+from datetime import datetime
 
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -17,15 +18,13 @@ class Handler(BaseHTTPRequestHandler):
                 text = update['message'].get('text', '').strip()
                 
                 if text.startswith('/start'):
-                    self.send_welcome_message(chat_id, bot_token)
-                elif text.startswith('/help'):
-                    self.send_help_message(chat_id, bot_token)
-                elif text.startswith('/catalog'):
-                    self.send_catalog_message(chat_id, bot_token)
-                elif text.startswith('/test'):
-                    self.run_system_test(chat_id, bot_token)
+                    self.send_welcome_message(chat_id, bot_token, update)
                 elif text.startswith('/stats'):
                     self.send_stats_message(chat_id, bot_token)
+                elif text.startswith('/test'):
+                    self.run_system_test(chat_id, bot_token)
+                elif text.startswith('/catalog'):
+                    self.send_catalog_message(chat_id, bot_token)
                 else:
                     self.send_unknown_command(chat_id, bot_token)
             
@@ -40,6 +39,8 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_stats_message(chat_id, bot_token)
                 elif data == 'system_check':
                     self.run_system_test(chat_id, bot_token)
+                elif data == 'catalog':
+                    self.send_catalog_message(chat_id, bot_token)
                 
                 requests.post(f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery", 
                             json={'callback_query_id': callback['id']})
@@ -55,13 +56,51 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'OK')
 
-    def send_welcome_message(self, chat_id, bot_token):
+    def get_shop_status(self):
+        now = datetime.now()
+        current_hour = now.hour
+        
+        if 9 <= current_hour < 21:
+            return "✅ *Открыто* • Закроется в 21:00"
+        else:
+            if current_hour < 9:
+                return "❌ *Закрыто* • Откроется в 9:00"
+            else:
+                return "❌ *Закрыто* • Откроется завтра в 9:00"
+
+    def get_admin_name(self, chat_id):
+        admin_names = {
+            "2032240231": "Администратор",
+            "711090928": "Менеджер",
+            "766109005": "Владелец"
+        }
+        return admin_names.get(str(chat_id), "Администратор")
+
+    def send_welcome_message(self, chat_id, bot_token, update):
         web_app_url = "https://flowershop-nine-ashy.vercel.app/"
         
         admin_ids = ["2032240231", "711090928", "766109005"]
         is_admin = str(chat_id) in admin_ids
         
+        shop_status = self.get_shop_status()
+        photo_url = "https://raw.githubusercontent.com/Fallout-rtg/flowershop/main/logo.jpg"
+        
         if is_admin:
+            admin_name = self.get_admin_name(chat_id)
+            
+            caption = f"""👋 *Привет, {admin_name}!*
+
+👑 *Добро пожаловать в панель управления АртФлора*
+
+*Доступные команды:*
+/stats — статистика магазина
+/test — проверка системы
+/catalog — открыть каталог
+
+{shop_status}
+
+✨ Используйте кнопки ниже для быстрого доступа."""
+            
             markup = {
                 "inline_keyboard": [
                     [{
@@ -69,37 +108,35 @@ class Handler(BaseHTTPRequestHandler):
                         "web_app": {"url": web_app_url}
                     }],
                     [
-                        {"text": "🛠 Панель управления", "web_app": {"url": web_app_url}},
-                        {"text": "📊 Статистика", "callback_data": "stats"}
+                        {"text": "📊 Статистика", "callback_data": "stats"},
+                        {"text": "🔧 Проверить систему", "callback_data": "system_check"}
                     ],
                     [
-                        {"text": "🔧 Проверить систему", "callback_data": "system_check"},
-                        {"text": "📞 Поддержка", "url": "https://t.me/Fallout_RTG"}
-                    ],
-                    [
-                        {"text": "🛍️ Каталог", "callback_data": "catalog"},
-                        {"text": "ℹ️ Помощь", "callback_data": "help"}
+                        {"text": "🛍️ Каталог", "callback_data": "catalog"}
                     ]
                 ]
             }
             
-            message = """👑 *Добро пожаловать, администратор!*
-
-✨ *Доступные функции управления:*
-• 🛠 Полное управление магазином через WebApp
-• 📊 Просмотр статистики и аналитики в реальном времени
-• 🔧 Проверка состояния системы и диагностика
-• ⚙️ Настройки магазина, темы и промокоды
-• 👥 Управление администраторами и правами доступа
-
-*Быстрые команды:*
-/stats - Получить текущую статистику
-/test - Запустить проверку системы
-/catalog - Открыть каталог товаров
-/help - Получить справку
-
-Используйте кнопки ниже для быстрого доступа к функциям управления."""
         else:
+            caption = f"""*АртФлора | цветы Ярославль*
+*Цветы с доставкой по городу Ярославль* 🤍
+
+🕐 *Ежедневно 9:00 — 21:00*
+
+📍 *Адрес магазина:*
+ул. Угличская, 4к1, Ярославль
+
+📞 *Оформление заказа:*
+• Сообщения группы: https://vk.cc/cP6qOb
+• WhatsApp/Telegram: +7(999) 785-86-35
+• По телефону: +7(999) 785-86-35
+• FlowWow: https://vk.cc/cPrSev
+• Яндекс.Еда: https://vk.cc/cPOF3z
+
+*АртФлора — когда цветы становятся искусством!*
+
+{shop_status}"""
+            
             markup = {
                 "inline_keyboard": [
                     [{
@@ -107,49 +144,41 @@ class Handler(BaseHTTPRequestHandler):
                         "web_app": {"url": web_app_url}
                     }],
                     [
-                        {"text": "📞 Поддержка", "url": "https://t.me/Fallout_RTG"},
+                        {"text": "📞 Поддержка", "url": "https://t.me/+79997858635"},
                         {"text": "ℹ️ О магазине", "callback_data": "about"}
                     ]
                 ]
             }
-            
-            message = "🌸 *Добро пожаловать в магазин элитных цветов!*\n\n✨ У нас вы найдете:\n• Свежие цветы от проверенных поставщиков\n• Быструю доставку по Ярославлю  \n• Индивидуальный подход к каждому заказу\n\nНажмите на кнопку ниже, чтобы открыть каталог и сделать заказ!"
         
-        self.send_telegram_message(chat_id, bot_token, message, markup)
+        self.send_telegram_photo(chat_id, bot_token, photo_url, caption, markup)
 
     def send_about_message(self, chat_id, bot_token):
-        message = "🏪 *О нашем магазине*\n\nМы - цветочный магазин с многолетним опытом работы. \nНаши преимущества:\n• Свежие цветы от проверенных поставщиков\n• Быстрая доставка по Ярославлю\n• Индивидуальный подход к каждому клиенту\n\nРаботаем для вас с 2010 года!"
+        shop_status = self.get_shop_status()
+        photo_url = "https://raw.githubusercontent.com/Fallout-rtg/flowershop/main/logo.jpg"
         
-        self.send_telegram_message(chat_id, bot_token, message)
+        caption = f"""🏪 *О магазине АртФлора*
 
-    def send_help_message(self, chat_id, bot_token):
-        admin_ids = ["2032240231", "711090928", "766109005"]
-        is_admin = str(chat_id) in admin_ids
+📍 *Наш адрес:*
+ул. Угличская, 4к1, Ярославль
+
+🕐 *Часы работы:*
+Ежедневно 9:00 — 21:00
+
+*АртФлора — это:*
+• Свежие цветы от прямых поставщиков
+• Быстрая доставка по Ярославлю
+• Широкий ассортимент букетов и композиций
+• Современный подход к флористике
+
+🎉 *Работаем с 2025 года!*
+
+{shop_status}"""
         
-        if is_admin:
-            message = """🛠 *Помощь для администраторов*
-
-*Основные команды:*
-/start - начать работу с ботом
-/help - получить помощь
-/stats - просмотреть статистику
-/test - проверить состояние системы
-/catalog - открыть каталог товаров
-
-*Панель управления:*
-Для полного доступа к функциям управления используйте WebApp через кнопку 'Панель управления'
-
-*Быстрые действия через кнопки:*
-• 📊 Статистика - текущие показатели магазина
-• 🔧 Проверка системы - диагностика всех сервисов
-• 🛍️ Каталог - быстрый доступ к товарам"""
-        else:
-            message = "🛠 *Помощь по боту*\n\n*Основные команды:*\n/start - начать работу с ботом\n/help - получить помощь\n\n*Как сделать заказ:*\n1. Нажмите кнопку «Открыть магазин цветов»\n2. Выберите понравившиеся букеты\n3. Оформите заказ в корзине\n4. Укажите ваш телефон для связи\n\n*Доставка:* \n🏙️ По Ярославлю - бесплатно от 3000₽\n⏱ В течение 2-х часов"
-        
-        self.send_telegram_message(chat_id, bot_token, message)
+        self.send_telegram_photo(chat_id, bot_token, photo_url, caption)
 
     def send_catalog_message(self, chat_id, bot_token):
         web_app_url = "https://flowershop-nine-ashy.vercel.app/"
+        photo_url = "https://raw.githubusercontent.com/Fallout-rtg/flowershop/main/logo.jpg"
         
         markup = {
             "inline_keyboard": [[
@@ -160,8 +189,8 @@ class Handler(BaseHTTPRequestHandler):
             ]]
         }
         
-        message = "Нажмите на кнопку ниже, чтобы открыть наш каталог цветов:"
-        self.send_telegram_message(chat_id, bot_token, message, markup)
+        caption = "Нажмите на кнопку ниже, чтобы открыть каталог цветов:"
+        self.send_telegram_photo(chat_id, bot_token, photo_url, caption, markup)
 
     def send_stats_message(self, chat_id, bot_token):
         admin_ids = ["2032240231", "711090928", "766109005"]
@@ -219,7 +248,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_telegram_message(chat_id, bot_token, error_message)
 
     def send_unknown_command(self, chat_id, bot_token):
-        message = "Извините, я не понимаю эту команду. Используйте /help для списка доступных команд."
+        message = "Извините, я не понимаю эту команду.\n\nДоступные команды:\n/start — начать работу\n/stats — статистика (админы)\n/test — проверка системы (админы)\n/catalog — каталог (админы)"
         self.send_telegram_message(chat_id, bot_token, message)
 
     def send_telegram_message(self, chat_id, bot_token, text, reply_markup=None):
@@ -237,6 +266,27 @@ class Handler(BaseHTTPRequestHandler):
             requests.post(url, json=payload, timeout=10)
         except Exception as e:
             print(f"Error sending Telegram message: {e}")
+
+    def send_telegram_photo(self, chat_id, bot_token, photo_url, caption, reply_markup=None):
+        url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+        payload = {
+            'chat_id': chat_id,
+            'photo': photo_url,
+            'caption': caption[:1024],
+            'parse_mode': 'Markdown'
+        }
+        
+        if reply_markup:
+            payload['reply_markup'] = json.dumps(reply_markup)
+            
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            if response.status_code != 200:
+                print(f"Error sending photo: {response.text}")
+                self.send_telegram_message(chat_id, bot_token, caption, reply_markup)
+        except Exception as e:
+            print(f"Error sending Telegram photo: {e}")
+            self.send_telegram_message(chat_id, bot_token, caption, reply_markup)
 
     def do_GET(self):
         self.send_response(200)
