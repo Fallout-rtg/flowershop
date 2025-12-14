@@ -70,9 +70,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def get_admin_name(self, chat_id):
         admin_names = {
-            "2032240231": "Администратор",
-            "711090928": "Менеджер",
-            "766109005": "Владелец"
+            "2032240231": "Ахмад",
+            "711090928": "Татьяна Сергеевна",
+            "766109005": "Амина"
         }
         return admin_names.get(str(chat_id), "Администратор")
 
