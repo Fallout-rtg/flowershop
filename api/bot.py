@@ -62,7 +62,7 @@ class Handler(BaseHTTPRequestHandler):
         current_hour = now.hour
     
         if 9 <= current_hour < 20:
-        return "✅ *Открыто* • Закроется в 20:00"
+            return "✅ *Открыто* • Закроется в 20:00"
         else:
             if current_hour < 9:
                 return "❌ *Закрыто* • Откроется в 9:00"
