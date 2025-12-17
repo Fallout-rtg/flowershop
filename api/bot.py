@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 import os
 import requests
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -56,17 +56,18 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'OK')
 
-    def get_shop_status(self):
-        now = datetime.now()
-        current_hour = now.hour
-        
-        if 9 <= current_hour < 20:
-            return "✅ *Открыто* • Закроется в 20:00"
+def get_shop_status(self):
+    moscow_tz = timezone(timedelta(hours=3))
+    now = datetime.now(moscow_tz)
+    current_hour = now.hour
+    
+    if 9 <= current_hour < 20:
+        return "✅ *Открыто* • Закроется в 20:00"
+    else:
+        if current_hour < 9:
+            return "❌ *Закрыто* • Откроется в 9:00"
         else:
-            if current_hour < 9:
-                return "❌ *Закрыто* • Откроется в 9:00"
-            else:
-                return "❌ *Закрыто* • Откроется завтра в 9:00"
+            return "❌ *Закрыто* • Откроется завтра в 9:00"
 
     def get_admin_name(self, chat_id):
         admin_names = {
