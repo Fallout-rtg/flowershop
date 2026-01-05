@@ -121,6 +121,9 @@ class Handler(BaseHTTPRequestHandler):
                 
                 admin_success = self.send_admin_notification(order_data, delivery_option, delivery_address, discount_amount)
                 
+                # Отправляем уведомление клиенту
+                customer_success = self.send_customer_notification(order_data)
+                
                 if promocode_id:
                     self.update_promocode_usage(promocode_id)
             
@@ -268,6 +271,70 @@ class Handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             log_error("admin_notification", e, order_data['user']['id'], "Failed to send admin notification")
+            return False
+
+    def send_customer_notification(self, order_data):
+        try:
+            bot_token = os.environ.get('BOT_TOKEN')
+            user_id = order_data['user']['id']
+            
+            if not bot_token:
+                log_error("customer_notification", "Missing BOT_TOKEN", user_id, "Failed to send customer notification")
+                return False
+            
+            # Форматируем товары
+            items_text = "\n".join([
+                f"• {item['name']} - {item['quantity']} шт." 
+                for item in order_data['items']
+            ])
+            
+            # Форматируем телефон для красивого отображения
+            phone = order_data['phone']
+            # Убираем все нецифровые символы
+            digits = ''.join(filter(str.isdigit, phone))
+            
+            if len(digits) >= 11:
+                # Если номер начинается с 7, 8 или +7
+                if digits.startswith('7') or digits.startswith('8'):
+                    if digits.startswith('8'):
+                        digits = '7' + digits[1:]
+                    formatted_phone = f"+7 ({digits[1:4]}) {digits[4:7]}-{digits[7:9]}-{digits[9:11]}"
+                else:
+                    formatted_phone = phone
+            else:
+                formatted_phone = phone
+            
+            # Используем время из заказа или текущее время
+            order_time = order_data.get('time', datetime.now().strftime('%d.%m.%Y, %H:%M:%S'))
+            
+            # Формируем сообщение
+            message = f"""✅ Ваш заказ принят!
+
+🛍 Состав заказа:
+{items_text}
+
+💵 Сумма заказа: {order_data['total']} ₽
+
+📞 Ваш телефон: {formatted_phone}
+
+⏱ Время заказа: {order_time}
+
+Мы свяжемся с вами в ближайшее время для подтверждения заказа и уточнения деталей доставки.
+
+Спасибо за ваш заказ! 💐"""
+            
+            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            payload = {
+                'chat_id': user_id,
+                'text': message,
+                'parse_mode': 'Markdown'
+            }
+            
+            response = requests.post(url, json=payload, timeout=10)
+            return response.status_code == 200
+            
+        except Exception as e:
+            log_error("customer_notification", e, user_id, "Failed to send customer notification")
             return False
 
     def save_order_to_db(self, order_data):
