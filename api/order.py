@@ -108,7 +108,10 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_POST(self):
         try:
+            print(f"📥 POST запрос на путь: {self.path}")
+            
             if self.path == '/api/export/orders':
+                print("🔄 Вызов handle_export_orders")
                 return self.handle_export_orders()
                 
             content_length = int(self.headers['Content-Length'])
@@ -402,14 +405,25 @@ class Handler(BaseHTTPRequestHandler):
     def handle_export_orders(self):
         try:
             print(f"🔄 Начало обработки экспорта заказов")
+            
             bot_token = os.environ.get('BOT_TOKEN')
             user_id = self.headers.get('Telegram-Id', '')
             is_admin = self.headers.get('Is-Admin', 'false') == 'true'
             
             print(f"📊 Параметры запроса: bot_token={'установлен' if bot_token else 'отсутствует'}, user_id={user_id}, is_admin={is_admin}")
             
-            if not bot_token or not user_id:
-                print("❌ Отсутствуют необходимые параметры авторизации")
+            if not bot_token:
+                print("❌ Отсутствует BOT_TOKEN")
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response_data = {'success': False, 'error': 'Отсутствует BOT_TOKEN'}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                return
+            
+            if not user_id:
+                print("❌ Отсутствует Telegram-Id")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
