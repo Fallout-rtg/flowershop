@@ -16,6 +16,17 @@ try:
 except ImportError as e:
     print(f"Import error: {e}")
 
+# Добавляем импорт для работы с Excel
+try:
+    import openpyxl
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+except ImportError as e:
+    print(f"⚠️ Openpyxl import error: {e}")
+    # Создаем заглушки для совместимости
+    openpyxl = None
+
 class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
@@ -471,6 +482,195 @@ class Handler(BaseHTTPRequestHandler):
             
             print(f"✅ Найдено {len(orders_response.data)} заказов")
             
+            # Проверяем, установлен ли openpyxl
+            if openpyxl is None:
+                print("⚠️ Библиотека openpyxl не установлена, используем CSV")
+                return self.export_to_csv(orders_response.data, bot_token, user_id)
+            
+            # Создаем Excel файл с улучшенным форматированием
+            return self.export_to_excel(orders_response.data, bot_token, user_id)
+                
+        except Exception as e:
+            error_msg = str(e)
+            print(f"💥 Критическая ошибка в экспорте: {error_msg}")
+            log_error("export_orders", e, self.headers.get('Telegram-Id', ''), "Ошибка экспорта")
+            
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response_data = {'success': False, 'error': f'Ошибка сервера: {error_msg}'}
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+
+    def export_to_excel(self, orders, bot_token, user_id):
+        """Создание и отправка Excel файла с заказами"""
+        try:
+            print("📊 Создаем Excel файл...")
+            
+            # Создаем новую рабочую книгу Excel
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Заказы"
+            
+            # Определяем стили
+            header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+            header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+            header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            
+            cell_font = Font(name='Calibri', size=10)
+            money_font = Font(name='Calibri', size=10, bold=True, color='1F4E78')
+            status_font = Font(name='Calibri', size=10, bold=True)
+            
+            thin_border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+            
+            # Заголовки столбцов
+            headers = [
+                'ID заказа', 'Дата создания', 'Клиент', 'Телефон', 
+                'Сумма заказа (₽)', 'Скидка (₽)', 'Итоговая сумма (₽)', 
+                'Способ получения', 'Адрес доставки', 'Статус', 'Комментарий'
+            ]
+            
+            # Записываем заголовки
+            for col_num, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col_num, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+                cell.border = thin_border
+            
+            # Карта статусов
+            status_names = {
+                1: ('Новый', 'FF6B6B'),
+                2: ('Подтвержден', 'FFA726'),
+                3: ('Собирается', '8E44AD'),
+                4: ('В пути', '3498DB'),
+                5: ('Доставлен', '27AE60'),
+                6: ('Отменен', '7F8C8D')
+            }
+            
+            # Заполняем данные
+            for row_num, order in enumerate(orders, 2):
+                # Форматируем дату
+                order_time = ''
+                if order.get('created_at'):
+                    try:
+                        order_time = datetime.fromisoformat(
+                            order['created_at'].replace('Z', '+00:00')
+                        ).strftime('%d.%m.%Y %H:%M')
+                    except:
+                        order_time = str(order['created_at'])
+                
+                # Получаем статус
+                status_info = status_names.get(order['status_id'], ('Неизвестен', 'CCCCCC'))
+                status_text, status_color = status_info
+                
+                # Форматируем адрес
+                delivery_address = order.get('delivery_address', '')
+                if order['delivery_option'] == 'pickup':
+                    delivery_address = 'Самовывоз'
+                
+                # Форматируем телефон
+                phone = order['phone']
+                if len(phone) >= 10:
+                    formatted_phone = f"+7 ({phone[1:4]}) {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
+                else:
+                    formatted_phone = phone
+                
+                # Записываем данные
+                ws.cell(row=row_num, column=1, value=order['id']).font = cell_font
+                ws.cell(row=row_num, column=2, value=order_time).font = cell_font
+                ws.cell(row=row_num, column=3, value=order['user_name']).font = cell_font
+                ws.cell(row=row_num, column=4, value=formatted_phone).font = cell_font
+                ws.cell(row=row_num, column=5, value=order['total_amount']).font = money_font
+                ws.cell(row=row_num, column=6, value=order.get('discount_amount', 0)).font = money_font
+                ws.cell(row=row_num, column=7, value=order['final_amount']).font = money_font
+                ws.cell(row=row_num, column=8, value='Доставка' if order['delivery_option'] == 'delivery' else 'Самовывоз').font = cell_font
+                ws.cell(row=row_num, column=9, value=delivery_address).font = cell_font
+                
+                # Статус с цветом
+                status_cell = ws.cell(row=row_num, column=10, value=status_text)
+                status_cell.font = status_font
+                status_cell.fill = PatternFill(start_color=status_color, end_color=status_color, fill_type='solid')
+                
+                ws.cell(row=row_num, column=11, value=order.get('comment', '')).font = cell_font
+                
+                # Добавляем границы ко всем ячейкам
+                for col_num in range(1, 12):
+                    ws.cell(row=row_num, column=col_num).border = thin_border
+            
+            # Настраиваем ширину столбцов
+            column_widths = [8, 16, 20, 15, 15, 12, 15, 12, 25, 15, 30]
+            for i, width in enumerate(column_widths, 1):
+                ws.column_dimensions[get_column_letter(i)].width = width
+            
+            # Замораживаем заголовок
+            ws.freeze_panes = 'A2'
+            
+            # Добавляем итоговую строку
+            total_row = len(orders) + 3
+            ws.cell(row=total_row, column=4, value='ИТОГО:').font = Font(bold=True)
+            ws.cell(row=total_row, column=5, value=sum(o['total_amount'] for o in orders)).font = Font(bold=True, color='1F4E78')
+            ws.cell(row=total_row, column=7, value=sum(o['final_amount'] for o in orders)).font = Font(bold=True, color='1F4E78')
+            
+            print("📁 Создаем временный файл Excel...")
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx', mode='wb') as tmp:
+                wb.save(tmp.name)
+                tmp_path = tmp.name
+                print(f"✅ Временный файл создан: {tmp_path}")
+            
+            try:
+                print("📤 Отправляем Excel файл в Telegram...")
+                with open(tmp_path, 'rb') as f:
+                    resp = requests.post(
+                        f'https://api.telegram.org/bot{bot_token}/sendDocument',
+                        data={'chat_id': user_id, 'caption': '📊 Отчет по заказам в формате Excel'},
+                        files={'document': ('orders_report.xlsx', f, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')},
+                        timeout=30
+                    )
+                
+                print(f"📩 Ответ Telegram API: {resp.status_code}")
+                
+                if resp.status_code == 200:
+                    print("✅ Excel файл успешно отправлен в Telegram")
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response_data = {'success': True, 'message': 'Excel файл отправлен в Telegram'}
+                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                else:
+                    error_text = resp.text[:200] if resp.text else 'Неизвестная ошибка'
+                    print(f"❌ Ошибка Telegram API: {resp.status_code} - {error_text}")
+                    self.send_response(500)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response_data = {'success': False, 'error': f'Ошибка отправки файла: {resp.status_code}'}
+                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                    
+            finally:
+                # Удаляем временный файл
+                try:
+                    os.unlink(tmp_path)
+                    print("🗑 Временный файл удален")
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"💥 Ошибка при создании Excel: {e}")
+            # Пробуем создать CSV как fallback
+            return self.export_to_csv(orders, bot_token, user_id)
+
+    def export_to_csv(self, orders, bot_token, user_id):
+        """Резервный метод для создания CSV файла"""
+        try:
+            print("📊 Создаем CSV файл (резервный метод)...")
+            
             # Создаем CSV файл в памяти
             output = io.StringIO()
             csv_writer = csv.writer(output)
@@ -489,7 +689,7 @@ class Handler(BaseHTTPRequestHandler):
                 6: 'Отменен'
             }
             
-            for order in orders_response.data:
+            for order in orders:
                 order_time = ''
                 if order.get('created_at'):
                     try:
@@ -522,7 +722,7 @@ class Handler(BaseHTTPRequestHandler):
                 print(f"✅ Временный файл создан: {tmp_path}")
             
             try:
-                print("📤 Отправляем файл в Telegram...")
+                print("📤 Отправляем CSV файл в Telegram...")
                 with open(tmp_path, 'rb') as f:
                     resp = requests.post(
                         f'https://api.telegram.org/bot{bot_token}/sendDocument',
@@ -534,12 +734,12 @@ class Handler(BaseHTTPRequestHandler):
                 print(f"📩 Ответ Telegram API: {resp.status_code}")
                 
                 if resp.status_code == 200:
-                    print("✅ Файл успешно отправлен в Telegram")
+                    print("✅ CSV файл успешно отправлен в Telegram")
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json')
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
-                    response_data = {'success': True, 'message': 'Файл отправлен в Telegram'}
+                    response_data = {'success': True, 'message': 'CSV файл отправлен в Telegram'}
                     self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 else:
                     error_text = resp.text[:200] if resp.text else 'Неизвестная ошибка'
@@ -561,14 +761,13 @@ class Handler(BaseHTTPRequestHandler):
                 
         except Exception as e:
             error_msg = str(e)
-            print(f"💥 Критическая ошибка в экспорте: {error_msg}")
-            log_error("export_orders", e, self.headers.get('Telegram-Id', ''), "Ошибка экспорта")
+            print(f"💥 Ошибка при создании CSV: {error_msg}")
             
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            response_data = {'success': False, 'error': f'Ошибка сервера: {error_msg}'}
+            response_data = {'success': False, 'error': f'Ошибка создания файла: {error_msg}'}
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
 
     def send_order_notification(self, order_id, status_id):
