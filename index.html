@@ -298,7 +298,6 @@
         .status-option:hover{background:#f8f9fa}
         .status-option.selected{border-color:var(--primary);background:var(--primary-light)}
 
-        .dropdown-menu{max-height:120px;overflow-y:auto;}
         .dropdown { width:100%; position:relative }
         .dropdown-toggle { width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:12px; background:white; text-align:left; cursor:pointer; display:flex; justify-content:space-between; align-items:center; min-height:48px; font-weight:500; transition:all 0.2s ease }
         .dropdown-toggle:hover { border-color:#9ca3af }
@@ -464,6 +463,9 @@
                 </div>
                 <div class="admin-tab" data-tab="help">
                     <i class="fas fa-question-circle"></i>Помощь
+                </div>
+                <div class="admin-tab" data-tab="export">
+                    <i class="fas fa-file-export"></i>Экспорт
                 </div>
                 <div class="admin-tab" data-tab="dangerous" id="dangerousTabButton" style="display: none;">
                     <i class="fas fa-skull-crossbones"></i>Опасные действия
@@ -1006,6 +1008,19 @@
                                 <li>Реальная и потенциальная выручка</li>
                                 <li>Количество активных товаров и промокодов</li>
                             </ul>
+                        </div>
+
+                        <div class="admin-tab-content" id="exportTab">
+                            <div class="product-form">
+                                <div class="form-title"><i class="fas fa-file-excel"></i> Экспорт данных</div>
+                                <div class="form-group">
+                                    <p style="color: var(--text-light); margin-bottom: 20px;">Экспортирует все заказы в файл Excel. Отчет будет отправлен вам в Telegram.</p>
+                                </div>
+                                <button class="checkout-btn" onclick="exportToExcel()" id="exportBtn">
+                                    <i class="fas fa-file-excel"></i> Экспортировать данные в Excel
+                                </button>
+                                <div id="exportStatus" style="margin-top: 15px; font-size: 13px;"></div>
+                            </div>
                         </div>
 
                         <div class="help-item">
