@@ -4,6 +4,8 @@ import os
 import requests
 import sys
 from datetime import datetime
+import pandas as pd, io, tempfile, json, os, requests
+from datetime import datetime
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -105,6 +107,8 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_POST(self):
         try:
+            if self.path == '/api/export/orders':
+            return self.handle_export_orders()
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             order_data = json.loads(post_data)
@@ -393,6 +397,71 @@ class Handler(BaseHTTPRequestHandler):
             print(f"💥 Error saving order to database: {e}")
             return False
 
+    def handle_export_orders(self):
+    try:
+        bot_token = os.environ.get('BOT_TOKEN')
+        user_id = self.headers.get('Telegram-Id', '')
+        if not bot_token or not user_id: return self.send_error(400, 'Требуется авторизация')
+        orders_response = supabase.table("orders").select("*").order('created_at', desc=True).execute()
+        if not orders_response.data: return self.send_error(404, 'Нет данных для экспорта')
+        
+        orders_data, items_summary = [], {}
+        status_names = {1:'Новый', 2:'Подтвержден', 3:'Собирается', 4:'В пути', 5:'Доставлен', 6:'Отменен'}
+        for o in orders_response.data:
+            order_time = datetime.fromisoformat(o['created_at'].replace('Z', '+00:00')).strftime('%d.%m.%Y %H:%M') if o.get('created_at') else ''
+            row = {'ID': o['id'], 'Дата и время': order_time, 'Клиент': o['user_name'], 'Телефон': o['phone'],
+                   'Сумма': o['total_amount'], 'Скидка': o.get('discount_amount', 0), 'Итог': o['final_amount'],
+                   'Способ': 'Доставка' if o['delivery_option'] == 'delivery' else 'Самовывоз',
+                   'Адрес': o.get('delivery_address', ''), 'Статус': status_names.get(o['status_id'], 'Новый'),
+                   'Комментарий': o.get('comment', '')[:50]}
+            orders_data.append(row)
+            
+            if isinstance(o['items'], list):
+                for item in o['items']:
+                    name = item.get('name', 'Неизвестно')
+                    qty = item.get('quantity', 0)
+                    price = item.get('price', 0)
+                    if name not in items_summary:
+                        items_summary[name] = {'quantity': qty, 'revenue': qty * price}
+                    else:
+                        items_summary[name]['quantity'] += qty
+                        items_summary[name]['revenue'] += qty * price
+        
+        df_orders = pd.DataFrame(orders_data)
+        summary_list = [{'Товар': k, 'Кол-во': v['quantity'], 'Выручка': v['revenue']} for k, v in items_summary.items()]
+        df_summary = pd.DataFrame(summary_list)
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_orders.to_excel(writer, sheet_name='Заказы', index=False)
+            if not df_summary.empty:
+                df_summary.to_excel(writer, sheet_name='Сводка товаров', index=False)
+            
+            workbook = writer.book
+            worksheet = writer.sheets['Заказы']
+            money_fmt = workbook.add_format({'num_format': '#,##0.00 ₽'})
+            worksheet.set_column('E:G', 15, money_fmt)
+            for col_num, value in enumerate(df_orders.columns):
+                worksheet.write(0, col_num, value, workbook.add_format({'bold': True, 'bg_color': '#DDEBF7'}))
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
+            tmp.write(output.getvalue())
+            tmp.flush()
+            with open(tmp.name, 'rb') as f:
+                resp = requests.post(f'https://api.telegram.org/bot{bot_token}/sendDocument',
+                                     data={'chat_id': user_id, 'caption': '📊 Отчет по заказам'},
+                                     files={'document': f}, timeout=30)
+            os.unlink(tmp.name)
+        
+        if resp.status_code == 200:
+            return self.send_response(200, {'success': True, 'message': 'Файл отправлен в Telegram'})
+        else:
+            raise Exception(f'Ошибка Telegram API: {resp.text}')
+            
+        except Exception as e:
+            log_error("export_orders", e, self.headers.get('Telegram-Id', ''), "Ошибка экспорта")
+            return self.send_response(500, {'success': False, 'error': str(e)})
+
     def send_order_notification(self, order_id, status_id):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
@@ -431,6 +500,12 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             log_error("order_notification", e, "", f"Order ID: {order_id}")
             return False
+
+    def send_error(self, code, message):
+        self.send_response(code)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'success': False, 'error': message}).encode('utf-8'))
 
     def update_promocode_usage(self, promocode_id):
         try:
