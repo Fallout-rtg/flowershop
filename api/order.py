@@ -3,7 +3,7 @@ import json
 import os
 import requests
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import io, tempfile, json, os, requests
 from datetime import datetime
 import csv
@@ -20,8 +20,10 @@ except ImportError as e:
 try:
     import openpyxl
     from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
     from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.page import PageMargins
+    from openpyxl.worksheet.pagebreak import Break
 except ImportError as e:
     print(f"⚠️ Openpyxl import error: {e}")
     # Создаем заглушки для совместимости
@@ -503,68 +505,453 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
 
     def export_to_excel(self, orders, bot_token, user_id):
-        """Создание и отправка Excel файла с детализацией товаров в заказах"""
+        """Создание и отправка Excel файла с профессиональным дизайном"""
         try:
-            print("📊 Создаем Excel файл с детализацией товаров...")
+            print("📊 Создаем профессиональный Excel отчет...")
             
-            # Создаем новую рабочую книгу Excel
+            # Создаем рабочую книгу
             wb = Workbook()
-            ws = wb.active
-            ws.title = "Заказы с детализацией"
-        
+            
+            # Удаляем стандартный лист
+            if len(wb.sheetnames) > 0:
+                std_sheet = wb[wb.sheetnames[0]]
+                wb.remove(std_sheet)
+            
+            # ===== ЛИСТ 1: ДЕТАЛИЗАЦИЯ ЗАКАЗОВ =====
+            ws1 = wb.create_sheet(title="📋 Детализация заказов")
+            
             # Определяем стили
+            title_font = Font(name='Calibri', size=16, bold=True, color='FFFFFF')
+            title_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+            
             header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
             header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
             header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-        
+            
             cell_font = Font(name='Calibri', size=10)
+            cell_alignment = Alignment(horizontal='center', vertical='center')
+            
             money_font = Font(name='Calibri', size=10, bold=True, color='1F4E78')
             status_font = Font(name='Calibri', size=10, bold=True)
             product_font = Font(name='Calibri', size=10, color='2E4053')
-        
+            
             thin_border = Border(
-                left=Side(style='thin'),
-                right=Side(style='thin'),
-                top=Side(style='thin'),
-                bottom=Side(style='thin')
+                left=Side(style='thin', color='D9D9D9'),
+                right=Side(style='thin', color='D9D9D9'),
+                top=Side(style='thin', color='D9D9D9'),
+                bottom=Side(style='thin', color='D9D9D9')
             )
-        
-            # Заголовки столбцов с детализацией товаров
+            
+            # Добавляем заголовок отчета
+            ws1.merge_cells('A1:M1')
+            title_cell = ws1.cell(row=1, column=1, value=f"📊 Отчет по заказам - АРТФЛОРА")
+            title_cell.font = title_font
+            title_cell.fill = title_fill
+            title_cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Добавляем подзаголовок с датой
+            ws1.merge_cells('A2:M2')
+            subtitle_cell = ws1.cell(row=2, column=1, value=f"Сформирован: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
+            subtitle_cell.font = Font(name='Calibri', size=10, italic=True, color='7F7F7F')
+            subtitle_cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Заголовки столбцов
             headers = [
-                'ID заказа', 'Дата создания', 'Клиент', 'Телефон',
-                'Товар', 'Кол-во', 'Цена за шт. (₽)', 'Сумма по товару (₽)',
-                'Всего за заказ (₽)', 'Скидка (₽)', 'Итог с доставкой (₽)',
-                'Способ получения', 'Адрес доставки', 'Статус', 'Комментарий к заказу'
+                '№', 'ID заказа', 'Дата создания', 'Клиент', 'Телефон',
+                'Состав заказа', 'Кол-во товаров', 'Сумма (₽)', 'Скидка (₽)', 
+                'Итог (₽)', 'Способ', 'Статус', 'Примечание'
             ]
-        
+            
             # Записываем заголовки
             for col_num, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col_num, value=header)
+                cell = ws1.cell(row=4, column=col_num, value=header)
                 cell.font = header_font
                 cell.fill = header_fill
                 cell.alignment = header_alignment
                 cell.border = thin_border
-        
-            # Карта статусов
+            
+            # Карта статусов с улучшенными цветами
             status_names = {
-                1: ('Новый', 'FF6B6B'),
-                2: ('Подтвержден', 'FFA726'),
-                3: ('Собирается', '8E44AD'),
-                4: ('В пути', '3498DB'),
-                5: ('Доставлен', '27AE60'),
-                6: ('Отменен', '7F8C8D')
+                1: ('🆕 Новый', 'FF6B6B'),
+                2: ('✅ Подтвержден', 'FFA726'),
+                3: ('📦 Собирается', '8E44AD'),
+                4: ('🚚 В пути', '3498DB'),
+                5: ('🎉 Доставлен', '27AE60'),
+                6: ('❌ Отменен', '95A5A6')
             }
-        
-            row_num = 2
-            total_orders_amount = 0
-            total_final_amount = 0
-            total_discount_amount = 0
-            total_products_count = 0
-        
-            # Для подсчета товаров по заказам
-            order_items_summary = {}
-        
-            # Заполняем данные с разверткой товаров
+            
+            row_num = 5
+            summary_data = {
+                'total_orders': len(orders),
+                'total_amount': 0,
+                'total_discount': 0,
+                'total_final': 0,
+                'total_products': 0,
+                'delivery_count': 0,
+                'pickup_count': 0,
+                'status_counts': {status_id: 0 for status_id in status_names.keys()}
+            }
+            
+            # Словарь для статистики по товарам
+            product_stats = {}
+            
+            # Заполняем данные
+            for idx, order in enumerate(orders, 1):
+                # Форматируем дату
+                order_time = ''
+                if order.get('created_at'):
+                    try:
+                        order_time = datetime.fromisoformat(
+                            order['created_at'].replace('Z', '+00:00')
+                        ).strftime('%d.%m.%Y\n%H:%M')
+                    except:
+                        order_time = str(order['created_at'])
+                
+                # Получаем статус
+                status_info = status_names.get(order['status_id'], ('❓ Неизвестен', 'CCCCCC'))
+                status_text, status_color = status_info
+                summary_data['status_counts'][order['status_id']] += 1
+                
+                # Форматируем телефон
+                phone = order['phone']
+                if len(phone) >= 10:
+                    formatted_phone = f"+7 ({phone[1:4]}) {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
+                else:
+                    formatted_phone = phone
+                
+                # Получаем товары
+                items = []
+                try:
+                    if isinstance(order['items'], str):
+                        items = json.loads(order['items'])
+                    else:
+                        items = order['items']
+                except:
+                    items = []
+                
+                # Формируем строку с составом заказа
+                items_text_parts = []
+                total_items_in_order = 0
+                
+                for item in items:
+                    item_name = item.get('name', 'Неизвестный товар')
+                    item_quantity = item.get('quantity', 0)
+                    item_price = item.get('price', 0)
+                    item_total = item.get('total', 0)
+                    
+                    items_text_parts.append(f"• {item_name} × {item_quantity} шт. = {item_total} ₽")
+                    total_items_in_order += item_quantity
+                    
+                    # Собираем статистику по товарам
+                    if item_name in product_stats:
+                        product_stats[item_name] += item_quantity
+                    else:
+                        product_stats[item_name] = item_quantity
+                
+                items_text = "\n".join(items_text_parts)
+                
+                # Способ получения
+                delivery_type = 'Доставка' if order['delivery_option'] == 'delivery' else 'Самовывоз'
+                if delivery_type == 'Доставка':
+                    summary_data['delivery_count'] += 1
+                else:
+                    summary_data['pickup_count'] += 1
+                
+                # Записываем данные
+                ws1.cell(row=row_num, column=1, value=idx).font = cell_font
+                ws1.cell(row=row_num, column=1).alignment = cell_alignment
+                
+                ws1.cell(row=row_num, column=2, value=order['id']).font = Font(name='Calibri', size=10, bold=True)
+                ws1.cell(row=row_num, column=2).alignment = cell_alignment
+                
+                ws1.cell(row=row_num, column=3, value=order_time).font = cell_font
+                ws1.cell(row=row_num, column=3).alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                
+                ws1.cell(row=row_num, column=4, value=order['user_name']).font = cell_font
+                ws1.cell(row=row_num, column=4).alignment = cell_alignment
+                
+                ws1.cell(row=row_num, column=5, value=formatted_phone).font = cell_font
+                ws1.cell(row=row_num, column=5).alignment = cell_alignment
+                
+                ws1.cell(row=row_num, column=6, value=items_text).font = product_font
+                ws1.cell(row=row_num, column=6).alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+                
+                ws1.cell(row=row_num, column=7, value=total_items_in_order).font = Font(name='Calibri', size=10, bold=True)
+                ws1.cell(row=row_num, column=7).alignment = cell_alignment
+                
+                ws1.cell(row=row_num, column=8, value=order['total_amount']).font = money_font
+                ws1.cell(row=row_num, column=8).alignment = cell_alignment
+                ws1.cell(row=row_num, column=8).number_format = '#,##0 ₽'
+                
+                ws1.cell(row=row_num, column=9, value=order.get('discount_amount', 0)).font = Font(name='Calibri', size=10, color='E74C3C')
+                ws1.cell(row=row_num, column=9).alignment = cell_alignment
+                ws1.cell(row=row_num, column=9).number_format = '#,##0 ₽'
+                
+                ws1.cell(row=row_num, column=10, value=order['final_amount']).font = Font(name='Calibri', size=10, bold=True, color='27AE60')
+                ws1.cell(row=row_num, column=10).alignment = cell_alignment
+                ws1.cell(row=row_num, column=10).number_format = '#,##0 ₽'
+                
+                ws1.cell(row=row_num, column=11, value=delivery_type).font = cell_font
+                ws1.cell(row=row_num, column=11).alignment = cell_alignment
+                
+                # Статус с цветом
+                status_cell = ws1.cell(row=row_num, column=12, value=status_text)
+                status_cell.font = status_font
+                status_cell.alignment = cell_alignment
+                status_cell.fill = PatternFill(start_color=status_color, end_color=status_color, fill_type='solid')
+                
+                ws1.cell(row=row_num, column=13, value=order.get('comment', '')).font = Font(name='Calibri', size=9, color='7F8C8D')
+                ws1.cell(row=row_num, column=13).alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+                
+                # Добавляем границы
+                for col_num in range(1, 14):
+                    cell = ws1.cell(row=row_num, column=col_num)
+                    cell.border = thin_border
+                
+                # Подсчет итогов
+                summary_data['total_amount'] += order['total_amount']
+                summary_data['total_discount'] += order.get('discount_amount', 0)
+                summary_data['total_final'] += order['final_amount']
+                summary_data['total_products'] += total_items_in_order
+                
+                row_num += 1
+            
+            # Настраиваем ширину столбцов (пиксели → единицы openpyxl)
+            column_widths = [5, 10, 12, 18, 23.57, 45, 12, 12, 12, 12, 10, 12, 25]
+            for i, width in enumerate(column_widths, 1):
+                ws1.column_dimensions[get_column_letter(i)].width = width
+            
+            # Автоматическая высота строк
+            for row in range(5, row_num):
+                items_cell = ws1.cell(row=row, column=6)  # Состав заказа
+                lines = 1
+                if items_cell.value:
+                    lines = str(items_cell.value).count('\n') + 1
+                ws1.row_dimensions[row].height = max(20, lines * 15)
+            
+            # Добавляем итоговую строку
+            summary_row = row_num + 1
+            
+            # Объединяем ячейки для заголовка итогов
+            ws1.merge_cells(f'A{summary_row}:F{summary_row}')
+            ws1.cell(row=summary_row, column=1, value='📈 ИТОГОВАЯ СТАТИСТИКА').font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+            ws1.cell(row=summary_row, column=1).fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+            ws1.cell(row=summary_row, column=1).alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Итоговые показатели
+            ws1.cell(row=summary_row, column=7, value=f"📦 {summary_data['total_products']} шт").font = Font(bold=True, color='2E86C1')
+            ws1.cell(row=summary_row, column=7).alignment = cell_alignment
+            
+            ws1.cell(row=summary_row, column=8, value=f"💰 {summary_data['total_amount']:,} ₽").font = Font(bold=True, color='27AE60')
+            ws1.cell(row=summary_row, column=8).alignment = cell_alignment
+            ws1.cell(row=summary_row, column=8).number_format = '#,##0 ₽'
+            
+            ws1.cell(row=summary_row, column=10, value=f"💎 {summary_data['total_final']:,} ₽").font = Font(bold=True, color='E74C3C')
+            ws1.cell(row=summary_row, column=10).alignment = cell_alignment
+            ws1.cell(row=summary_row, column=10).number_format = '#,##0 ₽'
+            
+            # ===== ЛИСТ 2: СТАТИСТИКА ПО ТОВАРАМ =====
+            ws2 = wb.create_sheet(title="📊 Топ товаров")
+            
+            # Заголовок
+            ws2.merge_cells('A1:E1')
+            ws2.cell(row=1, column=1, value="📦 Статистика продаж по товарам").font = title_font
+            ws2.cell(row=1, column=1).fill = PatternFill(start_color='27AE60', end_color='27AE60', fill_type='solid')
+            ws2.cell(row=1, column=1).alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Подзаголовок
+            ws2.merge_cells('A2:E2')
+            ws2.cell(row=2, column=1, value=f"Всего уникальных товаров: {len(product_stats)}").font = Font(name='Calibri', size=10, italic=True, color='7F7F7F')
+            ws2.cell(row=2, column=1).alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Заголовки для статистики
+            stats_headers = [
+                '🏷️ Товар', '📦 Продано (шт)', '💰 Выручка (₽)', 
+                '📊 Доля в продажах (%)', '🏅 Рейтинг'
+            ]
+            
+            # Подсчитываем выручку по товарам
+            product_revenue = {}
+            for order in orders:
+                try:
+                    items = order['items']
+                    if isinstance(items, str):
+                        items = json.loads(items)
+                    
+                    for item in items:
+                        item_name = item.get('name', 'Неизвестный товар')
+                        item_total = item.get('total', 0)
+                        
+                        if item_name in product_revenue:
+                            product_revenue[item_name] += item_total
+                        else:
+                            product_revenue[item_name] = item_total
+                except:
+                    pass
+            
+            # Сортируем товары по количеству продаж
+            sorted_products = sorted(product_stats.items(), key=lambda x: x[1], reverse=True)
+            
+            for col_num, header in enumerate(stats_headers, 1):
+                cell = ws2.cell(row=4, column=col_num, value=header)
+                cell.font = header_font
+                cell.fill = PatternFill(start_color='27AE60', end_color='27AE60', fill_type='solid')
+                cell.alignment = header_alignment
+                cell.border = thin_border
+            
+            # Заполняем статистику
+            stats_row = 5
+            for idx, (product_name, quantity) in enumerate(sorted_products, 1):
+                revenue = product_revenue.get(product_name, 0)
+                percentage = (quantity / summary_data['total_products'] * 100) if summary_data['total_products'] > 0 else 0
+                
+                # Определяем рейтинг
+                if idx == 1:
+                    rating = "🥇 ЛИДЕР"
+                elif idx == 2:
+                    rating = "🥈 ТОП-2"
+                elif idx == 3:
+                    rating = "🥉 ТОП-3"
+                elif idx <= 10:
+                    rating = f"⭐ ТОП-{idx}"
+                else:
+                    rating = f"#{idx}"
+                
+                ws2.cell(row=stats_row, column=1, value=product_name).font = Font(name='Calibri', size=10, bold=True)
+                ws2.cell(row=stats_row, column=1).alignment = Alignment(horizontal='left', vertical='center')
+                
+                ws2.cell(row=stats_row, column=2, value=quantity).font = Font(name='Calibri', size=10, bold=True, color='3498DB')
+                ws2.cell(row=stats_row, column=2).alignment = cell_alignment
+                
+                ws2.cell(row=stats_row, column=3, value=revenue).font = Font(name='Calibri', size=10, bold=True, color='27AE60')
+                ws2.cell(row=stats_row, column=3).alignment = cell_alignment
+                ws2.cell(row=stats_row, column=3).number_format = '#,##0 ₽'
+                
+                ws2.cell(row=stats_row, column=4, value=round(percentage, 1)).font = Font(name='Calibri', size=10, color='8E44AD')
+                ws2.cell(row=stats_row, column=4).alignment = cell_alignment
+                ws2.cell(row=stats_row, column=4).number_format = '0.0"%"'
+                
+                ws2.cell(row=stats_row, column=5, value=rating).font = Font(name='Calibri', size=10, bold=True, color='E74C3C')
+                ws2.cell(row=stats_row, column=5).alignment = cell_alignment
+                
+                # Добавляем границы
+                for col_num in range(1, 6):
+                    ws2.cell(row=stats_row, column=col_num).border = thin_border
+                
+                # Заливка для четных строк
+                if idx % 2 == 0:
+                    for col_num in range(1, 6):
+                        ws2.cell(row=stats_row, column=col_num).fill = PatternFill(start_color='F8F9F9', end_color='F8F9F9', fill_type='solid')
+                
+                stats_row += 1
+            
+            # Настраиваем ширину столбцов
+            stats_widths = [45, 15, 15, 15, 12]
+            for i, width in enumerate(stats_widths, 1):
+                ws2.column_dimensions[get_column_letter(i)].width = width
+            
+            # ===== ЛИСТ 3: АНАЛИТИКА И СВОДКА =====
+            ws3 = wb.create_sheet(title="📈 Аналитика")
+            
+            # Заголовок
+            ws3.merge_cells('A1:C1')
+            ws3.cell(row=1, column=1, value="📊 Аналитическая сводка").font = title_font
+            ws3.cell(row=1, column=1).fill = PatternFill(start_color='8E44AD', end_color='8E44AD', fill_type='solid')
+            ws3.cell(row=1, column=1).alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Ключевые метрики
+            metrics = [
+                ("📊 Общее количество заказов", f"{summary_data['total_orders']:,}", "4F81BD"),
+                ("📦 Всего товаров продано", f"{summary_data['total_products']:,} шт", "3498DB"),
+                ("💰 Общая выручка", f"{summary_data['total_amount']:,} ₽", "27AE60"),
+                ("🎫 Сумма скидок", f"{summary_data['total_discount']:,} ₽", "E74C3C"),
+                ("💎 Итоговая сумма", f"{summary_data['total_final']:,} ₽", "9B59B6"),
+                ("🚚 Заказов с доставкой", f"{summary_data['delivery_count']:,}", "F39C12"),
+                ("🏪 Заказов самовывозом", f"{summary_data['pickup_count']:,}", "16A085"),
+                ("📈 Средний чек", f"{round(summary_data['total_amount']/summary_data['total_orders'], 2):,} ₽", "2C3E50"),
+            ]
+            
+            # Добавляем метрики
+            metric_row = 3
+            for i, (label, value, color) in enumerate(metrics):
+                row = metric_row + (i // 2 * 2)
+                col = (i % 2) * 3 + 1
+                
+                # Метка
+                ws3.merge_cells(start_row=row, start_column=col, end_row=row, end_column=col+1)
+                label_cell = ws3.cell(row=row, column=col, value=label)
+                label_cell.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+                label_cell.fill = PatternFill(start_color=color, end_color=color, fill_type='solid')
+                label_cell.alignment = Alignment(horizontal='center', vertical='center')
+                
+                # Значение
+                ws3.merge_cells(start_row=row+1, start_column=col, end_row=row+1, end_column=col+1)
+                value_cell = ws3.cell(row=row+1, column=col, value=value)
+                value_cell.font = Font(name='Calibri', size=14, bold=True)
+                value_cell.alignment = Alignment(horizontal='center', vertical='center')
+                value_cell.border = thin_border
+            
+            # Статистика по статусам
+            status_row = metric_row + 10
+            ws3.merge_cells(f'A{status_row}:C{status_row}')
+            ws3.cell(row=status_row, column=1, value="📋 Распределение по статусам").font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+            ws3.cell(row=status_row, column=1).fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+            ws3.cell(row=status_row, column=1).alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Добавляем статусы
+            status_row += 1
+            for status_id, (status_name, status_color) in status_names.items():
+                count = summary_data['status_counts'].get(status_id, 0)
+                percentage = (count / summary_data['total_orders'] * 100) if summary_data['total_orders'] > 0 else 0
+                
+                # Метка статуса
+                ws3.cell(row=status_row, column=1, value=status_name).font = Font(name='Calibri', size=10, bold=True)
+                ws3.cell(row=status_row, column=1).alignment = Alignment(horizontal='left', vertical='center')
+                ws3.cell(row=status_row, column=1).fill = PatternFill(start_color=status_color + '20', end_color=status_color + '20', fill_type='solid')
+                
+                # Количество
+                ws3.cell(row=status_row, column=2, value=count).font = Font(name='Calibri', size=10, bold=True)
+                ws3.cell(row=status_row, column=2).alignment = cell_alignment
+                
+                # Процент
+                ws3.cell(row=status_row, column=3, value=f"{percentage:.1f}%").font = Font(name='Calibri', size=10)
+                ws3.cell(row=status_row, column=3).alignment = cell_alignment
+                ws3.cell(row=status_row, column=3).number_format = '0.0"% "'
+                
+                status_row += 1
+            
+            # Настраиваем ширину столбцов
+            ws3.column_dimensions['A'].width = 25
+            ws3.column_dimensions['B'].width = 15
+            ws3.column_dimensions['C'].width = 15
+            ws3.column_dimensions['D'].width = 25
+            ws3.column_dimensions['E'].width = 15
+            ws3.column_dimensions['F'].width = 15
+            
+            # ===== ЛИСТ 4: ДЕТАЛЬНЫЙ ЧЕК =====
+            ws4 = wb.create_sheet(title="🧾 Детальные чеки")
+            
+            # Заголовок
+            ws4.merge_cells('A1:G1')
+            ws4.cell(row=1, column=1, value="🧾 Подробные чеки по заказам").font = title_font
+            ws4.cell(row=1, column=1).fill = PatternFill(start_color='E74C3C', end_color='E74C3C', fill_type='solid')
+            ws4.cell(row=1, column=1).alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Заголовки для детальных чеков
+            check_headers = [
+                'Заказ №', 'Дата', 'Клиент', 'Товар', 
+                'Кол-во', 'Цена (₽)', 'Сумма (₽)'
+            ]
+            
+            for col_num, header in enumerate(check_headers, 1):
+                cell = ws4.cell(row=3, column=col_num, value=header)
+                cell.font = header_font
+                cell.fill = PatternFill(start_color='E74C3C', end_color='E74C3C', fill_type='solid')
+                cell.alignment = header_alignment
+                cell.border = thin_border
+            
+            # Заполняем детальные чеки
+            check_row = 4
             for order in orders:
                 # Форматируем дату
                 order_time = ''
@@ -572,27 +959,11 @@ class Handler(BaseHTTPRequestHandler):
                     try:
                         order_time = datetime.fromisoformat(
                             order['created_at'].replace('Z', '+00:00')
-                        ).strftime('%d.%m.%Y %H:%M')
+                        ).strftime('%d.%m.%Y')
                     except:
                         order_time = str(order['created_at'])
-            
-                # Получаем статус
-                status_info = status_names.get(order['status_id'], ('Неизвестен', 'CCCCCC'))
-                status_text, status_color = status_info
-            
-                # Форматируем телефон
-                phone = order['phone']
-                if len(phone) >= 10:
-                    formatted_phone = f"+7 ({phone[1:4]}) {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
-                else:
-                    formatted_phone = phone
-            
-                # Форматируем адрес
-                delivery_address = order.get('delivery_address', '')
-                if order['delivery_option'] == 'pickup':
-                    delivery_address = 'Самовывоз'
-            
-                # Получаем товары из JSON
+                
+                # Получаем товары
                 items = []
                 try:
                     if isinstance(order['items'], str):
@@ -601,176 +972,77 @@ class Handler(BaseHTTPRequestHandler):
                         items = order['items']
                 except:
                     items = []
+                
+                # Добавляем каждый товар
+                for item in items:
+                    ws4.cell(row=check_row, column=1, value=order['id']).font = Font(name='Calibri', size=10, bold=True)
+                    ws4.cell(row=check_row, column=1).alignment = cell_alignment
+                    
+                    ws4.cell(row=check_row, column=2, value=order_time).font = cell_font
+                    ws4.cell(row=check_row, column=2).alignment = cell_alignment
+                    
+                    ws4.cell(row=check_row, column=3, value=order['user_name']).font = cell_font
+                    ws4.cell(row=check_row, column=3).alignment = cell_alignment
+                    
+                    ws4.cell(row=check_row, column=4, value=item.get('name', 'Неизвестный товар')).font = product_font
+                    ws4.cell(row=check_row, column=4).alignment = Alignment(horizontal='left', vertical='center')
+                    
+                    ws4.cell(row=check_row, column=5, value=item.get('quantity', 0)).font = cell_font
+                    ws4.cell(row=check_row, column=5).alignment = cell_alignment
+                    
+                    ws4.cell(row=check_row, column=6, value=item.get('price', 0)).font = money_font
+                    ws4.cell(row=check_row, column=6).alignment = cell_alignment
+                    ws4.cell(row=check_row, column=6).number_format = '#,##0 ₽'
+                    
+                    ws4.cell(row=check_row, column=7, value=item.get('total', 0)).font = Font(name='Calibri', size=10, bold=True, color='27AE60')
+                    ws4.cell(row=check_row, column=7).alignment = cell_alignment
+                    ws4.cell(row=check_row, column=7).number_format = '#,##0 ₽'
+                    
+                    # Добавляем границы
+                    for col_num in range(1, 8):
+                        ws4.cell(row=check_row, column=col_num).border = thin_border
+                    
+                    check_row += 1
             
-                # Создаем запись для каждого товара в заказе
-                for item_idx, item in enumerate(items):
-                    # Общие данные заказа (будут повторяться для каждого товара)
-                    ws.cell(row=row_num, column=1, value=order['id']).font = cell_font
-                    ws.cell(row=row_num, column=2, value=order_time).font = cell_font
-                    ws.cell(row=row_num, column=3, value=order['user_name']).font = cell_font
-                    ws.cell(row=row_num, column=4, value=formatted_phone).font = cell_font
-                
-                    # Данные товара
-                    item_name = item.get('name', 'Неизвестный товар')
-                    item_quantity = item.get('quantity', 0)
-                    item_price = item.get('price', 0)
-                    item_total = item.get('total', 0)
-                
-                    ws.cell(row=row_num, column=5, value=item_name).font = product_font
-                    ws.cell(row=row_num, column=6, value=item_quantity).font = cell_font
-                    ws.cell(row=row_num, column=7, value=item_price).font = money_font
-                    ws.cell(row=row_num, column=8, value=item_total).font = money_font
-                
-                    # Общие данные заказа (продолжение)
-                    ws.cell(row=row_num, column=9, value=order['total_amount']).font = money_font
-                    ws.cell(row=row_num, column=10, value=order.get('discount_amount', 0)).font = money_font
-                    ws.cell(row=row_num, column=11, value=order['final_amount']).font = Font(name='Calibri', size=10, bold=True, color='E74C3C')
-                
-                    ws.cell(row=row_num, column=12, value='Доставка' if order['delivery_option'] == 'delivery' else 'Самовывоз').font = cell_font
-                    ws.cell(row=row_num, column=13, value=delivery_address).font = cell_font
-                
-                    # Статус с цветом
-                    status_cell = ws.cell(row=row_num, column=14, value=status_text)
-                    status_cell.font = status_font
-                    status_cell.fill = PatternFill(start_color=status_color, end_color=status_color, fill_type='solid')
-                
-                    ws.cell(row=row_num, column=15, value=order.get('comment', '')).font = cell_font
-                
-                    # Добавляем границы ко всем ячейкам
-                    for col_num in range(1, 16):
-                        ws.cell(row=row_num, column=col_num).border = thin_border
-                
-                    # Подсчет итогов (только для первого товара в заказе)
-                    if item_idx == 0:
-                        total_orders_amount += order['total_amount']
-                        total_final_amount += order['final_amount']
-                        total_discount_amount += order.get('discount_amount', 0)
-                    
-                        # Запоминаем детали заказа для итоговой таблицы
-                        order_items_summary[order['id']] = {
-                            'date': order_time,
-                            'items': items,
-                            'total_amount': order['total_amount'],
-                            'final_amount': order['final_amount']
-                        }
-                
-                    # Подсчет общего количества товаров
-                    total_products_count += item_quantity
-                    
-                    row_num += 1
-        
             # Настраиваем ширину столбцов
-            column_widths = [10, 16, 20, 15, 35, 8, 12, 15, 15, 12, 15, 12, 25, 12, 30]
-            for i, width in enumerate(column_widths, 1):
-                ws.column_dimensions[get_column_letter(i)].width = width
-        
-            # Замораживаем заголовок
-            ws.freeze_panes = 'A2'
-        
-            # Добавляем ИТОГОВУЮ СТРОКУ
-            total_row = row_num + 1
-            ws.cell(row=total_row, column=1, value='ИТОГО:').font = Font(bold=True, size=11)
-            ws.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=5)
-        
-            # Итоговые показатели
-            ws.cell(row=total_row, column=6, value=f"Товаров: {total_products_count} шт").font = Font(bold=True, color='1F4E78')
-            ws.cell(row=total_row, column=7, value=f"Заказов: {len(orders)}").font = Font(bold=True, color='1F4E78')
-            ws.cell(row=total_row, column=9, value=total_orders_amount).font = Font(bold=True, color='E74C3C')
-            ws.cell(row=total_row, column=10, value=total_discount_amount).font = Font(bold=True, color='E74C3C')
-            ws.cell(row=total_row, column=11, value=total_final_amount).font = Font(bold=True, color='E74C3C')
-        
-            # Создаем второй лист с детализацией по заказам
-            ws2 = wb.create_sheet(title="Сводка по заказам")
-        
-            # Заголовки для сводки
-            summary_headers = [
-                'ID заказа', 'Дата', 'Клиент', 'Всего товаров в заказе',
-                'Состав заказа (товар × кол-во)', 'Сумма заказа (₽)', 'Итог с доставкой (₽)'
-            ]
-        
-            for col_num, header in enumerate(summary_headers, 1):
-                cell = ws2.cell(row=1, column=col_num, value=header)
-                cell.font = header_font
-                cell.fill = PatternFill(start_color='27AE60', end_color='27AE60', fill_type='solid')
-                cell.alignment = header_alignment
-                cell.border = thin_border
-        
-            # Заполняем сводку
-            summary_row = 2
-            for order in orders:
-                items = []
-                try:
-                    if isinstance(order['items'], str):
-                        items = json.loads(order['items'])
-                    else:
-                        items = order['items']
-                except:
-                    items = []
+            check_widths = [10, 12, 18, 40, 10, 12, 12]
+            for i, width in enumerate(check_widths, 1):
+                ws4.column_dimensions[get_column_letter(i)].width = width
             
-                # Формируем строку с составом заказа
-                items_text = "\n".join([f"• {item.get('name', 'Неизвестно')} × {item.get('quantity', 0)}" for item in items])
-                total_items = sum(item.get('quantity', 0) for item in items)
+            # Настраиваем страницы для печати
+            for ws in [ws1, ws2, ws3, ws4]:
+                ws.page_margins = PageMargins(left=0.4, right=0.4, top=0.5, bottom=0.5, header=0.3, footer=0.3)
+                ws.sheet_view.showGridLines = False
             
-                ws2.cell(row=summary_row, column=1, value=order['id']).font = cell_font
-                ws2.cell(row=summary_row, column=2, value=order_time).font = cell_font
-                ws2.cell(row=summary_row, column=3, value=order['user_name']).font = cell_font
-                ws2.cell(row=summary_row, column=4, value=total_items).font = cell_font
-                ws2.cell(row=summary_row, column=5, value=items_text).font = product_font
-                ws2.cell(row=summary_row, column=6, value=order['total_amount']).font = money_font
-                ws2.cell(row=summary_row, column=7, value=order['final_amount']).font = Font(bold=True, color='E74C3C')
-            
-                # Добавляем границы
-                for col_num in range(1, 8):
-                    ws2.cell(row=summary_row, column=col_num).border = thin_border
-            
-                # Настройка переноса текста для колонки с составом
-                ws2.cell(row=summary_row, column=5).alignment = Alignment(wrap_text=True, vertical='top')
-            
-                summary_row += 1
-        
-            # Настраиваем ширину столбцов для сводки
-            summary_widths = [10, 16, 20, 15, 40, 15, 15]
-            for i, width in enumerate(summary_widths, 1):
-                ws2.column_dimensions[get_column_letter(i)].width = width
-        
-            # Автоматическая высота строк для сводки
-            for row in ws2.iter_rows(min_row=2, max_row=summary_row):
-                max_lines = 1
-                items_cell = row[4]  # Колонка с составом заказа
-                if items_cell.value:
-                    lines = str(items_cell.value).count('\n') + 1
-                    max_lines = max(max_lines, lines)
-            
-                ws2.row_dimensions[row[0].row].height = max_lines * 15
-        
-            print("📁 Создаем временный файл Excel...")
+            # Сохраняем файл
+            print("📁 Сохраняем Excel файл...")
             with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx', mode='wb') as tmp:
                 wb.save(tmp.name)
                 tmp_path = tmp.name
-                print(f"✅ Временный файл создан: {tmp_path}")
-        
+                print(f"✅ Файл создан: {tmp_path}")
+            
             try:
-                print("📤 Отправляем Excel файл в Telegram...")
+                print("📤 Отправляем файл в Telegram...")
                 with open(tmp_path, 'rb') as f:
                     resp = requests.post(
                         f'https://api.telegram.org/bot{bot_token}/sendDocument',
                         data={
                             'chat_id': user_id, 
-                            'caption': '📊 Детализированный отчет по заказам\n\n• Первый лист: детализация по товарам\n• Второй лист: сводка по заказам'
+                            'caption': '📊 Профессиональный отчет АРТФЛОРА\n\n• 📋 Детализация заказов\n• 📊 Топ товаров\n• 📈 Аналитика\n• 🧾 Детальные чеки\n\nОтчет сформирован автоматически.'
                         },
-                        files={'document': ('orders_detailed_report.xlsx', f, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')},
+                        files={'document': ('Отчет_АРТФЛОРА.xlsx', f, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')},
                         timeout=30
                     )
-            
+                
                 print(f"📩 Ответ Telegram API: {resp.status_code}")
-            
+                
                 if resp.status_code == 200:
-                    print("✅ Excel файл успешно отправлен в Telegram")
+                    print("✅ Excel файл успешно отправлен")
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json')
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
-                    response_data = {'success': True, 'message': 'Excel файл отправлен в Telegram'}
+                    response_data = {'success': True, 'message': 'Отчет отправлен в Telegram'}
                     self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 else:
                     error_text = resp.text[:200] if resp.text else 'Неизвестная ошибка'
@@ -779,19 +1051,21 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_header('Content-type', 'application/json')
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
-                    response_data = {'success': False, 'error': f'Ошибка отправки файла: {resp.status_code}'}
+                    response_data = {'success': False, 'error': f'Ошибка отправки: {resp.status_code}'}
                     self.wfile.write(json.dumps(response_data).encode('utf-8'))
-                
+                    
             finally:
                 # Удаляем временный файл
                 try:
                     os.unlink(tmp_path)
-                    print("🗑 Временный файл удален")
+                    print("🗑 Файл удален")
                 except:
                     pass
                 
         except Exception as e:
             print(f"💥 Ошибка при создании Excel: {e}")
+            import traceback
+            traceback.print_exc()
             # Пробуем создать CSV как fallback
             return self.export_to_csv(orders, bot_token, user_id)
 
