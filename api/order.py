@@ -4,8 +4,9 @@ import os
 import requests
 import sys
 from datetime import datetime
-import pandas as pd, io, tempfile, json, os, requests
+import io, tempfile, json, os, requests
 from datetime import datetime
+import csv
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -421,8 +422,14 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'success': False, 'error': 'Нет данных для экспорта'}).encode('utf-8'))
                 return
             
-            orders_data = []
-            items_summary = {}
+            # Создаем CSV файл в памяти
+            output = io.StringIO()
+            csv_writer = csv.writer(output)
+            
+            # Заголовки CSV
+            headers = ['ID', 'Дата и время', 'Клиент', 'Телефон', 'Сумма', 'Скидка', 'Итог', 
+                      'Способ', 'Адрес', 'Статус', 'Комментарий']
+            csv_writer.writerow(headers)
             
             status_names = {
                 1: 'Новый',
@@ -441,63 +448,35 @@ class Handler(BaseHTTPRequestHandler):
                     except:
                         order_time = order['created_at']
                 
-                row = {
-                    'ID': order['id'],
-                    'Дата и время': order_time,
-                    'Клиент': order['user_name'],
-                    'Телефон': order['phone'],
-                    'Сумма': order['total_amount'],
-                    'Скидка': order.get('discount_amount', 0),
-                    'Итог': order['final_amount'],
-                    'Способ': 'Доставка' if order['delivery_option'] == 'delivery' else 'Самовывоз',
-                    'Адрес': order.get('delivery_address', ''),
-                    'Статус': status_names.get(order['status_id'], 'Новый'),
-                    'Комментарий': order.get('comment', '')[:50]
-                }
-                orders_data.append(row)
-                
-                if isinstance(order['items'], list):
-                    for item in order['items']:
-                        name = item.get('name', 'Неизвестно')
-                        qty = item.get('quantity', 0)
-                        price = item.get('price', 0)
-                        
-                        if name not in items_summary:
-                            items_summary[name] = {'quantity': qty, 'revenue': qty * price}
-                        else:
-                            items_summary[name]['quantity'] += qty
-                            items_summary[name]['revenue'] += qty * price
+                row = [
+                    order['id'],
+                    order_time,
+                    order['user_name'],
+                    order['phone'],
+                    order['total_amount'],
+                    order.get('discount_amount', 0),
+                    order['final_amount'],
+                    'Доставка' if order['delivery_option'] == 'delivery' else 'Самовывоз',
+                    order.get('delivery_address', ''),
+                    status_names.get(order['status_id'], 'Новый'),
+                    (order.get('comment', '')[:50] + '...') if len(order.get('comment', '')) > 50 else order.get('comment', '')
+                ]
+                csv_writer.writerow(row)
             
-            df_orders = pd.DataFrame(orders_data)
+            # Создаем файл в памяти
+            csv_data = output.getvalue().encode('utf-8')
             
-            summary_list = [{'Товар': k, 'Кол-во': v['quantity'], 'Выручка': v['revenue']} for k, v in items_summary.items()]
-            df_summary = pd.DataFrame(summary_list)
-            
-            output = io.BytesIO()
-            
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df_orders.to_excel(writer, sheet_name='Заказы', index=False)
-                
-                if not df_summary.empty:
-                    df_summary.to_excel(writer, sheet_name='Сводка товаров', index=False)
-                
-                workbook = writer.book
-                worksheet = writer.sheets['Заказы']
-                money_fmt = workbook.add_format({'num_format': '#,##0.00 ₽'})
-                worksheet.set_column('E:G', 15, money_fmt)
-                
-                for col_num, value in enumerate(df_orders.columns):
-                    worksheet.write(0, col_num, value, workbook.add_format({'bold': True, 'bg_color': '#DDEBF7'}))
-            
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
-                tmp.write(output.getvalue())
+            # Создаем временный файл с расширением .csv
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.csv', mode='wb') as tmp:
+                tmp.write(csv_data)
                 tmp.flush()
                 
+                # Отправляем файл в Telegram
                 with open(tmp.name, 'rb') as f:
                     resp = requests.post(
                         f'https://api.telegram.org/bot{bot_token}/sendDocument',
-                        data={'chat_id': user_id, 'caption': '📊 Отчет по заказам'},
-                        files={'document': f},
+                        data={'chat_id': user_id, 'caption': '📊 Отчет по заказам в формате CSV'},
+                        files={'document': ('orders_report.csv', f, 'text/csv')},
                         timeout=30
                     )
                 
