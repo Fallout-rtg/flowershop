@@ -21,7 +21,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET, PUT, DELETE')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Telegram-Id, Is-Admin, User-Id')
         self.end_headers()
     
     def do_GET(self):
@@ -401,26 +401,47 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_export_orders(self):
         try:
+            print(f"🔄 Начало обработки экспорта заказов")
             bot_token = os.environ.get('BOT_TOKEN')
             user_id = self.headers.get('Telegram-Id', '')
+            is_admin = self.headers.get('Is-Admin', 'false') == 'true'
+            
+            print(f"📊 Параметры запроса: bot_token={'установлен' if bot_token else 'отсутствует'}, user_id={user_id}, is_admin={is_admin}")
             
             if not bot_token or not user_id:
+                print("❌ Отсутствуют необходимые параметры авторизации")
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({'success': False, 'error': 'Требуется авторизация'}).encode('utf-8'))
+                response_data = {'success': False, 'error': 'Требуется авторизация'}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
-            orders_response = supabase.table("orders").select("*").order('created_at', desc=True).execute()
-            
-            if not orders_response.data:
-                self.send_response(404)
+            if not is_admin:
+                print("❌ Пользователь не является администратором")
+                self.send_response(403)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({'success': False, 'error': 'Нет данных для экспорта'}).encode('utf-8'))
+                response_data = {'success': False, 'error': 'Требуются права администратора'}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
+            
+            print("📋 Запрашиваем заказы из базы данных...")
+            orders_response = supabase.table("orders").select("*").order('created_at', desc=True).execute()
+            
+            if not orders_response.data:
+                print("⚠️ Нет данных для экспорта")
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response_data = {'success': True, 'message': 'Нет данных для экспорта', 'data': []}
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                return
+            
+            print(f"✅ Найдено {len(orders_response.data)} заказов")
             
             # Создаем CSV файл в памяти
             output = io.StringIO()
@@ -466,13 +487,15 @@ class Handler(BaseHTTPRequestHandler):
             # Создаем файл в памяти
             csv_data = output.getvalue().encode('utf-8')
             
-            # Создаем временный файл с расширением .csv
+            print("📁 Создаем временный файл CSV...")
             with tempfile.NamedTemporaryFile(delete=False, suffix='.csv', mode='wb') as tmp:
                 tmp.write(csv_data)
-                tmp.flush()
-                
-                # Отправляем файл в Telegram
-                with open(tmp.name, 'rb') as f:
+                tmp_path = tmp.name
+                print(f"✅ Временный файл создан: {tmp_path}")
+            
+            try:
+                print("📤 Отправляем файл в Telegram...")
+                with open(tmp_path, 'rb') as f:
                     resp = requests.post(
                         f'https://api.telegram.org/bot{bot_token}/sendDocument',
                         data={'chat_id': user_id, 'caption': '📊 Отчет по заказам в формате CSV'},
@@ -480,26 +503,45 @@ class Handler(BaseHTTPRequestHandler):
                         timeout=30
                     )
                 
-                os.unlink(tmp.name)
-            
-            if resp.status_code == 200:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response_data = {'success': True, 'message': 'Файл отправлен в Telegram'}
-                self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            else:
-                raise Exception(f'Ошибка Telegram API: {resp.text}')
+                print(f"📩 Ответ Telegram API: {resp.status_code}")
+                
+                if resp.status_code == 200:
+                    print("✅ Файл успешно отправлен в Telegram")
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response_data = {'success': True, 'message': 'Файл отправлен в Telegram'}
+                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                else:
+                    error_text = resp.text[:200] if resp.text else 'Неизвестная ошибка'
+                    print(f"❌ Ошибка Telegram API: {resp.status_code} - {error_text}")
+                    self.send_response(500)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    response_data = {'success': False, 'error': f'Ошибка отправки файла: {resp.status_code}'}
+                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                    
+            finally:
+                # Удаляем временный файл
+                try:
+                    os.unlink(tmp_path)
+                    print("🗑 Временный файл удален")
+                except:
+                    pass
                 
         except Exception as e:
+            error_msg = str(e)
+            print(f"💥 Критическая ошибка в экспорте: {error_msg}")
             log_error("export_orders", e, self.headers.get('Telegram-Id', ''), "Ошибка экспорта")
+            
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            response = {'success': False, 'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            response_data = {'success': False, 'error': f'Ошибка сервера: {error_msg}'}
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
 
     def send_order_notification(self, order_id, status_id):
         try:
