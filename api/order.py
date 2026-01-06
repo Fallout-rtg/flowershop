@@ -29,7 +29,7 @@ class Handler(BaseHTTPRequestHandler):
             print(f"📥 GET запрос на путь: {self.path}")
             
             # Добавляем обработку экспорта заказов
-            if self.path == '/api/export/orders' or self.path.startswith('/api/export/orders'):
+            if self.path == '/api/order/export' or self.path.startswith('/api/order/export'):
                 print("🔄 Вызов handle_export_orders из do_GET")
                 return self.handle_export_orders()
             
@@ -118,7 +118,7 @@ class Handler(BaseHTTPRequestHandler):
             print(f"📥 POST запрос на путь: {self.path}")
             
             # Убираем обработку экспорта из POST, теперь она в GET
-            if self.path == '/api/export/orders' or self.path.startswith('/api/export/orders'):
+            if self.path == '/api/order/export' or self.path.startswith('/api/order/export'):
                 print("❌ Экспорт должен вызываться через GET метод")
                 self.send_response(405)
                 self.send_header('Content-type', 'application/json')
@@ -420,11 +420,6 @@ class Handler(BaseHTTPRequestHandler):
         try:
             print(f"🔄 Начало обработки экспорта заказов через GET")
             
-            # Сразу устанавливаем заголовки ответа
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            
             bot_token = os.environ.get('BOT_TOKEN')
             user_id = self.headers.get('Telegram-Id', '')
             is_admin = self.headers.get('Is-Admin', 'false') == 'true'
@@ -433,22 +428,31 @@ class Handler(BaseHTTPRequestHandler):
             
             if not bot_token:
                 print("❌ Отсутствует BOT_TOKEN")
-                response_data = {'success': False, 'error': 'Отсутствует BOT_TOKEN'}
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
+                response_data = {'success': False, 'error': 'Отсутствует BOT_TOKEN'}
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
             if not user_id:
                 print("❌ Отсутствует Telegram-Id")
-                response_data = {'success': False, 'error': 'Требуется авторизация'}
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
+                response_data = {'success': False, 'error': 'Требуется авторизация'}
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
             if not is_admin:
                 print("❌ Пользователь не является администратором")
-                response_data = {'success': False, 'error': 'Требуются права администратора'}
+                self.send_response(403)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
+                response_data = {'success': False, 'error': 'Требуются права администратора'}
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
@@ -457,8 +461,11 @@ class Handler(BaseHTTPRequestHandler):
             
             if not orders_response.data:
                 print("⚠️ Нет данных для экспорта")
-                response_data = {'success': True, 'message': 'Нет данных для экспорта', 'data': []}
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
+                response_data = {'success': True, 'message': 'Нет данных для экспорта', 'data': []}
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
             
@@ -528,14 +535,20 @@ class Handler(BaseHTTPRequestHandler):
                 
                 if resp.status_code == 200:
                     print("✅ Файл успешно отправлен в Telegram")
-                    response_data = {'success': True, 'message': 'Файл отправлен в Telegram'}
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
+                    response_data = {'success': True, 'message': 'Файл отправлен в Telegram'}
                     self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 else:
                     error_text = resp.text[:200] if resp.text else 'Неизвестная ошибка'
                     print(f"❌ Ошибка Telegram API: {resp.status_code} - {error_text}")
-                    response_data = {'success': False, 'error': f'Ошибка отправки файла: {resp.status_code}'}
+                    self.send_response(500)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
+                    response_data = {'success': False, 'error': f'Ошибка отправки файла: {resp.status_code}'}
                     self.wfile.write(json.dumps(response_data).encode('utf-8'))
                     
             finally:
