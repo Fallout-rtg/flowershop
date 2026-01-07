@@ -3,9 +3,8 @@ import json
 import os
 import requests
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import io, tempfile, json, os, requests
-from datetime import datetime
 import csv
 
 sys.path.append(os.path.dirname(__file__))
@@ -213,6 +212,28 @@ class Handler(BaseHTTPRequestHandler):
             response = {'success': False, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode('utf-8'))
     
+    def get_moscow_time(self):
+        """Получение текущего времени по Москве (UTC+3)"""
+        # Текущее время в UTC
+        utc_now = datetime.now(timezone.utc)
+        # Добавляем 3 часа для московского времени
+        moscow_offset = timedelta(hours=3)
+        moscow_time = utc_now + moscow_offset
+        return moscow_time
+    
+    def convert_utc_to_moscow(self, utc_dt_str):
+        """Конвертирует UTC время из базы данных в московское время"""
+        try:
+            # Парсим UTC время из строки
+            utc_dt = datetime.fromisoformat(utc_dt_str.replace('Z', '+00:00'))
+            # Добавляем 3 часа для московского времени
+            moscow_offset = timedelta(hours=3)
+            moscow_dt = utc_dt + moscow_offset
+            return moscow_dt
+        except Exception as e:
+            print(f"⚠️ Ошибка преобразования времени: {e}")
+            return None
+    
     def send_admin_notification(self, order_data, delivery_option, delivery_address, discount_amount):
         try:
             bot_token = os.environ.get('BOT_TOKEN')
@@ -341,7 +362,7 @@ class Handler(BaseHTTPRequestHandler):
                 formatted_phone = phone
             
             # Используем время из заказа или текущее время
-            order_time = order_data.get('time', datetime.now().strftime('%d.%m.%Y, %H:%M:%S'))
+            order_time = order_data.get('time', self.get_moscow_time().strftime('%d.%m.%Y, %H:%M:%S'))
             
             # Формируем сообщение
             message = f"""✅ Ваш заказ принят!
@@ -549,9 +570,10 @@ class Handler(BaseHTTPRequestHandler):
             title_cell.fill = title_fill
             title_cell.alignment = Alignment(horizontal='center', vertical='center')
             
-            # Добавляем подзаголовок с датой
+            # Добавляем подзаголовок с датой (МОСКОВСКОЕ ВРЕМЯ)
             ws1.merge_cells('A2:M2')
-            subtitle_cell = ws1.cell(row=2, column=1, value=f"Сформирован: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
+            moscow_time = self.get_moscow_time()
+            subtitle_cell = ws1.cell(row=2, column=1, value=f"Сформирован: {moscow_time.strftime('%d.%m.%Y %H:%M')} (МСК)")
             subtitle_cell.font = Font(name='Calibri', size=10, italic=True, color='7F7F7F')
             subtitle_cell.alignment = Alignment(horizontal='center', vertical='center')
             
@@ -597,13 +619,16 @@ class Handler(BaseHTTPRequestHandler):
             
             # Заполняем данные
             for idx, order in enumerate(orders, 1):
-                # Форматируем дату
+                # Форматируем дату (МОСКОВСКОЕ ВРЕМЯ)
                 order_time = ''
                 if order.get('created_at'):
                     try:
-                        order_time = datetime.fromisoformat(
-                            order['created_at'].replace('Z', '+00:00')
-                        ).strftime('%d.%m.%Y\n%H:%M')
+                        # Преобразуем UTC время в московское
+                        moscow_dt = self.convert_utc_to_moscow(order['created_at'])
+                        if moscow_dt:
+                            order_time = moscow_dt.strftime('%d.%m.%Y\n%H:%M')
+                        else:
+                            order_time = str(order['created_at'])
                     except:
                         order_time = str(order['created_at'])
                 
@@ -953,13 +978,16 @@ class Handler(BaseHTTPRequestHandler):
             # Заполняем детальные чеки
             check_row = 4
             for order in orders:
-                # Форматируем дату
+                # Форматируем дату (МОСКОВСКОЕ ВРЕМЯ)
                 order_time = ''
                 if order.get('created_at'):
                     try:
-                        order_time = datetime.fromisoformat(
-                            order['created_at'].replace('Z', '+00:00')
-                        ).strftime('%d.%m.%Y')
+                        # Преобразуем UTC время в московское
+                        moscow_dt = self.convert_utc_to_moscow(order['created_at'])
+                        if moscow_dt:
+                            order_time = moscow_dt.strftime('%d.%m.%Y')
+                        else:
+                            order_time = str(order['created_at'])
                     except:
                         order_time = str(order['created_at'])
                 
@@ -1096,7 +1124,12 @@ class Handler(BaseHTTPRequestHandler):
                 order_time = ''
                 if order.get('created_at'):
                     try:
-                        order_time = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00')).strftime('%d.%m.%Y %H:%M')
+                        # Преобразуем UTC время в московское
+                        moscow_dt = self.convert_utc_to_moscow(order['created_at'])
+                        if moscow_dt:
+                            order_time = moscow_dt.strftime('%d.%m.%Y %H:%M')
+                        else:
+                            order_time = order['created_at']
                     except:
                         order_time = order['created_at']
                 
