@@ -21,19 +21,7 @@ def get_ai_response(prompt, context=""):
     if not OPENROUTER_API_KEY:
         return {"error": "OpenRouter API ключ не настроен"}
     
-    system_prompt = f"""You are an AI assistant for a flower shop called "АртФлора". 
-You help with questions about flowers, bouquets, orders, delivery, and shop management.
-You should always respond in Russian language.
-Shop context: {context}
-
-Instructions:
-1. Always respond in Russian
-2. Be helpful, friendly and professional
-3. If asked about specific flowers, provide accurate information
-4. For order-related questions, guide users to proper procedures
-5. For administrative questions, provide guidance on using the admin panel
-6. Keep responses concise but informative
-7. If you don't know something, admit it politely"""
+    system_prompt = f"Вы — ИИ-ассистент администратора магазина 'АртФлора'. Вы говорите напрямую с владельцем. Будьте кратки, профессиональны и помогайте в управлении."
 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
