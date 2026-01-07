@@ -948,16 +948,10 @@
                 </div>
 
                 <div class="admin-tab-content" id="aiTab">
-                    <div class="product-form">
-                        <div class="form-title"><i class="fas fa-robot"></i> AI Помощник (DeepSeek R1)</div>
-                        <div class="settings-group">
-                            <div class="settings-label">Контекст магазина</div>
-                            <textarea id="aiContext" class="form-input" rows="3" placeholder="Контекст для AI...">Магазин цветов "АртФлора". Продаем розы, тюльпаны, орхидеи, премиум букеты. Доставка по Ярославлю. Цены от 500 до 5000 рублей. Работаем с 9:00 до 20:00.</textarea>
-                            <div class="settings-hint">Этот контекст помогает AI лучше понимать специфику вашего магазина</div>
-                        </div>
-                        <div class="chat-container" style="background:white;border-radius:var(--radius);padding:16px;margin-bottom:16px;border:var(--border);max-height:400px;overflow-y:auto;"><div id="aiChatMessages"></div></div>
-                        <div class="form-row"><div class="form-full" style="display:flex;gap:8px;"><input type="text" id="aiMessageInput" class="form-input" placeholder="Задайте вопрос AI помощнику..." style="flex:1;"><button class="btn btn-primary" onclick="sendAiMessage()" id="sendAiBtn"><i class="fas fa-paper-plane"></i> Отправить</button><button class="btn btn-secondary" onclick="clearAiChat()"><i class="fas fa-trash"></i> Очистить</button></div></div>
-                        <div class="settings-hint" style="margin-top:12px;"><i class="fas fa-info-circle"></i> AI помощник использует DeepSeek R1 через OpenRouter. Отвечает на вопросы о товарах, заказах, настройках магазина.</div>
+                    <div class="assistant-tab-content">
+                        <button class="launch-btn" onclick="toggleAI(true)">
+                            <i class="fas fa-robot"></i> Запустить помощника
+                        </button>
                     </div>
                 </div>
 
@@ -1413,6 +1407,12 @@
     <script>
         let tg=window.Telegram.WebApp;tg.expand();tg.ready();let cart=[];let currentCategory='all';let products=[];let isAdmin=false;let currentUserRole='';let currentDangerousAction=null;let currentConfirmationCode=null;let adminData={products:[],orders:[],admins:[],stats:{},settings:{},themes:[],promocodes:[],categories:[]};let deliveryOption='pickup';let deliveryPrice=200;let freeDeliveryMin=3000;let currentOrdersPage=1;let ordersPerPage=10;let appliedPromocode=null;let activePattern='dots';let currentOrderId=null;let selectedStatus=null;let selectedCategory=null;let selectedIcon=null;let selectedDiscountType='percentage';let selectedRole='admin';let snowEnabled=false;let rainEnabled=false;let confettiEnabled=false;let nightEnabled=false;let snowflakes=[];let raindrops=[];let confettiPieces=[];let lightSpots=[];let currentDeleteCallback=null;let currentDeleteId=null;let currentDeleteType=null;let currentProductFilter='all';let currentProductSearch='';let aiChatHistory = [];
         
+        function toggleAI(show){const m=document.getElementById('ai-modal');m.style.display=show?'flex':'none';if(show)document.getElementById('ai-user-input').focus()}
+
+        function formatAIResponse(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
+
+        async function sendAIMessage(){const i=document.getElementById('ai-user-input'),c=document.getElementById('ai-chat-container'),msg=i.value.trim();if(!msg)return;i.value='';c.innerHTML+=`<div class="ai-msg user">${msg}</div>`;c.scrollTop=c.scrollHeight;try{const r=await fetch('/api/AI', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,context:'Администратор магазина'})});const d=await r.json();if(d.success){c.innerHTML+=`<div class="ai-msg bot">${formatAIResponse(d.response)}</div>`}else{c.innerHTML+=`<div class="ai-msg bot" style="color:red">Ошибка: ${d.error}</div>`};c.scrollTop=c.scrollHeight}catch(e){c.innerHTML+=`<div class="ai-msg bot">Ошибка связи</div>`};}
+        
         function loadAiTab(){const e=document.getElementById("aiChatMessages");if(!e.innerHTML.trim()){e.innerHTML='<div class="help-item" style="background:var(--bg-tertiary);padding:12px;border-radius:var(--radius-sm);margin-bottom:12px;"><h3 style="font-size:14px;margin-bottom:8px;">🤖 AI Помощник АртФлора</h3><p style="font-size:12px;color:var(--text-light);margin-bottom:8px;">Я помогу вам с вопросами о:</p><ul style="font-size:11px;color:var(--text-light);margin-left:16px;"><li>Товарах и категориях</li><li>Заказах и доставке</li><li>Настройках магазина</li><li>Промокодах и скидках</li><li>Администрировании</li></ul><p style="font-size:11px;color:var(--text-light);margin-top:8px;">Просто задайте вопрос!</p></div>'}}
         
         function sendAiMessage(){const e=document.getElementById("aiMessageInput"),t=e.value.trim(),n=document.getElementById("sendAiBtn"),o=document.getElementById("aiContext").value;if(!t)return void showToast("Введите сообщение","error");addAiMessage(t,"user"),e.value="";const a="msg_"+Date.now();addAiMessage("🤔 Думаю...","assistant",!0),n.disabled=!0,n.innerHTML='<i class="fas fa-spinner fa-spin"></i>',fetch("/api/ai/chat",{method:"POST",headers:{"Content-Type":"application/json","Telegram-Id":tg.initDataUnsafe.user?.id||""},body:JSON.stringify({message:t,context:o})}).then(async e=>{const t=e.headers.get("content-type");if(t&&t.includes("application/json")){return e.json()}else{const t=await e.text();throw new Error(`Сервер вернул: ${t.substring(0,100)}`)}}).then(e=>{removeAiMessage(a),e.success?(addAiMessage(e.response,"assistant"),aiChatHistory.push({role:"user",content:t}),aiChatHistory.push({role:"assistant",content:e.response})):addAiMessage(`❌ Ошибка: ${e.error||"Неизвестная ошибка"}`,"assistant")}).catch(e=>{removeAiMessage(a),console.error("AI Error:",e),addAiMessage(`❌ Ошибка соединения: ${e.message}`,"assistant")}).finally(()=>{n.disabled=!1,n.innerHTML='<i class="fas fa-paper-plane"></i> Отправить'})}
@@ -1663,5 +1663,16 @@
         
         if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp)}else{initApp()}
     </script>
+
+    <div id="ai-modal">
+        <div id="ai-close" onclick="toggleAI(false)">×</div>
+        <div id="ai-chat-container"></div>
+        <div id="ai-input-area">
+            <div id="ai-input-wrapper">
+                <input type="text" id="ai-user-input" placeholder="Задайте вопрос по магазину..." onkeypress="if(event.key==='Enter')sendAIMessage()">
+                <button onclick="sendAIMessage()">Отправить</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
