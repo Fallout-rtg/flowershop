@@ -60,7 +60,7 @@ def get_ai_response(prompt, context=""):
     except Exception as e:
         return {"error": f"Ошибка: {str(e)}"}
 
-class Handler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):  # Изменено с Handler на handler
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -125,20 +125,28 @@ class Handler(BaseHTTPRequestHandler):
             # Получаем ответ от AI
             ai_response = get_ai_response(user_message, context)
             
+            # Всегда возвращаем 200 и JSON, чтобы клиент мог обработать ошибку
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            # Форматируем ответ
+            response_data = ai_response
             if "error" in ai_response:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response_json = json.dumps(ai_response, ensure_ascii=False).encode('utf-8')
-                self.wfile.write(response_json)
+                response_data = {
+                    "success": False,
+                    "error": ai_response["error"],
+                    "details": ai_response.get("details", "")
+                }
             else:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response_json = json.dumps(ai_response, ensure_ascii=False).encode('utf-8')
-                self.wfile.write(response_json)
+                response_data = {
+                    "success": True,
+                    "response": ai_response.get("response", "")
+                }
+            
+            response_json = json.dumps(response_data, ensure_ascii=False).encode('utf-8')
+            self.wfile.write(response_json)
             
         except json.JSONDecodeError:
             self.send_response(400)
@@ -158,3 +166,4 @@ class Handler(BaseHTTPRequestHandler):
             response = {'error': error_msg}
             response_json = json.dumps(response, ensure_ascii=False).encode('utf-8')
             self.wfile.write(response_json)
+            
