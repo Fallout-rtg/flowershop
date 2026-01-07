@@ -126,6 +126,11 @@
       "methods": ["GET", "PUT", "OPTIONS"]
     },
     {
+      "src": "/api/AI",
+      "dest": "/api/AI.py",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
       "src": "/api/ai/chat",
       "dest": "/api/AI.py",
       "methods": ["POST", "OPTIONS"]
