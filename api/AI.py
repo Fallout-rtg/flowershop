@@ -78,6 +78,17 @@ Instructions:
         return {"error": f"Ошибка: {str(e)}"}
 
 class Handler(BaseHTTPRequestHandler):
+    def _send_response(self, status_code, data):
+        """Универсальный метод отправки ответа"""
+        self.send_response(status_code)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        # Кодируем данные в UTF-8
+        response_data = json.dumps(data, ensure_ascii=False).encode('utf-8')
+        self.wfile.write(response_data)
+    
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -87,91 +98,49 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
-            if self.path == '/api/ai/status' or self.path == '/api/ai/status/':
+            path = self.path.rstrip('/')
+            if path == '/api/ai/status':
                 status_data = {
                     "status": "online" if OPENROUTER_API_KEY else "offline",
                     "model": MODEL,
                     "service": "OpenRouter + DeepSeek R1"
                 }
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json; charset=utf-8')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                
-                response_json = json.dumps(status_data, ensure_ascii=False)
-                self.wfile.write(response_json.encode('utf-8'))
+                self._send_response(200, status_data)
             else:
-                self.send_response(404)
-                self.send_header('Content-type', 'application/json; charset=utf-8')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response = {'error': 'Not found'}
-                response_json = json.dumps(response, ensure_ascii=False)
-                self.wfile.write(response_json.encode('utf-8'))
+                self._send_response(404, {'error': 'Not found'})
                 
         except Exception as e:
             log_error("AI_GET", e, self.headers.get('Telegram-Id', ''), f"Path: {self.path}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'error': str(e)}
-            response_json = json.dumps(response, ensure_ascii=False)
-            self.wfile.write(response_json.encode('utf-8'))
+            self._send_response(500, {'error': str(e)})
     
     def do_POST(self):
         try:
             content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
+            post_data = self.rfile.read(content_length).decode('utf-8')
             data = json.loads(post_data)
             
             user_message = data.get('message', '').strip()
             context = data.get('context', 'Цветочный магазин "АртФлора"')
             
             if not user_message:
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json; charset=utf-8')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response = {'error': 'Пустое сообщение'}
-                response_json = json.dumps(response, ensure_ascii=False)
-                self.wfile.write(response_json.encode('utf-8'))
+                self._send_response(400, {'error': 'Пустое сообщение'})
                 return
             
             # Получаем ответ от AI
             ai_response = get_ai_response(user_message, context)
             
             if "error" in ai_response:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json; charset=utf-8')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response_json = json.dumps(ai_response, ensure_ascii=False)
-                self.wfile.write(response_json.encode('utf-8'))
+                self._send_response(500, ai_response)
             else:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json; charset=utf-8')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response_json = json.dumps(ai_response, ensure_ascii=False)
-                self.wfile.write(response_json.encode('utf-8'))
+                self._send_response(200, ai_response)
             
         except json.JSONDecodeError:
-            self.send_response(400)
-            self.send_header('Content-type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'error': 'Invalid JSON'}
-            response_json = json.dumps(response, ensure_ascii=False)
-            self.wfile.write(response_json.encode('utf-8'))
-            
+            self._send_response(400, {'error': 'Invalid JSON'})
         except Exception as e:
-            log_error("AI_POST", e, self.headers.get('Telegram-Id', ''), f"Data: {data}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            response = {'error': str(e)}
-            response_json = json.dumps(response, ensure_ascii=False)
-            self.wfile.write(response_json.encode('utf-8'))
+            error_data = str(e)
+            # Безопасная логировка для избежания проблем с кодировкой
+            try:
+                log_error("AI_POST", str(e), self.headers.get('Telegram-Id', ''), "Error occurred")
+            except:
+                pass
+            self._send_response(500, {'error': 'Internal server error'})
