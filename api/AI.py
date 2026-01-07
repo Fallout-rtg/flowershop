@@ -39,7 +39,7 @@ Instructions:
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://artflora.vercel.app",
-        "X-Title": "АртФлора Цветочный Магазин"
+        "X-Title": "ArtFlora Flower Shop"
     }
 
     payload = {
