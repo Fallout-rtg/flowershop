@@ -752,7 +752,7 @@ class Handler(BaseHTTPRequestHandler):
                 lines = 1
                 if items_cell.value:
                     lines = str(items_cell.value).count('\n') + 1
-                ws1.row_dimensions[row].height = max(20, lines * 15)
+                ws1.row_dimensions[row].height = max(50, lines * 15)
             
             # Добавляем итоговую строку
             summary_row = row_num + 1
