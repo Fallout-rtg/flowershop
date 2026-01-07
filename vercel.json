@@ -46,6 +46,10 @@
       "use": "@vercel/python"
     },
     {
+      "src": "api/AI.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     }
@@ -122,9 +126,14 @@
       "methods": ["GET", "PUT", "OPTIONS"]
     },
     {
-      "src": "/api/themes",
-      "dest": "/api/themes.py",
-      "methods": ["GET", "POST", "PUT", "OPTIONS"]
+      "src": "/api/ai/chat",
+      "dest": "/api/AI.py",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/ai/status",
+      "dest": "/api/AI.py",
+      "methods": ["GET", "OPTIONS"]
     },
     {
       "src": "/",
@@ -134,10 +143,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  {
-  "rewrites": [
-    {"source": "/api/ai/chat", "destination": "/api/AI.py"},
-    {"source": "/api/ai/status", "destination": "/api/AI.py"}
   ]
 }
