@@ -1,10 +1,17 @@
-# AI.py
-import os
+# api/AI.py
+from http.server import BaseHTTPRequestHandler
 import json
-from flask import Blueprint, request, jsonify
+import os
+import sys
 import requests
 
-ai_bp = Blueprint('ai', __name__)
+sys.path.append(os.path.dirname(__file__))
+
+try:
+    from supabase_client import supabase
+    from health import log_error
+except ImportError as e:
+    print(f"Import error: {e}")
 
 # Конфигурация OpenRouter
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
@@ -70,37 +77,93 @@ Instructions:
     except Exception as e:
         return {"error": f"Ошибка: {str(e)}"}
 
-@ai_bp.route('/api/ai/chat', methods=['POST'])
-def ai_chat():
-    """
-    Обработчик чата с AI
-    """
-    try:
-        data = request.json
-        user_message = data.get('message', '').strip()
-        context = data.get('context', 'Цветочный магазин "АртФлора"')
-        
-        if not user_message:
-            return jsonify({"error": "Пустое сообщение"}), 400
-        
-        # Получаем ответ от AI
-        ai_response = get_ai_response(user_message, context)
-        
-        if "error" in ai_response:
-            return jsonify(ai_response), 500
-        
-        return jsonify(ai_response)
+class Handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Telegram-Id')
+        self.end_headers()
     
-    except Exception as e:
-        return jsonify({"error": f"Ошибка сервера: {str(e)}"}), 500
-
-@ai_bp.route('/api/ai/status', methods=['GET'])
-def ai_status():
-    """
-    Проверка статуса AI сервиса
-    """
-    return jsonify({
-        "status": "online" if OPENROUTER_API_KEY else "offline",
-        "model": MODEL,
-        "service": "OpenRouter + DeepSeek R1"
-    })
+    def do_GET(self):
+        try:
+            if self.path == '/api/ai/status':
+                status_data = {
+                    "status": "online" if OPENROUTER_API_KEY else "offline",
+                    "model": MODEL,
+                    "service": "OpenRouter + DeepSeek R1"
+                }
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                self.wfile.write(json.dumps(status_data).encode('utf-8'))
+            else:
+                self.send_response(404)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'error': 'Not found'}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                
+        except Exception as e:
+            log_error("AI_GET", e, self.headers.get('Telegram-Id', ''), f"Path: {self.path}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'error': str(e)}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+    
+    def do_POST(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            
+            user_message = data.get('message', '').strip()
+            context = data.get('context', 'Цветочный магазин "АртФлора"')
+            
+            if not user_message:
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'error': 'Пустое сообщение'}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                return
+            
+            # Получаем ответ от AI
+            ai_response = get_ai_response(user_message, context)
+            
+            if "error" in ai_response:
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(ai_response).encode('utf-8'))
+            else:
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(ai_response).encode('utf-8'))
+            
+        except json.JSONDecodeError:
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'error': 'Invalid JSON'}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+            
+        except Exception as e:
+            log_error("AI_POST", e, self.headers.get('Telegram-Id', ''), f"Data: {data}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'error': str(e)}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
