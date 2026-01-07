@@ -134,5 +134,10 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
+  ],
+  {
+  "rewrites": [
+    {"source": "/api/ai/chat", "destination": "/api/AI.py"},
+    {"source": "/api/ai/status", "destination": "/api/AI.py"}
   ]
 }
