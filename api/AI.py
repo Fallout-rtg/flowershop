@@ -87,7 +87,7 @@ class Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         try:
-            if self.path == '/api/ai/status':
+            if self.path == '/api/ai/status' or self.path == '/api/ai/status/':
                 status_data = {
                     "status": "online" if OPENROUTER_API_KEY else "offline",
                     "model": MODEL,
@@ -95,27 +95,30 @@ class Handler(BaseHTTPRequestHandler):
                 }
                 
                 self.send_response(200)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 
-                self.wfile.write(json.dumps(status_data).encode('utf-8'))
+                response_json = json.dumps(status_data, ensure_ascii=False)
+                self.wfile.write(response_json.encode('utf-8'))
             else:
                 self.send_response(404)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'error': 'Not found'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                response_json = json.dumps(response, ensure_ascii=False)
+                self.wfile.write(response_json.encode('utf-8'))
                 
         except Exception as e:
             log_error("AI_GET", e, self.headers.get('Telegram-Id', ''), f"Path: {self.path}")
             self.send_response(500)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             response = {'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            response_json = json.dumps(response, ensure_ascii=False)
+            self.wfile.write(response_json.encode('utf-8'))
     
     def do_POST(self):
         try:
@@ -128,11 +131,12 @@ class Handler(BaseHTTPRequestHandler):
             
             if not user_message:
                 self.send_response(400)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'error': 'Пустое сообщение'}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                response_json = json.dumps(response, ensure_ascii=False)
+                self.wfile.write(response_json.encode('utf-8'))
                 return
             
             # Получаем ответ от AI
@@ -140,30 +144,34 @@ class Handler(BaseHTTPRequestHandler):
             
             if "error" in ai_response:
                 self.send_response(500)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps(ai_response).encode('utf-8'))
+                response_json = json.dumps(ai_response, ensure_ascii=False)
+                self.wfile.write(response_json.encode('utf-8'))
             else:
                 self.send_response(200)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps(ai_response).encode('utf-8'))
+                response_json = json.dumps(ai_response, ensure_ascii=False)
+                self.wfile.write(response_json.encode('utf-8'))
             
         except json.JSONDecodeError:
             self.send_response(400)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             response = {'error': 'Invalid JSON'}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            response_json = json.dumps(response, ensure_ascii=False)
+            self.wfile.write(response_json.encode('utf-8'))
             
         except Exception as e:
             log_error("AI_POST", e, self.headers.get('Telegram-Id', ''), f"Data: {data}")
             self.send_response(500)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             response = {'error': str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            response_json = json.dumps(response, ensure_ascii=False)
+            self.wfile.write(response_json.encode('utf-8'))
